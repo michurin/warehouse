@@ -1,0 +1,3 @@
+#!/usr/bin/env perl -wap
+
+s-_(\w)-uc($1)-eg;

@@ -1,0 +1,43 @@
+#!/bin/sh
+
+clr0="`tput sgr0`"
+clr1="`tput setaf 2`"
+clr2="`tput setaf 3`"
+clr3="`tput setaf 1``tput bold`"
+
+d=`date '+-%y-%m-%d'`
+for arg in "$@"
+do
+  echo $arg
+  base=`basename "$arg"`
+  dir=`dirname "$arg"`
+  ok='not'
+  for i in 0 1 2 3 4 5 6 7 8 9
+  do
+    if test "a$i" = "a0"
+    then
+      suff=''
+    else
+      suff="-$i"
+    fi
+    aname="$base$d$suff.tgz"
+    if test -e "$aname"
+    then
+      echo "$clr2[INFO]$clr0 Left name \"$aname\""
+    else
+      tar -c -C "$dir" -z -f "$aname" "$base"
+      if test "a$?" = 'a0'
+      then
+        echo "$clr1[OK]$clr0 $arg -> $aname"
+      else
+        echo "$clr3[ERROR]$clr0 Tar error for \"$arg\""
+      fi
+      ok='ok'
+      break
+    fi
+  done
+  if test "a$ok" = "anot"
+  then
+    echo "$clr3[ERROR]$clr0 Can not create name of archive for \"$arg\"!"
+  fi
+done

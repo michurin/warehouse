@@ -1,0 +1,62 @@
+#!/usr/bin/env python
+
+import sys
+import json
+import re
+
+date_re = re.compile(r'^([\d-]+)T([\d:]+)\..*')
+
+HINTS = (
+    ('ts', 10, '34;1', lambda _, x: date_re.sub(lambda t: t.group(1) + ' ' + t.group(2), x)),
+    ('level', 20, None, lambda _, x: '\033[' + {
+        'info': '32;1',
+        'error': '33;41;1',
+    }.get(x.lower(), '33;1') + 'm' + x + '\033[0m'),
+    ('comp', 30, '35;1', None),
+    ('caller', 40, '32', lambda _, x: '/'.join(x.split('/')[:])), # [:6]
+    ('msg', 1000, None, None),
+    ('message', 1000, None, None),
+)
+
+HINTS_MAP = {t[0]: (t[1], t[0], t[2], t[3]) for t in HINTS}
+
+def format_str(f):
+    if not hasattr(f, 'lower'): # str and unicode (Py2/3)
+        f = json.dumps(f, ensure_ascii=False, indent=4, separators=(',', ': '), sort_keys=True)
+    return f
+
+def format_field(f, k):
+    _, fld, color, proc = k
+    f = format_str(f)
+    if proc is not None:
+        f = proc(fld, f)
+    if color is not None:
+        f = '\033[' + color + 'm' + f + '\033[0m'
+    return f
+
+def encode_line(rec):
+    keys = sorted(HINTS_MAP.get(k, (500, k, None, lambda k, v: k + '=\033[33;1m' + format_str(v) + '\033[0m')) for k in rec.keys())
+    fields = (format_field(rec[k[1]], k) for k in keys)
+    return ' '.join(fields)
+
+def main():
+    while True:
+        rec_text = sys.stdin.readline()
+        if rec_text == '':
+            break
+        try:
+            rec = json.loads(rec_text)
+        except ValueError:
+            rec = None
+        if rec is not None:
+            line = encode_line(rec)
+        else:
+            line = '\033[30;41mINVALID LINE\033[0m \033[31;1m' + rec_text.strip() + '\033[0m'
+        sys.stdout.write(line + '\n')
+        sys.stdout.flush()
+
+if __name__ == '__main__':
+    try:
+        main()
+    except KeyboardInterrupt:
+        pass

@@ -1,0 +1,12 @@
+#!/bin/bash
+
+if [ $# = '0' ]
+then
+    echo "USAGE: $0 args"
+    echo 'It is equal to:'
+    echo 'find go files | xargs <args>'
+    exit
+fi
+
+set -x
+find . -not \( \( -path ./vendor -o -path ./mocks \) -prune \) -type f -name '*.go' | xargs -- "$@"

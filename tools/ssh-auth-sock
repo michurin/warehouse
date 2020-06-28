@@ -1,0 +1,14 @@
+#!/bin/bash
+
+orig_ssh_sock="$SSH_AUTH_SOCK"
+new_ssh_sock="$(find /tmp -maxdepth 2 -type s -name 'agent*' -user $USER -printf '%T@ %p\n' 2>/dev/null | sort -n | tail -1 | cut -d' ' -f2)"
+if [ -z "$new_ssh_sock" ]
+then
+  echo "SSH_AUTH_SOCK: keeps, no new socket"
+else
+  export SSH_AUTH_SOCK="$new_ssh_sock"
+  if [ "x$orig_ssh_sock" != "x$SSH_AUTH_SOCK" ]
+  then
+    echo "SSH_AUTH_SOCK fixed"
+  fi
+fi

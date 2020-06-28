@@ -1,0 +1,32 @@
+#!/bin/sh
+
+clr0="`tput sgr0`"
+clr1="`tput setaf 2``tput bold`"
+
+if test "a$#" = a0
+then
+    echo 'Usage:'
+    echo " $0 all"
+    echo " $0 git [commit]"
+    echo " $0 file file file"
+    exit 1
+elif test "a$#" = a1 -a "a$1" = aall
+then
+    find . -type d \( -name .git -o -name vendor -o -name mocks \) -prune -o -type f -name '*.go' -print0 |
+        xargs -n1 -0 -I% sh -xc 'gofmt -s -w "%"; goimports -w "%"'
+elif test "a$1" = agit
+then
+    for f in `git diff --name-only ${2:-HEAD} | grep --color=never '\.go$'`
+    do
+        echo "$clr1$f$clr0"
+        gofmt -s -w "$f"
+        goimports -w "$f"
+    done
+else
+    for f in "$@"
+    do
+        echo "$clr1$f$clr0"
+        gofmt -s -w "$f"
+        goimports -w "$f"
+    done
+fi

@@ -1,0 +1,18 @@
+docker run --rm --name pg-docker -e POSTGRES_PASSWORD=docker -d -p 5432:5432 -v $HOME/pgvol:/var/lib/postgresql/data postgres
+
+Add ext:
+$ docker exec -it pg-docker /bin/bash
+# apt-get install postgresql-12-postgis-2.5
+
+$ psql -h localhost -U postgres
+postgres=# \c fraud_test
+fraud_test=# CREATE EXTENSION postgis;
+CREATE EXTENSION
+
+docker commit pg-docker pg-docker:geo
+% docker image ls                                                                                                                                                     1
+REPOSITORY                         TAG                 IMAGE ID            CREATED             SIZE
+pg-docker                          geo                 3f27f5b8da25        35 seconds ago      596MB
+
+Run:
+docker run --rm --name pg-docker -e POSTGRES_PASSWORD=docker -d -p 5432:5432 -v $HOME/pgvol:/var/lib/postgresql/data pg-docker:geo

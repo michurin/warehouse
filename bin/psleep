@@ -1,0 +1,43 @@
+#!/bin/sh
+
+if test "x$1" = 'x-n'
+then
+    nd=true
+    shift
+fi
+sec=$(echo $1 | sed 's-[^[:digit:]]--g')
+if test -z "$sec"
+then
+    echo "USAGE: $0 [-n] seconds [label]"
+    echo ' -n  Do not print final done message'
+    exit
+fi
+shift
+label="$@"
+
+exec 1>&2
+
+sc="$(tput sc)"
+rc="$(tput rc)"
+el="$(tput el)"
+cl="$(tput setaf 2)$(tput bold)"
+co="$(tput sgr0)"
+
+start="$(date +'%D %T')"
+
+total=$sec
+echo "$sc\c"
+
+while test 'x0' != "x$sec"
+do
+    echo "$rc$el$cl$sec/$total $(($total-$sec)) $(date +%H:%M:%S) ($start) $label$co \c"
+    sec=$(($sec - 1))
+    sleep 1
+done
+
+if test -z "$nd"
+then
+    echo "$rc$el$cl[DONE @ $start — $(date +'%D %T')] $label$co"
+else
+    echo "$rc$el\c"
+fi
