@@ -1,0 +1,11 @@
+{
+  "name": "XCutOut",
+  "version": "1.7",
+  "description": "Cut out annoying unwanted elemtnts",
+  "manifest_version": 2,
+  "permissions": ["tabs"],
+  "content_scripts": [
+    {"matches": ["https://mail.yandex.ru/*"], "js": ["m.js"]},
+    {"matches": ["https://yandex.ru/pogoda/*"], "js": ["p.js"]}
+  ]
+}
