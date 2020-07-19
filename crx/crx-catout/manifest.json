@@ -1,11 +1,13 @@
 {
   "name": "XCutOut",
-  "version": "1.7",
+  "version": "1.11",
   "description": "Cut out annoying unwanted elemtnts",
   "manifest_version": 2,
   "permissions": ["tabs"],
   "content_scripts": [
     {"matches": ["https://mail.yandex.ru/*"], "js": ["m.js"]},
-    {"matches": ["https://yandex.ru/pogoda/*"], "js": ["p.js"]}
+    {"matches": ["https://yandex.ru/pogoda/*"], "js": ["p.js"]},
+    {"matches": ["https://context.reverso.net/*"], "js": ["c.js"]},
+    {"matches": ["https://dictionary.cambridge.org/*"], "js": ["d.js"]}
   ]
 }
