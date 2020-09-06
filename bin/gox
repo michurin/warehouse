@@ -3,8 +3,9 @@
 if [ $# = '0' ]
 then
     echo "USAGE: $0 args"
-    echo 'It is equal to:'
-    echo 'find go files | xargs <args>'
+    echo 'It is equal to: <find go files> | xargs <args>'
+    echo 'EXAMPLE:'
+    echo "$0 grep PhoneOrEmail"
     exit
 fi
 
