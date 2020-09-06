@@ -2,6 +2,7 @@
 
 clr0="`tput sgr0`"
 clr1="`tput setaf 2``tput bold`"
+clr2="`tput setaf 3``tput bold`"
 
 if test "a$#" = a0
 then
@@ -16,11 +17,16 @@ then
         xargs -n1 -0 -I% sh -xc 'gofmt -s -w "%"; goimports -w "%"'
 elif test "a$1" = agit
 then
-    for f in `git diff --name-only ${2:-HEAD} | grep --color=never '\.go$'`
+    for f in `git diff --name-only ${2:-HEAD} | grep -v '^vendor/' | grep --color=never '\.go$'`
     do
-        echo "$clr1$f$clr0"
-        gofmt -s -w "$f"
-        goimports -w "$f"
+        if test -f "$f"
+        then
+            echo "$clr1$f$clr0"
+            gofmt -s -w "$f"
+            goimports -w "$f"
+        else
+            echo "$clr2$f removed?$clr0"
+        fi
     done
 else
     for f in "$@"
