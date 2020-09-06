@@ -13,11 +13,14 @@
       'ad_contentslot_3',
       'ad_contentslot_4',
       'ad_btmslot_a',
-    ].forEach((x) => {
+    ].forEach(x => {
       const e = document.getElementById(x);
       if (e) {
         e.remove();
       }
+    });
+    document.querySelectorAll('.loginPopupContainer').forEach(x => {
+      x.remove();
     });
   }, 2000);
 })();

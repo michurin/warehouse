@@ -1,3 +1,4 @@
+// /pogoda
 (() => {
   setInterval(() => {
     document.querySelectorAll(".content__right").forEach(e => e.remove());
