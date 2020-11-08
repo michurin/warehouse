@@ -1,1 +1,10 @@
-alter user postgres with superuser
+-- list roles \du or
+select rolname from pg_roles;
+-- create role
+create role root;
+-- copy role
+grant postgres to root;
+-- set password
+alter user root with password 'toor';
+-- alter
+alter user root with superuser
