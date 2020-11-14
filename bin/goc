@@ -1,0 +1,14 @@
+#!/bin/sh
+
+set -o pipefail
+
+clr0="`tput sgr0`"
+clrB="`tput bold`"
+clr1="`tput setaf 2`$clrB"
+clr2="`tput setab 1`$clrB"
+
+go test -v -coverprofile=coverage.out "$@" |
+    sed "s/FAIL/${clr2}FAIL$clr0/" |
+    sed -e "s/^\([[:space:]]\/.*\)$/$clrB\1$clr0/" &&
+go tool cover -html=coverage.out -o coverage.html &&
+echo "Open: $clr1$(pwd)/coverage.html$clr0"
