@@ -7,15 +7,23 @@ import re
 date_re = re.compile(r'^([\d-]+)T([\d:]+)\..*')
 
 HINTS = (
-    ('ts', 10, '34;1', lambda _, x: date_re.sub(lambda t: t.group(1) + ' ' + t.group(2), x)),
+    ('ts', 10, '44;34;1', lambda _, x: date_re.sub(lambda t: t.group(1) + ' ' + t.group(2), x)),
     ('level', 20, None, lambda _, x: '\033[' + {
         'info': '32;1',
         'error': '33;41;1',
     }.get(x.lower(), '33;1') + 'm' + x + '\033[0m'),
     ('comp', 30, '35;1', None),
-    ('caller', 40, '32', lambda _, x: '/'.join(x.split('/')[:])), # [:6]
+    ('method', 31, '35;1', None),
+    ('component', 32, '35;1', None),
+    ('operation_type', 33, '35', None),
+    ('caller', 40, '32', None), # lambda _, x: '/'.join(x.split('/')[:])), # [:6]
+    ('query', 100, '35', None),
+    ('req', 101, '35;1', None),
     ('msg', 1000, None, None),
     ('message', 1000, None, None),
+    ('start_time', -1, None, None),
+    ('time_finish', -1, None, None),
+    ('time_took', -1, None, None),
 )
 
 HINTS_MAP = {t[0]: (t[1], t[0], t[2], t[3]) for t in HINTS}
@@ -35,7 +43,8 @@ def format_field(f, k):
     return f
 
 def encode_line(rec):
-    keys = sorted(HINTS_MAP.get(k, (500, k, None, lambda k, v: k + '=\033[33;1m' + format_str(v) + '\033[0m')) for k in rec.keys())
+    keys = (HINTS_MAP.get(k, (500, k, None, lambda k, v: k + '=\033[33;1m' + format_str(v) + '\033[0m')) for k in rec.keys())
+    keys = sorted(k for k in keys if k[0] > 0)
     fields = (format_field(rec[k[1]], k) for k in keys)
     return ' '.join(fields)
 
