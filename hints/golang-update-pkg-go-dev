@@ -1,0 +1,2 @@
+GOPROXY=https://proxy.golang.org GO111MODULE=on GOPATH=/tmp/REMOVEME go get -u 'github.com/michurin/warehouse/go/loghttpclient'
+

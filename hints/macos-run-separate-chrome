@@ -1,0 +1,3 @@
+#!/bin/sh
+DATADIR="$HOME/.my/chrome"
+exec open -na "Google Chrome" --args "--user-data-dir=$DATADIR"
