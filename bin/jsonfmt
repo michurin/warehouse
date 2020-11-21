@@ -1,0 +1,28 @@
+#!/usr/bin/python
+
+'''
+json fmt
+'''
+
+import sys
+import json
+
+def main():
+    data = sys.stdin.read()
+    try:
+        string = json.dumps(
+            json.loads(data),
+            ensure_ascii=False,
+            indent=2,
+            sort_keys=True,
+            separators=(',', ': ',),
+            encoding='utf-8'
+        ) + '\n'
+    except ValueError:
+        sys.stdout.write(data)
+    else:
+        raw = string.encode('utf8')
+        sys.stdout.write(raw)
+
+if __name__ == '__main__':
+    main()

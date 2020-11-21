@@ -1,0 +1,76 @@
+#bindkey "\e[1;2A" history-beginning-search-backward-end
+#bindkey "\e[1;2B" history-beginning-search-forward-end
+
+setopt histignorespace
+
+bindkey '^[^[[C' forward-word
+bindkey '^[^[[D' backward-word
+bindkey '^A^N' end-of-line
+bindkey '^A^P' beginning-of-line
+bindkey '^[[1;2A' history-beginning-search-backward
+bindkey '^[[1;2B' history-beginning-search-forward
+
+export PROMPT='%F{blue}%B%~%b%f %# '
+export RPROMPT='%(?..%K{red} %F{yellow}%?%f %k)' # we can use just [%F{yellow}%?%f]
+typeset -U PATH path # Zsh ties the PATH variable to an path array, they are automatically kept in sync.
+path=("$HOME/bin" /usr/local/bin /usr/bin /bin /usr/sbin /sbin)
+export PATH
+
+locale='C' # C.UTF-8; locale -a
+locale_ru='ru_RU.UTF-8'
+export LANG="$locale_ru"
+export LC_ADDRESS="$locale"
+export LC_IDENTIFICATION="$locale"
+export LC_MEASUREMENT="$locale"
+export LC_MONETARY="$locale"
+export LC_NAME="$locale"
+export LC_NUMERIC="$locale"
+export LC_PAPER="$locale"
+export LC_TELEPHONE="$locale"
+export LC_TIME="$locale"
+
+export PYTHONIOENCODING='utf-8'
+export PYTHONDONTWRITEBYTECODE='1'
+export EDITOR='/usr/bin/vim'
+export VIEWER='/usr/bin/vim'
+export PAGER='/usr/bin/less'
+export LESS='FRSXQ'
+export LESSCHARSET='utf-8'
+export GREP_OPTIONS='--color=always'
+export GREP_COLORS='fn=36:ms=01;32'
+export HGENCODING='utf-8'
+
+unalias -a
+alias grep='grep --color=always'
+alias ls='ls -G'
+
+# public functions
+
+g() {
+    if test $# = 0
+    then
+        echo 'Status:'
+        echo "GOROOT=$GOROOT"
+        echo "GOPATH=$GOPATH"
+        echo "PATH=$PATH" | grep -E --color=always '/g[0-9][0-9]*/go*/bin|$'
+        return
+    fi
+
+    case "$1" in
+        1[01234]*)
+            b="g$1"
+            export GOPATH=$HOME/$b/g
+            export GOROOT=$HOME/$b/go
+            p=$PATH
+            echo $p
+            p=$(echo $PATH | sed 's-[^:]*/g[0-9][0-9]*/go*/bin:--g')
+            echo $p
+            export PATH="$GOROOT/bin:$GOPATH/bin:$p"
+            echo $PATH
+            ;;
+        *)
+            echo "Invalid instructin $1"
+            ;;
+    esac
+}
+

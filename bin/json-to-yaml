@@ -1,0 +1,6 @@
+#!/bin/sh
+
+for i in "$@"
+do
+  ruby -ryaml -rjson -e 'puts YAML.dump(JSON.parse(STDIN.read))' <"$i"
+done

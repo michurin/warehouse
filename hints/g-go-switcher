@@ -1,0 +1,28 @@
+g() {
+    if test $# = 0
+    then
+        echo 'Status:'
+        echo "GOROOT=$GOROOT"
+        echo "GOPATH=$GOPATH"
+        echo "PATH=$PATH" | grep -E --color=always '/g[0-9][0-9]*/go*/bin|$'
+        return
+    fi
+
+    case "$1" in
+        1[01234]*)
+            b="g$1"
+            export GOPATH=$HOME/$b/g
+            export GOROOT=$HOME/$b/go
+            p=$PATH
+            echo $p
+            p=$(echo $PATH | sed 's-[^:]*/g[0-9][0-9]*/go*/bin:--g')
+            echo $p
+            export PATH="$GOROOT/bin:$GOPATH/bin:$p"
+            echo $PATH
+            ;;
+        *)
+            echo "Invalid instructin $1"
+            ;;
+    esac
+}
+

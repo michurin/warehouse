@@ -1,0 +1,12 @@
+[core]
+	excludesfile = ~/.gitignoreglobal
+[user]
+	email = a.michurin@gmail.com
+	name = Alexey Michurin
+[color]
+	diff = auto
+	status = auto
+	branch = auto
+	interactive = auto
+[url "git@github.com:"]
+	insteadOf = https://github.com/

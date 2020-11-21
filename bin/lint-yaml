@@ -1,0 +1,6 @@
+#!/bin/sh
+
+for i in "$@"
+do
+  ruby -ryaml -e 'p YAML.load(STDIN.read)' < "$i"
+done
