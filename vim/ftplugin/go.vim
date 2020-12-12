@@ -22,3 +22,6 @@ map <F8> :set list lcs=trail:·,tab:▹·<CR>:set number<CR>
 imap <F8> <ESC>:set list lcs=trail:·,tab:▹·<CR>:set number<CR>
 map <F9> :%!gofmt<CR>
 imap <F9> <ESC>:%!gofmt<CR>
+
+setlocal omnifunc=go#complete#Complete
+" setlocal omnifunc=go#complete#Complete Last set from ~/.vim/pack/plugins/start/vim-go/ftplugin/go.vim
