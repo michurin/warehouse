@@ -6,6 +6,17 @@ set softtabstop=0
 set shiftwidth=4
 set autoindent
 
+set foldmethod=syntax
+let g:go_fold_enable = ['block', 'import', 'varconst', 'package_comment']
+set foldlevelstart=2
+set foldlevel=22
+
+" set to zero if vim get luggish
+let g:go_highlight_types = 1
+let g:go_highlight_fields = 1
+let g:go_highlight_functions = 1
+let g:go_highlight_function_calls = 1
+
 filetype indent on
 
 set synmaxcol=10000  " default 3000
