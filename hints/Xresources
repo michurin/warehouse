@@ -1,0 +1,139 @@
+! MICHURIN
+!Xft.rgba: none
+!Xft.rgba: rgb
+Xft.hinting: true
+Xft.autohint: false
+!Xft.hintstyle: hintslight
+Xft.hintstyle: hintfull
+Xft.antialias: true
+Xft.dpi: 96
+
+Rxvt*scrollBar: false
+Rxvt*boldFont: -*-fixed-*-*-*-*-*-*-*-*-*-*-koi8-r
+Rxvt*geometry: 80x30
+Rxvt*visualBell: true
+! home, end
+Rxvt*keysym.0xFF50: \e[H
+Rxvt*keysym.0xFF57: \e[F
+
+!XTerm*faceName: "DejaVu Sans Mono:Bold:style=Book"
+XTerm*faceName: "DejaVu Sans Mono:style=Book"
+!XTerm*faceName: "Andale Mono"
+!:encoding=koi8-r
+
+XTerm*faceSize: 14
+XTerm*faceSize1: 8
+XTerm*faceSize2: 9
+XTerm*faceSize3: 10
+XTerm*faceSize4: 12
+XTerm*faceSize5: 14
+XTerm*faceSize6: 16
+
+!XTerm*font: -*-fixed-*-*-*-*-*-*-*-*-*-*-koi8-r
+!XTerm*font2:  -*-fixed-*-*-*-*-6-*-*-*-*-*-koi8-*
+!XTerm*font3:  -misc-fixed-medium-*-*-*-8-*-*-*-*-*-koi8-r
+!XTerm*font4:  -misc-fixed-medium-*-*-*-10-*-*-*-*-*-koi8-r
+!XTerm*font5:  -misc-fixed-medium-*-*-*-15-*-*-*-*-*-koi8-r
+!XTerm*font6:  -sony_koi8_ru-fixed-medium-*-*-*-24-*-*-*-*-*-koi8-r
+
+!XTerm*Color0: #000000
+!XTerm*Color1: #111111
+!XTerm*Color2: #222222
+!XTerm*Color3: #333333
+!XTerm*Color4: #444444
+!XTerm*Color5: #555555
+!XTerm*Color6: #666666
+!XTerm*Color7: #777777
+!XTerm*Color8: #888888
+!XTerm*Color9: #999999
+!XTerm*Color10: #aaaaaa
+!XTerm*Color11: #bbbbbb
+!XTerm*Color12: #cccccc
+!XTerm*Color13: #dddddd
+!XTerm*Color14: #eeeeee
+!XTerm*Color15: #ffffff
+
+XTerm*color0: #000000
+XTerm*color1: #9e1828
+XTerm*color2: #aece92
+XTerm*color3: #968a38
+XTerm*color4: #414171
+XTerm*color5: #963c59
+XTerm*color6: #418179
+XTerm*color7: #bebebe
+XTerm*color8: #666666
+XTerm*color9: #cf6171
+XTerm*color10: #c5f779
+XTerm*color11: #fff796
+XTerm*color12: #4186be
+XTerm*color13: #cf9ebe
+XTerm*color14: #71bebe
+XTerm*color15: #ffffff
+!XTerm*colorAttrMode: true
+! color 7 and 0
+XTerm*foreground:             #bebebe
+XTerm*background:             #000000
+!XTerm*colorBDMode: true
+!XTerm*colorBD: #82cd00
+!XTerm*colorBL
+!XTerm*colorRV
+!XTerm*colorULMode: true
+!XTerm*colorUL: #d4cd00
+
+! на правой кнопке вставка из CLIPBOARD
+*VT100*translations: #override \n\
+     ~Ctrl<Btn3Up>: insert-selection(CLIPBOARD, CUT_BUFFER1) \n\
+     ~Ctrl<Btn3Down>: ignore() \n\
+  Meta<Key>F1: interpret("\033]111\007") \
+               interpret("\033]112\007") \
+               interpret("\033]113\007") \
+               interpret("\033]114\007") \n\
+  Meta<Key>F2: interpret("\033]12;#ff0000\007") \
+               interpret("\033]13;#000000\007") \
+               interpret("\033]14;#ff0000\007") \n\
+  Meta<Key>F3: interpret("\033]12;#00ff00\007") \
+               interpret("\033]13;#000000\007") \
+               interpret("\033]14;#00ff00\007") \n\
+  Meta<Key>F4: interpret("\033]12;#ffff00\007") \
+               interpret("\033]13;#000000\007") \
+               interpret("\033]14;#ffff00\007") \n\
+  Meta<Key>F5: interpret("\033]11;#300000\007") \n\
+  Meta<Key>F6: interpret("\033]11;#003000\007") \n\
+  Meta<Key>F7: interpret("\033]11;#303000\007") \n\
+  Meta<Key>F11: smaller-vt-font() \n\
+  Meta<Key>F12: larger-vt-font() \n\
+  Meta<Key>Left: string(0x01) string("p") \n\
+  Meta<Key>Right: string(0x01) string("n")
+
+!     <Key>F5: popup-menu(mainMenu) \n
+!     <Key>F6: popup-menu(vtMenu) \n
+!     <Key>F7: popup-menu(fontMenu) \n
+!     <Key>F8: popup-menu(tekMenu) \n
+
+!XTerm*locale: true
+XTerm*locale: false
+!
+XTerm*allowC1Printable: true
+!XTerm*Background: #1f2917
+!XTerm*Foreground: #21301b
+XTerm*VisualBell: true
+!
+XClock*width: 60
+XClock*height: 60
+XClock*foreground: #999999
+XClock*hands: #ffffff
+XClock*hourColor: #c2ccc3
+XClock*minuteColor: #c2ccc3
+XClock*secondColor: #c2ccc3
+XClock*majorColor: #75da12
+XClock*minorColor: #8da046
+XClock*padding: 3
+XClock*background: #000000
+
+XFontSel*viewPort.sampleText.background: #000000
+XFontSel*viewPort.sampleText.foreground: #cccccc
+
+vncviewer*grabKeyboard: true
+vncviewer*encodings: tight
+vncviewer*qualityLevel: 4
+vncviewer*requestedDepth: 8
