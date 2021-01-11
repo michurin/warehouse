@@ -1,0 +1,11 @@
+#  Delete
+#"\e[3~" delete-char
+# Shift-[=>][<=]
+"\e[1;2C" forward-word
+"\e[1;2D" backward-word
+# Shift-[Up][Down]
+"\e[1;2A" history-search-backward
+"\e[1;2B" history-search-forward
+# Home, End in rxvt
+#"\e[7~" beginning-of-line
+#"\e[8~" end-of-line
