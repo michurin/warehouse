@@ -1,7 +1,22 @@
+" Mac: cd .vim && ln -s /usr/local/opt/fzf .
+" Most common commands:
+" :FZF
+set rtp+=~/.vim/fzf
+" brew install ripgrep
+" git clone git@github.com:junegunn/fzf.vim.git ~/.vim/bundle/fzf.vim
+" Most common commands (https://www.chrisatmachine.com/Neovim/08-fzf/, https://youtu.be/on1AzaZzQ7k):
+" :Files - FZF with preview
+" :Rg - look inside
+" :Buffers
+" :BLines - file (enormous)
+" :Lines - search all buffers
+set rtp+=~/.vim/bundle/fzf.vim
+
 set spell spelllang=ru_ru,en_us
 syn match UrlNoSpell 'https\?:\/\/[^[:space:]]\+' contains=@NoSpell
 
 set cryptmethod=blowfish2
+set backspace=indent,eol,start " to work on mac
 
 set hlsearch
 set incsearch
@@ -83,6 +98,10 @@ let g:netrw_banner=0 "Disable annoing banner
 "let g:netrw_browse_split=3 "Open files in a new tab (as 't' does)
 let g:netrw_altv=1 "Open split on the right side
 let g:netrw_liststyle=3 "Tree view
+autocmd FileType netrw setl bufhidden=delete " or use :qa!
+"set compatible " limit search to project
+set path+=** " search all subdirs
+set wildmenu " file search menu
 
 
 "git clone https://github.com/preservim/nerdtree.git ~/.vim/pack/plugins/start/nerdtree
