@@ -5,9 +5,11 @@
 # If not running interactively, don't do anything
 [[ $- != *i* ]] && return
 
+test -e ~/.bashrc.local && . ~/.bashrc.local
+
 [[ $DISPLAY ]] && shopt -s checkwinsize
 
-PS1='[\[\033[1;32m\]\u\[\033[0m\] \W]\$ '
+PS1='[\[\033[1;32m\]'"${force_name:-\u}"'\[\033[0m\] \W]\$ '
 PS2='\[\e[32m\]>\[\e[0m\] '
 
 shopt -s histappend
@@ -21,7 +23,7 @@ q="$HOME/bin:$HOME/go/bin"
 export PATH="$q:$p"
 
 locale='C' # C.UTF-8; locale -a
-locale_ru='ru_RU.utf8'
+locale_ru="${locale_ru:-ru_RU.utf8}"
 export LANG="$locale_ru"
 export LC_ADDRESS="$locale"
 export LC_IDENTIFICATION="$locale"
@@ -49,4 +51,16 @@ unalias -a
 alias grep='grep --color=always'
 alias ls='ls -G'
 
-. /usr/share/fzf/{key-bindings,completion}.bash
+for i in \
+  /usr/share/fzf/ \
+  /usr/local/Cellar/fzf/0.25.0/shell/ \
+  /data/data/com.termux/files/usr/share/fzf/
+do
+  test -d "$i" && . "$i"/{key-bindings,completion}.bash
+done
+
+function ssh-agent() {
+    /usr/bin/ssh-agent | tee ~/.bashrc.agent
+}
+
+test -e ~/.bashrc.agent && . ~/.bashrc.agent
