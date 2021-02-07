@@ -9,3 +9,6 @@
 # Home, End in rxvt
 #"\e[7~" beginning-of-line
 #"\e[8~" end-of-line
+# in Mac Shift-Option-[=>][<=]
+"\e[1;10D" beginning-of-line
+"\e[1;10C" end-of-line

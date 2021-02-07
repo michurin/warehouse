@@ -11,6 +11,9 @@ set rtp+=~/.vim/fzf
 " :BLines - file (enormous)
 " :Lines - search all buffers
 set rtp+=~/.vim/bundle/fzf.vim
+" TODO
+" :Files +preview
+" Plug 'junegunn/fzf' "?
 
 set spell spelllang=ru_ru,en_us
 syn match UrlNoSpell 'https\?:\/\/[^[:space:]]\+' contains=@NoSpell
@@ -92,6 +95,7 @@ inoremap <expr> <Left> pumvisible() ? "<C-e>" : "<Left>"
 
 "git clone https://github.com/fatih/vim-go.git ~/.vim/pack/plugins/start/vim-go
 "vim +GoInstallBinaries
+" let g:go_auto_sameids = 1
 
 
 let g:netrw_banner=0 "Disable annoing banner

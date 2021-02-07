@@ -4,18 +4,22 @@
 \set COMP_KEYWORD_CASE lower
 \set VERBOSITY verbose
 \set HISTCONTROL ignoredups
-\set PROMPT1 '%[%033[1;32m%][%/]#%[%033[0m%] '
-\set PROMPT2 '%[%033[1;32m%]%R>%[%033[0m%] '
+\set PROMPT1 '%`basename $(pwd)` [%M:%> %~]# '
+\set PROMPT2 ''
 \set paste
 -- \set FETCH_COUNT 1000
 -- \set HISTFILE ~/.psql/history- :DBNAME
 
-\pset pager off
+\pset pager always
+\setenv PAGER '~/bin/psql-color.pl'
 \pset null '(null)'
 \pset null '¤'
 
 \x auto
 
 \timing
+
+-- :tc shows tables with row count
+\set tc 'select schemaname,relname,n_live_tup FROM pg_stat_user_tables ORDER BY schemaname, relname;'
 
 \unset QUIET
