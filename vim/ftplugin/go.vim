@@ -8,8 +8,8 @@ set autoindent
 
 set foldmethod=syntax
 let g:go_fold_enable = ['block', 'import', 'varconst', 'package_comment']
-set foldlevelstart=2
-set foldlevel=22
+set foldlevelstart=1000
+set foldlevel=1000
 
 " set to zero if vim get luggish
 let g:go_highlight_types = 1
