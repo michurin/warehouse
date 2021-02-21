@@ -21,9 +21,26 @@ set backspace=indent,eol,start " to work on mac
 set hlsearch
 set incsearch
 set laststatus=2 " always
+set statusline=
+set statusline+=%F\                          " filename
+set statusline+=\[%n]\                       " buffer number
+set statusline+=%h%m%r%w                     " status flags
+set statusline+=\[%{strlen(&ft)?&ft:'none'}] " file type
+set statusline+=%=                           " right align remainder
+set statusline+=\[%B]\                       " character value
+set statusline+=%l,%c\                       " line, character
+set statusline+=%<%P                         " file position
+set fillchars=stl:\ ,stlnc:\ ,vert:│,fold:·
+highlight VertSplit     ctermbg=232 ctermfg=244 cterm=none
+highlight StatusLine    ctermbg=244 ctermfg=255 cterm=bold
+highlight StatusLineNC  ctermbg=244 ctermfg=232 cterm=none
+highlight Folded        ctermbg=none ctermfg=30 cterm=none
+highlight TabLineFill   ctermbg=244 ctermfg=255 cterm=none
+highlight TabLine       ctermbg=244 ctermfg=232 cterm=none
+highlight TabLineSel    ctermbg=244 ctermfg=255 cterm=bold
 " nnoremap ,/ :noh<CR>
 
-set history=500
+set history=2000
 filetype plugin on
 filetype indent on
 set wildmenu
@@ -96,6 +113,8 @@ inoremap <expr> <Left> pumvisible() ? "<C-e>" : "<Left>"
 " :helptags ALL
 " :help vim-go
 "vim +GoInstallBinaries
+" let g:go_auto_sameids = 1
+let g:go_def_mode="gopls"
 
 
 let g:netrw_banner=0 "Disable annoing banner
@@ -103,23 +122,53 @@ let g:netrw_banner=0 "Disable annoing banner
 let g:netrw_altv=1 "Open split on the right side
 let g:netrw_liststyle=3 "Tree view
 autocmd FileType netrw setl bufhidden=delete " or use :qa!
-" set compatible " limit search to project
+"set compatible " limit search to project
 set path+=** " search all subdirs
 set wildmenu " file search menu
 
+" set to zero if vim get luggish
+let g:go_highlight_types = 1
+let g:go_highlight_fields = 1
+let g:go_highlight_functions = 1
+let g:go_highlight_function_calls = 1
 
-"git clone https://github.com/preservim/nerdtree.git ~/.vim/pack/plugins/start/nerdtree
-"map <C-n> :NERDTreeToggle<CR>
+let g:go_fold_enable = ['block', 'import', 'varconst', 'package_comment']
 
+" Go syntax highlighting
+let g:go_highlight_fields = 1
+let g:go_highlight_functions = 1
+let g:go_highlight_function_calls = 1
+let g:go_highlight_extra_types = 1
+let g:go_highlight_operators = 1
 
-"git clone https://github.com/morhetz/gruvbox.git ~/.vim/pack/plugins/start/gruvbox
-"let g:gruvbox_guisp_fallback="bg" " workaround for spell checking
-"colorscheme gruvbox
-"set background=dark
-"let g:gruvbox_contrast_dark="hard"
+" disable vim-go :GoDef short cut (gd)
+" this is handled by LanguageClient [LC]
+let g:go_def_mapping_enabled = 0
 
-"colorscheme industry
-"runtime colors/industry.vim
+" Auto formatting and importing
+let g:go_fmt_autosave = 1
+let g:go_fmt_command = "goimports"
+
+" Status line types/signatures
+let g:go_auto_type_info = 1
+
+"set completeopt-=preview
+
+" Run :GoBuild or :GoTestCompile based on the go file
+function! s:build_go_files()
+  let l:file = expand('%')
+  if l:file =~# '^\f\+_test\.go$'
+    call go#test#Test(0, 1)
+  elseif l:file =~# '^\f\+\.go$'
+    call go#cmd#Build(0)
+  endif
+endfunction
+
+" Map keys for most used commands.
+" Ex: `\b` for building, `\r` for running and `\b` for running test.
+autocmd FileType go nmap <leader>b :<C-u>call <SID>build_go_files()<CR>
+autocmd FileType go nmap <leader>r  <Plug>(go-run)
+autocmd FileType go nmap <leader>t  <Plug>(go-test)
 
 hi SpellBad term=NONE cterm=underline ctermfg=NONE gui=bold guifg=NONE ctermbg=NONE
 hi SpellLocal term=NONE cterm=underline ctermfg=NONE gui=bold guifg=NONE ctermbg=NONE
@@ -128,8 +177,14 @@ hi SpecialKey term=none cterm=none ctermfg=DarkGray gui=none guifg=DarkGray cter
 " ---- COC
 
 " https://github.com/neoclide/coc.nvim/wiki/Install-coc.nvim#using-vim8s-native-package-manager
+"  mkdir -p ~/.vim/pack/coc/start
+"  cd ~/.vim/pack/coc/start
+"  curl --fail -L https://github.com/neoclide/coc.nvim/archive/release.tar.gz|tar xzfv -
 " https://octetz.com/docs/2019/2019-04-24-vim-as-a-go-ide/
 " https://github.com/neoclide/coc.nvim/wiki/Language-servers#go
+" PHP:
+" https://github.com/neoclide/coc.nvim/wiki/Language-servers#php
+" npm i intelephense -g
 
 " if hidden is not set, TextEdit might fail.
 set hidden
@@ -259,3 +314,9 @@ nnoremap <silent> <space>k  :<C-u>CocPrev<CR>
 " Resume latest coc list
 nnoremap <silent> <space>p  :<C-u>CocListResume<CR>
 
+
+" My
+" https://jonasjacek.github.io/colors/
+" http://terminal-color-builder.mudasobwa.ru/
+highlight Pmenu ctermfg=153 ctermbg=234
+highlight PmenuSel ctermfg=153 ctermbg=240

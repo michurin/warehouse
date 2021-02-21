@@ -10,4 +10,8 @@ set autoindent
 filetype indent on
 
 set list lcs=trail:·,tab:▹·
+set foldmethod=indent
+set foldlevelstart=1000
+set foldlevel=1000
 
+set cursorcolumn

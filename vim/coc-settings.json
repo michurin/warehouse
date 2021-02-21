@@ -2,8 +2,26 @@
   "languageserver": {
     "golang": {
       "command": "gopls",
-      "rootPatterns": ["go.mod", ".vim/", ".git/", ".hg/"],
-      "filetypes": ["go"]
+      "rootPatterns": [
+        "go.mod",
+        ".git/",
+        ".hg/"
+      ],
+      "filetypes": [
+        "go"
+      ]
+    },
+    "intelephense": {
+      "command": "intelephense",
+      "args": [
+        "--stdio"
+      ],
+      "filetypes": [
+        "php"
+      ],
+      "initializationOptions": {
+        "storagePath": "/tmp/intelephense"
+      }
     }
   }
 }
