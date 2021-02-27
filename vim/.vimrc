@@ -20,6 +20,9 @@ set backspace=indent,eol,start " to work on mac
 
 set hlsearch
 set incsearch
+highlight Search ctermfg=194 ctermbg=29
+highlight IncSearch ctermfg=226 ctermbg=100 cterm=bold
+
 set laststatus=2 " always
 set statusline=
 set statusline+=%F\                          " filename
