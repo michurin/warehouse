@@ -14,4 +14,4 @@ set foldmethod=indent
 set foldlevelstart=1000
 set foldlevel=1000
 
-set cursorcolumn
+" set cursorcolumn # how to set in for one window only?
