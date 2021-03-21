@@ -1,0 +1,2 @@
+select * from pg_locks;
+select pg_terminate_backend(xxx);
