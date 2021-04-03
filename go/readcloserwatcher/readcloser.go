@@ -10,6 +10,7 @@ import (
 
 type readCloserConfig struct {
 	timeout time.Duration
+	limit   int
 }
 
 type result struct {
@@ -20,6 +21,7 @@ type result struct {
 type readCloser struct {
 	next   io.ReadCloser
 	octets bytes.Buffer
+	limit  int
 	ch     chan result
 	done   chan struct{}
 	lock   sync.Mutex
@@ -45,7 +47,13 @@ func (rc *readCloser) Read(p []byte) (int, error) {
 	if err != nil && err != io.EOF {
 		rc.finalise(err)
 	}
-	rc.octets.Write(p[:n]) // buffer can be bigger
+	m := rc.limit - rc.octets.Len()
+	if m <= n {
+		rc.octets.Write(p[:m])
+		rc.finalise(LimitError)
+	} else {
+		rc.octets.Write(p[:n]) // buffer can be bigger
+	}
 	return n, err
 }
 
@@ -55,9 +63,15 @@ func (rc *readCloser) Close() error {
 	return err
 }
 
-var TimeoutError = errors.New("timeout")
+var (
+	TimeoutError = errors.New("timeout")
+	LimitError   = errors.New("limit")
+)
 
-const defaultTimeout = time.Minute
+const (
+	defaultTimeout = time.Minute
+	defaultLimit   = 1 << 12
+)
 
 type option func(*readCloserConfig)
 
@@ -70,6 +84,7 @@ func Watcher(s io.ReadCloser, opts ...option) (io.ReadCloser, chan result) {
 	}
 	cfg := readCloserConfig{
 		timeout: defaultTimeout,
+		limit:   defaultLimit,
 	}
 	for _, o := range opts {
 		o(&cfg)
@@ -77,9 +92,10 @@ func Watcher(s io.ReadCloser, opts ...option) (io.ReadCloser, chan result) {
 	done := make(chan struct{}, 1)
 	timeoutChan := time.After(cfg.timeout)
 	rc := &readCloser{
-		next: s,
-		ch:   r,
-		done: done,
+		limit: cfg.limit,
+		next:  s,
+		ch:    r,
+		done:  done,
 	}
 	go func() {
 		select {
@@ -94,5 +110,11 @@ func Watcher(s io.ReadCloser, opts ...option) (io.ReadCloser, chan result) {
 func WithTimeout(timeout time.Duration) option {
 	return func(c *readCloserConfig) {
 		c.timeout = timeout
+	}
+}
+
+func WithLimit(limit int) option {
+	return func(c *readCloserConfig) {
+		c.limit = limit
 	}
 }

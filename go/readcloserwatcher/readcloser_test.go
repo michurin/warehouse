@@ -29,6 +29,18 @@ func TestNil(t *testing.T) {
 	assert.Nil(t, r.Octets)
 }
 
+func TestLimit(t *testing.T) {
+	b := ioutil.NopCloser(bytes.NewBufferString("data"))
+	w, c := readcloserwatcher.Watcher(b, readcloserwatcher.WithLimit(2))
+	o, err := ioutil.ReadAll(w)
+	w.Close()
+	r := <-c
+	assert.NoError(t, err)
+	assert.Equal(t, []byte("data"), o)
+	assert.EqualError(t, r.Err, "limit")
+	assert.Equal(t, []byte("da"), r.Octets)
+}
+
 func TestTimeout_naive(t *testing.T) {
 	b := ioutil.NopCloser(bytes.NewBufferString("data"))
 	w, c := readcloserwatcher.Watcher(b, readcloserwatcher.WithTimeout(50*time.Millisecond))
