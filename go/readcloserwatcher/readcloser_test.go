@@ -12,7 +12,7 @@ import (
 
 func TestGlodenFlow(t *testing.T) {
 	b := ioutil.NopCloser(bytes.NewBufferString("data"))
-	w, c := readcloserwatcher.Watcher(b, time.Minute)
+	w, c := readcloserwatcher.Watcher(b)
 	o, err := ioutil.ReadAll(w)
 	w.Close()
 	r := <-c
@@ -23,7 +23,7 @@ func TestGlodenFlow(t *testing.T) {
 }
 
 func TestNil(t *testing.T) {
-	_, c := readcloserwatcher.Watcher(nil, time.Minute)
+	_, c := readcloserwatcher.Watcher(nil)
 	r := <-c
 	assert.NoError(t, r.Err)
 	assert.Nil(t, r.Octets)
@@ -31,7 +31,7 @@ func TestNil(t *testing.T) {
 
 func TestTimeout_naive(t *testing.T) {
 	b := ioutil.NopCloser(bytes.NewBufferString("data"))
-	w, c := readcloserwatcher.Watcher(b, 50*time.Millisecond)
+	w, c := readcloserwatcher.Watcher(b, readcloserwatcher.WithTimeout(50*time.Millisecond))
 	time.Sleep(100 * time.Millisecond)
 	o, err := ioutil.ReadAll(w)
 	w.Close()
@@ -44,7 +44,7 @@ func TestTimeout_naive(t *testing.T) {
 
 func TestTimeout2_naive(t *testing.T) {
 	b := ioutil.NopCloser(bytes.NewBufferString("data"))
-	w, c := readcloserwatcher.Watcher(b, 50*time.Millisecond)
+	w, c := readcloserwatcher.Watcher(b, readcloserwatcher.WithTimeout(50*time.Millisecond))
 	o, err := ioutil.ReadAll(w)
 	time.Sleep(100 * time.Millisecond)
 	w.Close()

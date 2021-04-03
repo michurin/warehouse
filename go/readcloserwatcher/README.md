@@ -7,3 +7,4 @@
 - Improve naive tests
 - Mocks and 100% code coverage
 - Options for timeout and buffer length limit
+- More examples (`WithTimeout` etc.)

@@ -8,6 +8,10 @@ import (
 	"time"
 )
 
+type readCloserConfig struct {
+	timeout time.Duration
+}
+
 type result struct {
 	Err    error
 	Octets []byte
@@ -53,15 +57,25 @@ func (rc *readCloser) Close() error {
 
 var TimeoutError = errors.New("timeout")
 
-func Watcher(s io.ReadCloser, timeout time.Duration) (io.ReadCloser, chan result) {
+const defaultTimeout = time.Minute
+
+type option func(*readCloserConfig)
+
+func Watcher(s io.ReadCloser, opts ...option) (io.ReadCloser, chan result) {
 	r := make(chan result, 1)
 	if s == nil {
 		r <- result{}
 		close(r)
 		return s, r
 	}
+	cfg := readCloserConfig{
+		timeout: defaultTimeout,
+	}
+	for _, o := range opts {
+		o(&cfg)
+	}
 	done := make(chan struct{}, 1)
-	timeoutChan := time.After(timeout)
+	timeoutChan := time.After(cfg.timeout)
 	rc := &readCloser{
 		next: s,
 		ch:   r,
@@ -75,4 +89,10 @@ func Watcher(s io.ReadCloser, timeout time.Duration) (io.ReadCloser, chan result
 		}
 	}()
 	return rc, r
+}
+
+func WithTimeout(timeout time.Duration) option {
+	return func(c *readCloserConfig) {
+		c.timeout = timeout
+	}
 }

@@ -4,14 +4,13 @@ import (
 	"bytes"
 	"fmt"
 	"io/ioutil"
-	"time"
 
 	"github.com/michurin/warehouse/go/readcloserwatcher"
 )
 
-func ExampleGolderFlow() {
+func ExampleWatcher_basic() {
 	someReadClower := ioutil.NopCloser(bytes.NewBufferString("data"))
-	someReadClower, watcher := readcloserwatcher.Watcher(someReadClower, time.Minute)
+	someReadClower, watcher := readcloserwatcher.Watcher(someReadClower)
 	output, err := ioutil.ReadAll(someReadClower)
 	if err != nil {
 		panic(err)
