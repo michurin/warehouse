@@ -3,10 +3,10 @@ package paintjson
 import "testing"
 
 func TestPJ(t *testing.T) {
-	clrQ = []rune{'A'}
-	clrS = []rune{'B'}
-	clrCtl = []rune{'C'}
-	clrOff = []rune{'O'}
+	clrQ = []rune("(Q]")
+	clrS = []rune("(S]")
+	clrCtl = []rune("(C]")
+	clrOff = []rune("[O)")
 	for _, c := range []struct {
 		name string
 		in   string
@@ -18,19 +18,19 @@ func TestPJ(t *testing.T) {
 	}, {
 		name: "simple",
 		in:   `{"one":1}`,
-		out:  `C{OA"one"OC:OB1OC}O`,
+		out:  `(C]{[O)(Q]"one"[O)(C]:[O)(S]1[O)(C]}[O)`,
 	}, {
 		name: "spaces",
 		in:   ` { "one" : 12 } `,
-		out:  ` C{O A"one"O C:O B12O C}O `,
+		out:  ` (C]{[O) (Q]"one"[O) (C]:[O) (S]12[O) (C]}[O) `,
 	}, {
 		name: "escaped",
 		in:   `"o\"ne"`,
-		out:  `A"o\"ne"O`,
+		out:  `(Q]"o\"ne"[O)`,
 	}, {
 		name: "invalid_has_to_be_closed",
 		in:   `"one`,
-		out:  `A"oneO`,
+		out:  `(Q]"one[O)`,
 	}} {
 		c := c
 		t.Run(c.name, func(t *testing.T) {
