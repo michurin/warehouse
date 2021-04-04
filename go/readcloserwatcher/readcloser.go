@@ -13,7 +13,7 @@ type readCloserConfig struct {
 	limit   int
 }
 
-type result struct {
+type Result struct {
 	Err    error
 	Octets []byte
 }
@@ -22,7 +22,7 @@ type readCloser struct {
 	next   io.ReadCloser
 	octets bytes.Buffer
 	limit  int
-	ch     chan result
+	ch     chan Result
 	done   chan struct{}
 	lock   sync.Mutex
 }
@@ -33,7 +33,7 @@ func (rc *readCloser) finalise(err error) {
 	if rc.ch == nil {
 		return
 	}
-	rc.ch <- result{
+	rc.ch <- Result{
 		Err:    err,
 		Octets: rc.octets.Bytes(),
 	}
@@ -75,10 +75,10 @@ const (
 
 type option func(*readCloserConfig)
 
-func Watcher(s io.ReadCloser, opts ...option) (io.ReadCloser, chan result) {
-	r := make(chan result, 1)
+func Watcher(s io.ReadCloser, opts ...option) (io.ReadCloser, chan Result) {
+	r := make(chan Result, 1)
 	if s == nil {
-		r <- result{}
+		r <- Result{}
 		close(r)
 		return s, r
 	}
