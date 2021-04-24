@@ -22,6 +22,7 @@ set hlsearch
 set incsearch
 highlight Search ctermfg=194 ctermbg=29
 highlight IncSearch ctermfg=226 ctermbg=100 cterm=bold
+highlight CursorLine ctermfg=16 ctermbg=49 cterm=none
 
 set laststatus=2 " always
 set statusline=
@@ -101,24 +102,14 @@ nnoremap ,q :call ToggleQuickFix()<cr>
 "inoremap <expr> <tab> InsertTabWrapper()
 "inoremap <s-tab> <c-n>
 
-" Navigate the complete menu items like CTRL+n / CTRL+p would.
-inoremap <expr> <Down> pumvisible() ? "<C-n>" :"<Down>"
-inoremap <expr> <Up> pumvisible() ? "<C-p>" : "<Up>"
-" Select the complete menu item like CTRL+y would.
-inoremap <expr> <Right> pumvisible() ? "<C-y>" : "<Right>"
-inoremap <expr> <CR> pumvisible() ? "<C-y>" :"<CR>"
-" Cancel the complete menu item like CTRL+e would.
-inoremap <expr> <Left> pumvisible() ? "<C-e>" : "<Left>"
-
-" ---------
-
-"git clone https://github.com/fatih/vim-go.git ~/.vim/pack/plugins/start/vim-go
-" :helptags ALL
-" :help vim-go
-"vim +GoInstallBinaries
-" let g:go_auto_sameids = 1
-let g:go_def_mode="gopls"
-
+"" Navigate the complete menu items like CTRL+n / CTRL+p would.
+"inoremap <expr> <Down> pumvisible() ? "<C-n>" :"<Down>"
+"inoremap <expr> <Up> pumvisible() ? "<C-p>" : "<Up>"
+"" Select the complete menu item like CTRL+y would.
+"inoremap <expr> <Right> pumvisible() ? "<C-y>" : "<Right>"
+"inoremap <expr> <CR> pumvisible() ? "<C-y>" :"<CR>"
+"" Cancel the complete menu item like CTRL+e would.
+"inoremap <expr> <Left> pumvisible() ? "<C-e>" : "<Left>"
 
 let g:netrw_banner=0 "Disable annoing banner
 "let g:netrw_browse_split=3 "Open files in a new tab (as 't' does)
@@ -129,6 +120,23 @@ autocmd FileType netrw setl bufhidden=delete " or use :qa!
 set path+=** " search all subdirs
 set wildmenu " file search menu
 
+" ---------
+
+"git clone https://github.com/fatih/vim-go.git ~/.vim/pack/plugins/start/vim-go
+" :helptags ALL
+" :help vim-go
+"vim +GoInstallBinaries
+" let g:go_auto_sameids = 1
+let g:go_def_mode="gopls"
+
+" https://pmihaylov.com/vim-for-go-development/
+" https://www.reddit.com/r/golang/comments/mon9ym/how_to_setup_vim_for_go_development/
+" disable all linters as that is taken care of by coc.nvim
+let g:go_diagnostics_enabled = 0
+let g:go_metalinter_enabled = []
+" don't jump to errors after metalinter is invoked
+let g:go_jump_to_error = 0
+
 " set to zero if vim get luggish
 let g:go_highlight_types = 1
 let g:go_highlight_fields = 1
@@ -138,11 +146,14 @@ let g:go_highlight_function_calls = 1
 let g:go_fold_enable = ['block', 'import', 'varconst', 'package_comment']
 
 " Go syntax highlighting
+let g:go_highlight_types = 1
 let g:go_highlight_fields = 1
 let g:go_highlight_functions = 1
 let g:go_highlight_function_calls = 1
 let g:go_highlight_extra_types = 1
 let g:go_highlight_operators = 1
+let g:go_highlight_build_constraints = 1
+let g:go_highlight_generate_tags = 1
 
 " disable vim-go :GoDef short cut (gd)
 " this is handled by LanguageClient [LC]
@@ -150,7 +161,10 @@ let g:go_def_mapping_enabled = 0
 
 " Auto formatting and importing
 let g:go_fmt_autosave = 1
-let g:go_fmt_command = "goimports"
+" let g:go_fmt_command = "goimports"
+let g:go_fmt_command="gopls"
+let g:go_gopls_gofumpt=1
+
 
 " Status line types/signatures
 let g:go_auto_type_info = 1
@@ -174,6 +188,8 @@ autocmd FileType go nmap <leader>r  <Plug>(go-run)
 autocmd FileType go nmap <leader>t  <Plug>(go-test)
 
 hi SpellBad term=NONE cterm=underline ctermfg=NONE gui=bold guifg=NONE ctermbg=NONE
+hi SpellCap term=NONE cterm=underline ctermfg=NONE gui=bold guifg=NONE ctermbg=NONE
+hi SpellRare term=NONE cterm=underline ctermfg=NONE gui=bold guifg=NONE ctermbg=NONE
 hi SpellLocal term=NONE cterm=underline ctermfg=NONE gui=bold guifg=NONE ctermbg=NONE
 hi SpecialKey term=none cterm=none ctermfg=DarkGray gui=none guifg=DarkGray ctermbg=NONE
 
@@ -323,3 +339,9 @@ nnoremap <silent> <space>p  :<C-u>CocListResume<CR>
 " http://terminal-color-builder.mudasobwa.ru/
 highlight Pmenu ctermfg=153 ctermbg=234
 highlight PmenuSel ctermfg=153 ctermbg=240
+
+" https://github.com/aklt/plantuml-syntaxw
+" .vim/indent/plantuml.vim
+" .vim/ftplugin/plantuml.vim
+" .vim/ftdetect/plantuml.vim
+" .vim/syntax/plantuml.vim
