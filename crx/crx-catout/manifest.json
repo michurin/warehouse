@@ -1,6 +1,6 @@
 {
   "name": "XCutOut",
-  "version": "1.15",
+  "version": "1.16",
   "description": "Cut out annoying unwanted elements",
   "manifest_version": 2,
   "permissions": ["tabs"],

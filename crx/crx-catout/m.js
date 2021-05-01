@@ -7,6 +7,7 @@
     }
     // promo
     document.querySelectorAll('[data-key="view=mail-pro-left-column-button"]').forEach(e => e.remove());
+    document.querySelectorAll('.PSHeader-Pro').forEach(e => e.remove());
     // left banners first generation
     document.querySelectorAll('.b-banner').forEach(e => e.remove());
     // left banners second and further generations
