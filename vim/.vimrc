@@ -22,8 +22,12 @@ set hlsearch
 set incsearch
 highlight Search ctermfg=194 ctermbg=29
 highlight IncSearch ctermfg=226 ctermbg=100 cterm=bold
-highlight CursorLine ctermfg=16 ctermbg=49 cterm=none
+highlight CursorLine ctermbg=23 cterm=none
 
+
+autocmd InsertEnter * highlight statusline ctermbg=117
+autocmd InsertLeave * highlight statusline ctermbg=244
+set noshowmode
 set laststatus=2 " always
 set statusline=
 set statusline+=%F\                          " filename
@@ -38,6 +42,7 @@ set fillchars=stl:\ ,stlnc:\ ,vert:│,fold:·
 highlight VertSplit     ctermbg=232 ctermfg=244 cterm=none
 highlight StatusLine    ctermbg=244 ctermfg=255 cterm=bold
 highlight StatusLineNC  ctermbg=244 ctermfg=232 cterm=none
+
 highlight Folded        ctermbg=none ctermfg=30 cterm=none
 highlight TabLineFill   ctermbg=244 ctermfg=255 cterm=none
 highlight TabLine       ctermbg=244 ctermfg=232 cterm=none
@@ -299,21 +304,6 @@ command! -nargs=0 Format :call CocAction('format')
 
 " Use `:Fold` to fold current buffer
 command! -nargs=? Fold :call     CocAction('fold', <f-args>)
-
-
-" Add diagnostic info for https://github.com/itchyny/lightline.vim
-let g:lightline = {
-      \ 'colorscheme': 'wombat',
-      \ 'active': {
-      \   'left': [ [ 'mode', 'paste' ],
-      \             [ 'cocstatus', 'readonly', 'filename', 'modified' ] ]
-      \ },
-      \ 'component_function': {
-      \   'cocstatus': 'coc#status'
-      \ },
-      \ }
-
-
 
 " Using CocList
 " Show all diagnostics
