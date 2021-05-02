@@ -7,27 +7,48 @@ const (
 	inNotStr
 )
 
-var clrQ = []rune("\033[32m")
-var clrS = []rune("\033[36m")
-var clrCtl = []rune("\033[35m")
-var clrOff = []rune("\033[0m")
+var (
+	clrKey = []rune("\033[1;33m")
+	clrS   = []rune("\033[1;36m")
+	clrCtl = []rune("\033[1;31m")
+	clrOff = []rune("\033[0m")
+)
 
 func PJ(s string) string {
 	out := []rune(nil)
 	state := outOfString
+	lastWord := []rune(nil)
+	lastSpaces := []rune(nil)
 	for _, c := range s {
 		switch state {
 		case outOfString:
 			switch c {
 			case '{', '}', '[', ']', ':', ',':
+				if lastWord != nil {
+					if c == ':' { // it is key
+						out = append(out, clrKey...)
+						out = append(out, lastWord...)
+						out = append(out, clrOff...)
+					} else { // it is ordinary string
+						out = append(out, lastWord...)
+					}
+					lastWord = nil
+				}
+				if lastSpaces != nil {
+					out = append(out, lastSpaces...)
+					lastSpaces = nil
+				}
 				out = append(out, clrCtl...)
 				out = append(out, c)
 				out = append(out, clrOff...)
 			case '\x20', '\n', '\r', '\t':
-				out = append(out, c)
+				if lastWord == nil {
+					out = append(out, c)
+				} else {
+					lastSpaces = append(lastSpaces, c)
+				}
 			case '"':
-				out = append(out, clrQ...)
-				out = append(out, c)
+				lastWord = append(lastWord, c)
 				state = inQStr
 			default:
 				out = append(out, clrS...)
@@ -37,17 +58,16 @@ func PJ(s string) string {
 		case inQStr:
 			switch c {
 			case '\\':
-				out = append(out, c)
+				lastWord = append(lastWord, c)
 				state = inQStrEscaped
 			case '"':
-				out = append(out, c)
-				out = append(out, clrOff...)
+				lastWord = append(lastWord, c)
 				state = outOfString
 			default:
-				out = append(out, c)
+				lastWord = append(lastWord, c)
 			}
 		case inQStrEscaped:
-			out = append(out, c)
+			lastWord = append(lastWord, c)
 			state = inQStr
 		case inNotStr:
 			switch c {
@@ -66,8 +86,10 @@ func PJ(s string) string {
 			}
 		}
 	}
-	if state != outOfString {
+	if state == inNotStr {
 		out = append(out, clrOff...)
 	}
+	out = append(out, lastWord...)
+	out = append(out, lastSpaces...)
 	return string(out)
 }
