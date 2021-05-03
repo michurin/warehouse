@@ -1,2 +1,6 @@
 GOPROXY=https://proxy.golang.org GO111MODULE=on GOPATH=/tmp/REMOVEME go get -u 'github.com/michurin/warehouse/go/loghttpclient'
 
+or just
+
+curl -s 'https://proxy.golang.org/github.com/michurin/milisp/go/@latest' | jq
+curl -s 'https://proxy.golang.org/github.com/michurin/milisp/go/@v/v0.0.0-20210410222348-03ff2036b6c4.info' | jq
