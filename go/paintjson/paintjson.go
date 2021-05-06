@@ -5,41 +5,41 @@ const (
 	inQStr
 	inQStrEscaped
 	inNotStr
-	closed
+	finished
 )
 
 var (
-	clrKey = []rune("\033[1;33m")
-	clrS   = []rune("\033[1;36m")
-	clrCtl = []rune("\033[1;31m")
-	clrOff = []rune("\033[0m")
+	clrKey = []byte("\033[1;33m")
+	clrS   = []byte("\033[1;36m")
+	clrCtl = []byte("\033[1;31m")
+	clrOff = []byte("\033[0m")
 )
 
 type FSM struct {
-	clrKey     []rune
-	clrSpecStr []rune
-	clrCtl     []rune
-	clrOff     []rune
+	clrKey     []byte
+	clrSpecStr []byte
+	clrCtl     []byte
+	clrOff     []byte
 	state      int
-	lastWord   []rune
-	lastSpace  []rune
+	lastWord   []byte
+	lastSpace  []byte
 }
 
 func NewFSM() *FSM { // TODO: colors: NewFSM(opetions... Option)
 	return &FSM{
 		// TODO: use global colors for compatibility only, is to be rewritten
-		clrKey:     clrKey, // []rune("\033[1;33m"),
-		clrSpecStr: clrS,   // []rune("\033[1;36m"),
-		clrCtl:     clrCtl, // []rune("\033[1;31m"),
-		clrOff:     clrOff, // []rune("\033[0m"),
+		clrKey:     clrKey, // []byte("\033[1;33m"),
+		clrSpecStr: clrS,   // []byte("\033[1;36m"),
+		clrCtl:     clrCtl, // []byte("\033[1;31m"),
+		clrOff:     clrOff, // []byte("\033[0m"),
 		state:      outOfString,
 		lastWord:   nil,
 		lastSpace:  nil,
 	}
 }
 
-func (fsm *FSM) Next(c rune) []rune {
-	out := []rune(nil)
+func (fsm *FSM) Next(c byte) []byte {
+	out := []byte(nil)
 	switch fsm.state {
 	case outOfString:
 		switch c {
@@ -104,30 +104,30 @@ func (fsm *FSM) Next(c rune) []rune {
 		default:
 			out = append(out, c)
 		}
-	case closed:
+	case finished:
 		panic("FSM.Next() is called after FSM.Tail()")
 	}
 	return out
 }
 
-func (fsm *FSM) Tail() []rune {
-	out := []rune(nil)
+func (fsm *FSM) Finish() []byte {
+	out := []byte(nil)
 	if fsm.state == inNotStr {
 		out = append(out, fsm.clrOff...)
 	}
 	out = append(out, fsm.lastWord...)
 	out = append(out, fsm.lastSpace...)
-	fsm.state = closed
+	fsm.state = finished
 	return out
 }
 
 // TODO move to file with helpers
 func PJ(s string) string {
-	out := []rune(nil)
+	out := []byte(nil)
 	fsm := NewFSM()
-	for _, c := range s {
+	for _, c := range []byte(s) {
 		out = append(out, fsm.Next(c)...)
 	}
-	out = append(out, fsm.Tail()...)
+	out = append(out, fsm.Finish()...)
 	return string(out)
 }

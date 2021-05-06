@@ -3,10 +3,10 @@ package paintjson
 import "testing"
 
 func TestPJ(t *testing.T) {
-	clrKey = []rune("(Q]")
-	clrS = []rune("(S]")
-	clrCtl = []rune("(C]")
-	clrOff = []rune("[O)")
+	clrKey = []byte("(Q]")
+	clrS = []byte("(S]")
+	clrCtl = []byte("(C]")
+	clrOff = []byte("[O)")
 	for _, c := range []struct {
 		name string
 		in   string
