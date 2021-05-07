@@ -2,11 +2,13 @@ package paintjson
 
 import "testing"
 
-func TestPJ(t *testing.T) {
-	clrKey = []byte("(Q]")
-	clrS = []byte("(S]")
-	clrCtl = []byte("(C]")
-	clrOff = []byte("[O)")
+func TestString(t *testing.T) {
+	opts := []Option{
+		ClrKey([]byte("(Q]")),
+		ClrSpecStr([]byte("(S]")),
+		ClrCtl([]byte("(C]")),
+		ClrOff([]byte("[O)")),
+	}
 	for _, c := range []struct {
 		name string
 		in   string
@@ -38,7 +40,7 @@ func TestPJ(t *testing.T) {
 	}} {
 		c := c
 		t.Run(c.name, func(t *testing.T) {
-			o := PJ(c.in)
+			o := String(c.in, opts...)
 			if o != c.exp {
 				t.Errorf("%s != %s", o, c.exp)
 			}
