@@ -35,6 +35,12 @@ func ClrSpecStr(clr []byte) Option {
 	}
 }
 
+func ClrStr(clr []byte) Option {
+	return func(fsm *FSM) {
+		fsm.clrStr = clr
+	}
+}
+
 func ClrCtl(clr []byte) Option {
 	return func(fsm *FSM) {
 		fsm.clrCtl = clr
