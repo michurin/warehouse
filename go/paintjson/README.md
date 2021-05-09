@@ -1,4 +1,4 @@
-# Simple JSON painter
+# Fuzzy JSON highlighting
 
 ## Install
 
@@ -6,12 +6,13 @@
 
 ## Examples
 
-    fmt.Println(paintjson.PJ(`{"x":12}`))
+    fmt.Println(paintjson.String(`{"x":12}`))
 
 ## Description
 
 In fact, it doesn't perform full JSON parsing. It consider
-spaces, quoted strings, brackets, colons, commas... In addition,
+spaces, quoted strings, brackets (including brackets balance),
+colons (in context), commas... In addition,
 it emphasizes quoted strings right before colons and mark them
 as keys.
 
@@ -21,7 +22,5 @@ Thanks to this, it can treat semi-JSON strings like this:
 
 ## Todo
 
-- Refactoring: separate FSM
 - Streaming: obtain `io.Reader`
-- Make colors tunable
 - CLI tool
