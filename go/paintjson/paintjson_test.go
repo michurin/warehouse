@@ -24,9 +24,17 @@ func TestString(t *testing.T) {
 		in:   ` { "one" : 12 } `,
 		exp:  ` (C]{[O) (Q]"one"[O) (C]:[O) (S]12[O) (C]}[O) `,
 	}, {
+		name: "spaces_array",
+		in:   ` [ "12" ] `,
+		exp:  ` (C][[O) (s]"12"[O) (C]][O) `,
+	}, {
 		name: "escaped",
 		in:   `{"o\"ne":1}`,
 		exp:  `(C]{[O)(Q]"o\"ne"[O)(C]:[O)(S]1[O)(C]}[O)`,
+	}, {
+		name: "ignore_wrong_colon",
+		in:   `{1:2}`,
+		exp:  `(C]{[O)(S]1[O):(S]2[O)(C]}[O)`,
 	}, {
 		name: "invalid_has_to_be_closed",
 		in:   `[1`,

@@ -15,6 +15,7 @@ type FSM struct {
 	clrOff     []byte
 	state      int
 	colored    bool
+	balance    int
 	lastWord   []byte
 	lastSpace  []byte
 }
@@ -28,6 +29,7 @@ func NewFSM(opts ...Option) *FSM {
 		clrOff:     Off,
 		state:      outOfString,
 		colored:    false,
+		balance:    0, // brackets balance
 		lastWord:   nil,
 		lastSpace:  nil,
 	}
@@ -38,7 +40,7 @@ func NewFSM(opts ...Option) *FSM {
 }
 
 func (fsm *FSM) on(a []byte, c []byte) []byte {
-	if len(c) == 0 {
+	if len(c) == 0 || fsm.balance == 0 {
 		return a
 	}
 	fsm.colored = true
@@ -53,29 +55,56 @@ func (fsm *FSM) off(a []byte) []byte {
 	return append(a, fsm.clrOff...)
 }
 
+func (fsm *FSM) last(c []byte) []byte {
+	out := []byte(nil)
+	if fsm.lastWord != nil {
+		out = fsm.on(out, c)
+		out = append(out, fsm.lastWord...)
+		out = fsm.off(out)
+		fsm.lastWord = nil
+	}
+	if fsm.lastSpace != nil {
+		out = append(out, fsm.lastSpace...)
+		fsm.lastSpace = nil
+	}
+	return out
+}
+
+func (fsm *FSM) inc(c byte) {
+	switch c {
+	case '{', '[':
+		fsm.balance++
+	}
+}
+
+func (fsm *FSM) dec(c byte) {
+	if fsm.balance <= 0 {
+		return
+	}
+	switch c {
+	case '}', ']':
+		fsm.balance--
+	}
+}
+
 func (fsm *FSM) Next(c byte) []byte {
 	out := []byte(nil)
 	switch fsm.state {
 	case outOfString:
 		switch c {
-		case '{', '}', '[', ']', ':', ',':
-			if fsm.lastWord != nil {
-				if c == ':' { // it is key
-					out = fsm.on(out, fsm.clrKey)
-					out = append(out, fsm.lastWord...)
-					out = fsm.off(out)
-				} else { // it is ordinary string
-					out = fsm.on(out, fsm.clrStr)
-					out = append(out, fsm.lastWord...)
-					out = fsm.off(out)
-				}
-				fsm.lastWord = nil
-			}
-			if fsm.lastSpace != nil {
-				out = append(out, fsm.lastSpace...)
-				fsm.lastSpace = nil
-			}
+		case '{', '}', '[', ']', ',':
+			fsm.inc(c)
+			out = append(out, fsm.last(fsm.clrStr)...)
 			out = fsm.on(out, fsm.clrCtl)
+			out = append(out, c)
+			out = fsm.off(out)
+			fsm.dec(c)
+		case ':': // we consider ':' as part of JSON only after string key
+			color := fsm.lastWord != nil
+			out = append(out, fsm.last(fsm.clrKey)...)
+			if color {
+				out = fsm.on(out, fsm.clrCtl)
+			}
 			out = append(out, c)
 			out = fsm.off(out)
 		case '\x20', '\n', '\r', '\t':
@@ -108,13 +137,15 @@ func (fsm *FSM) Next(c byte) []byte {
 		fsm.state = inQStr
 	case inNotStr:
 		switch c {
-		case '{', '}', '[', ']', ':', ',':
+		case '{', '}', '[', ']', ',': // exclude ':' cause it can appear after string only
+			fsm.inc(c)
 			out = fsm.off(out)
 			out = fsm.on(out, fsm.clrCtl)
 			out = append(out, c)
 			out = fsm.off(out)
 			fsm.state = outOfString
-		case '\x20', '\n', '\r', '\t':
+			fsm.dec(c)
+		case '\x20', '\n', '\r', '\t', ':': // ':' just interrupts unquoted string (invalid JSON)
 			out = fsm.off(out)
 			out = append(out, c)
 			fsm.state = outOfString
@@ -128,10 +159,8 @@ func (fsm *FSM) Next(c byte) []byte {
 func (fsm *FSM) Finish() []byte {
 	out := []byte(nil)
 	out = fsm.off(out)
-	out = append(out, fsm.lastWord...)
-	out = append(out, fsm.lastSpace...)
-	fsm.lastWord = nil
-	fsm.lastSpace = nil
+	out = append(out, fsm.last(nil)...)
 	fsm.state = outOfString
+	fsm.balance = 0
 	return out
 }
