@@ -58,3 +58,4 @@ Response
 ## References
 
 - [Known Issues and Best Practices for the Use of Long Polling and Streaming in Bidirectional HTTP](https://tools.ietf.org/id/draft-loreto-http-bidirectional-07.html)
+- Similar projects: [github.com/jcuga/golongpoll](https://github.com/jcuga/golongpoll)
