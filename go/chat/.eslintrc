@@ -1,0 +1,11 @@
+{
+  "root": true,
+  "reportUnusedDisableDirectives": true,
+  "extends": ["eslint:recommended"],
+  "parserOptions": {
+    "ecmaVersion": 5,
+    "sourceType": "script"
+  },
+  "globals": {"window": true},
+  "rules": {}
+}

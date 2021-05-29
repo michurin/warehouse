@@ -16,5 +16,7 @@ func (h *SendHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	h.Storage.Add(Message{string(body)}) // TODO validate message, TODO use JSON for text, nickname, color etc
-	w.Write([]byte("OK"))
+	hdr := w.Header()
+	hdr.Set("content-type", "application/json; charset=UTF-8")
+	w.Write([]byte(`{}`)) // JSON
 }

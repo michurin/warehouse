@@ -45,7 +45,7 @@ Response
 ## TODO
 
 - Isolate library part: Message (including validation) has to be put outside
-- JS SDK (jQuery free)
+- [x] JS SDK (jQuery free)
 - Nicknames, colors (after Message type isolation)
 - Chat window: limit number of messages, scrolling, etc.
 - Client- and server-side check: remove ctl chars, care about empty messages, etc
