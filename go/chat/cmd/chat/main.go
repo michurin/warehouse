@@ -17,8 +17,8 @@ func main() {
 	mux := http.NewServeMux()
 	//mux.Handle("/", http.StripPrefix("/public_http/", http.FileServer(http.Dir("public_http"))))
 	mux.Handle("/", http.FileServer(http.Dir("public_html")))
-	mux.Handle("/chat/send", &chat.SendHandler{Storage: storage})
-	mux.Handle("/chat/poll", &chat.PollHandler{Storage: storage})
+	mux.Handle("/api/publish", &chat.PublishHandler{Storage: storage})
+	mux.Handle("/api/poll", &chat.PollHandler{Storage: storage})
 	s := &http.Server{
 		Addr:           ":8080",
 		Handler:        mux,

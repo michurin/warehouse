@@ -2,7 +2,7 @@ $(function() {
   var sender = chat({
     onmessages: function(messages) {
       messages.reverse().forEach(function(e) { // we reverse original array here
-        $('#conversation').append($('<div>').text(e.text));
+        $('#conversation').append($('<div>').text(e.message));
       });
       var c = $('#conversation').children();
       for (var i = 0; i < c.length-10; i++) {

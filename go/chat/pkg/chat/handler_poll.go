@@ -13,6 +13,7 @@ type pollingRequest struct {
 
 type PollHandler struct {
 	Storage *Storage
+	// TODO add validator
 }
 
 func (h *PollHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {

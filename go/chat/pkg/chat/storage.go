@@ -3,16 +3,18 @@ package chat
 import (
 	"container/list"
 	"context"
+	"encoding/json"
 	"sync"
 )
 
 type Message struct {
-	Text string `json:"text"`
+	Message json.RawMessage `json:"message"`
+	// TODO add eventually constant anti-entropy id
 }
 
 type slot struct {
 	id      int
-	message Message
+	message json.RawMessage
 }
 
 type Storage struct {
@@ -31,11 +33,14 @@ func New() *Storage {
 	}
 }
 
-func (s *Storage) Add(message Message) { // TODO return registered-as id
+func (s *Storage) Add(message json.RawMessage) { // TODO return registered-as id
 	s.lock.Lock()
 	defer s.lock.Unlock()
 	s.lastID++
-	s.bank.PushFront(slot{s.lastID, message})
+	s.bank.PushFront(slot{
+		id:      s.lastID,
+		message: message,
+	})
 	for s.bank.Len() > 10 { // TODO turn 10->s.capacity
 		s.bank.Remove(s.bank.Back())
 	}
@@ -47,19 +52,17 @@ func (s *Storage) get(lastID int) ([]Message, chan struct{}, int) {
 	s.lock.Lock()
 	defer s.lock.Unlock()
 	res := []Message(nil)
-	actualLastID := 0
 	for e := s.bank.Front(); e != nil; e = e.Next() {
 		s := e.Value.(slot)
 		if s.id <= lastID {
 			break
 		}
-		res = append(res, s.message)
+		res = append(res, Message{Message: s.message})
 	}
-	actualLastID = s.lastID
 	if res == nil {
-		return nil, s.signal, actualLastID
+		return nil, s.signal, s.lastID
 	}
-	return res, nil, actualLastID
+	return res, nil, s.lastID
 }
 
 func (s *Storage) Get(ctx context.Context, lastID int) ([]Message, int) {

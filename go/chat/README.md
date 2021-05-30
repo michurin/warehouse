@@ -15,11 +15,11 @@ go run ./cmd/chat/...
 Playing with `curl`:
 
 ```
-curl -d 'Hi!' http://localhost:8080/chat/send
-curl -d 'Hi there!' http://localhost:8080/chat/send
-curl -d 'id=0' http://localhost:8080/chat/poll
-{"messages":[{"text":"Hi there!"},{"text":"Hi!"}],"next":2}
-curl -d 'id=2' http://localhost:8080/chat/poll
+curl -d '{"message":{"name":"Wirt","text":"ok"}}' localhost:8080/api/publish
+curl -d '{"message":"Hi!"}' localhost:8080/api/publish
+curl -d '{"id":0}' localhost:8080/api/poll
+{"lastID":2,"messages":[{"message":"Hi!"},{"message":{"name":"Wirt","text":"ok"}}]}
+curl -d '{"id":2}' localhost:8080/api/poll
 ...long polling...
 ```
 
@@ -44,16 +44,16 @@ Response
 
 ## TODO
 
-- Isolate library part: Message (including validation) has to be put outside
+- [] Isolate library part: Message (including validation) has to be put outside
 - [x] JS SDK (jQuery free)
-- Nicknames, colors (after Message type isolation)
-- Chat window: limit number of messages, scrolling, etc.
-- Client- and server-side check: remove ctl chars, care about empty messages, etc
-- Contract: let send returns registered-as id: string vector increasing id
-- Multiply chat rooms
-- Logging, error handling, health checking, statistics
-- TODOs in code
-- Setup CI
+- [] Nicknames, colors (after Message type isolation)
+- [] Chat window: limit number of messages, scrolling, etc.
+- [] Client- and server-side check: remove ctl chars, care about empty messages, etc
+- [] Contract: let send returns registered-as id: string vector increasing id
+- [] Multiply chat rooms
+- [] Logging, error handling, health checking, statistics
+- [] TODOs in code
+- [] Setup CI
 
 ## References
 

@@ -6,6 +6,8 @@ function chat(options) {
   var ondown = options.ondown || nop;
   var onsuccess = options.onsuccess || nop;
   var onerror = options.onerror || nop;
+  var publishUrl = options.publishUrl || '/api/publish';
+  var pollUrl = options.pollUrl || '/api/poll';
   // XHR
   var request = function(url, data, complete) {
     var xhr = new window.XMLHttpRequest();
@@ -32,7 +34,7 @@ function chat(options) {
     if (id === undefined) {
       id = lastID;
     }
-    request('/chat/poll', JSON.stringify({id: id}), function(st, body) {
+    request(pollUrl, JSON.stringify({id: id}), function(st, body) {
       if (st == 200) {
         var obj = JSON.parse(body);
         var id = obj.lastID;
@@ -52,8 +54,7 @@ function chat(options) {
   poll();
   // Sender
   return function(message) {
-    // TODO plain text -> JSON
-    request('/chat/send', message, function(st, body) {
+    request(publishUrl, JSON.stringify({message: message}), function(st, body) {
       if (st == 200) {
         onsuccess(body); // TODO id (has to be produced by server)
       } else {
