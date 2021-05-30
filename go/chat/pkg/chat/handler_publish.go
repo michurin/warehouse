@@ -21,7 +21,7 @@ func (h *PublishHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	// TODO validate message
-	h.Storage.Add(req.Message)
+	h.Storage.Put(req.Message)
 	hdr := w.Header()
 	hdr.Set("content-type", "application/json; charset=UTF-8")
 	w.Write([]byte(`{}`)) // JSON

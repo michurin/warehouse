@@ -8,12 +8,12 @@ import (
 	"github.com/michurin/warehouse/go/chat/pkg/chat"
 )
 
-func log(x ...interface{}) {
+func log(x ...interface{}) { // TODO use it! TODO errors
 	fmt.Println(x...)
 }
 
 func main() {
-	storage := chat.New()
+	storage := chat.New(chat.InitialLastID())
 	mux := http.NewServeMux()
 	//mux.Handle("/", http.StripPrefix("/public_http/", http.FileServer(http.Dir("public_http"))))
 	mux.Handle("/", http.FileServer(http.Dir("public_html")))

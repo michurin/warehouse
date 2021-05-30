@@ -5,11 +5,17 @@ import (
 	"context"
 	"encoding/json"
 	"sync"
+	"time"
 )
+
+func InitialLastID() int { // TODO move to separate file
+	// We assume, we will have less than 10K messages per second
+	// and restarts will take more than one second
+	return int(time.Now().Unix()) * 10000
+}
 
 type Message struct {
 	Message json.RawMessage `json:"message"`
-	// TODO add eventually constant anti-entropy id
 }
 
 type slot struct {
@@ -25,15 +31,16 @@ type Storage struct {
 	signal    chan struct{}
 }
 
-func New() *Storage {
+func New(initialLastID int) *Storage {
 	return &Storage{
+		lastID: initialLastID,
 		bank:   list.New(),
 		lock:   &sync.Mutex{},
 		signal: make(chan struct{}),
 	}
 }
 
-func (s *Storage) Add(message json.RawMessage) { // TODO return registered-as id
+func (s *Storage) Put(message json.RawMessage) { // TODO return registered-as id?
 	s.lock.Lock()
 	defer s.lock.Unlock()
 	s.lastID++
@@ -57,7 +64,9 @@ func (s *Storage) get(lastID int) ([]Message, chan struct{}, int) {
 		if s.id <= lastID {
 			break
 		}
-		res = append(res, Message{Message: s.message})
+		res = append(res, Message{
+			Message: s.message,
+		})
 	}
 	if res == nil {
 		return nil, s.signal, s.lastID
