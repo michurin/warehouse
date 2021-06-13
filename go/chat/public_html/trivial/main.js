@@ -12,15 +12,14 @@ $(function() {
     onsuccess: function() {
       $('#text').val('').focus();
     },
-  }),
-   send = function() {
-    sender($('#text').val()); // TODO object here
+  });
+  var send = function() {
+    sender($('#text').val()); // it can be object here
   };
   $('#button').click(send);
   $('#text').keyup(function(e) {
     if (e.which == 13) {
       send();
-      return false;
     }
   });
   $('#text').focus();

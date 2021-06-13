@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 	"time"
 
@@ -11,22 +10,30 @@ import (
 	"github.com/michurin/warehouse/go/chat/pkg/chat"
 )
 
+func setupTrivial(mux *http.ServeMux) {
+	// TODO validations
+	storage := chat.New(chat.InitialLastID())
+	wrapper := NewWraper("trivial")
+	mux.Handle("/api/publish", wrapper(&chat.PublishHandler{Storage: storage}))
+	mux.Handle("/api/poll", wrapper(&chat.PollHandler{Storage: storage}))
+}
+
+func setupSmall(mux *http.ServeMux) {
+	// TODO validateions
+	// TODO multi room
+	storage := chat.New(chat.InitialLastID())
+	wrapper := NewWraper("small")
+	mux.Handle("/api/small/publish", wrapper(&chat.PublishHandler{Storage: storage}))
+	mux.Handle("/api/small/poll", wrapper(&chat.PollHandler{Storage: storage}))
+}
+
 func main() {
 	ctx := context.Background()
-	minlog.SetDefaultLogger(minlog.New(
-		minlog.WithLabelPlaceholder("-"),
-		minlog.WithLineFormatter(func(tm, level, label, caller, msg string) string {
-			c := "\033[32;1m"
-			if level != minlog.DefaultInfoLabel {
-				c = "\033[31;1m"
-			}
-			return fmt.Sprintf("%s %s%s\033[0m %s \033[33m%s\033[0m %s", tm, c, level, label, caller, msg)
-		})))
-	storage := chat.New(chat.InitialLastID())
+	setupLogger()
 	mux := http.NewServeMux()
 	mux.Handle("/", http.FileServer(http.Dir("public_html")))
-	mux.Handle("/api/publish", &chat.PublishHandler{Storage: storage})
-	mux.Handle("/api/poll", &chat.PollHandler{Storage: storage})
+	setupTrivial(mux)
+	setupSmall(mux)
 	minlog.Log(ctx, "Listening...")
 	s := &http.Server{
 		Addr:           ":8080",
