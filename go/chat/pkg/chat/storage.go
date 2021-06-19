@@ -121,34 +121,46 @@ type Rooms struct {
 	Rooms *sync.Map // TODO private
 }
 
-func (r *Rooms) room(rid string) *Storage {
-	si, _ := r.Rooms.LoadOrStore(rid, New(TimeBasedIDIniter))
+func (r *Rooms) room(ctx context.Context, rid string) *Storage {
+	si, loaded := r.Rooms.LoadOrStore(rid, New(TimeBasedIDIniter))
+	if !loaded {
+		minlog.Log(ctx, "New room created:", rid)
+	}
 	return si.(*Storage)
 }
 
-func (r *Rooms) Pub(rid string, msg json.RawMessage) {
-	r.room(rid).Put(msg)
+func (r *Rooms) Pub(ctx context.Context, rid string, msg json.RawMessage) {
+	r.room(ctx, rid).Put(msg)
 }
 
 func (r *Rooms) Fetch(ctx context.Context, rid string, lastID int64) ([]json.RawMessage, int64) {
-	return r.room(rid).Get(ctx, lastID)
+	return r.room(ctx, rid).Get(ctx, lastID)
 }
 
-func RoomCleaner(r *Rooms) {
+func RoomCleaner(ctx context.Context, r *Rooms) {
 	// TODO move to "constructor"?
 	// TODO obtain context.Context and finish on cancel
 	// TODO instrumentation?
-	c := time.NewTicker(time.Minute).C
-	ctx := minlog.Label(context.Background(), "ticker")
+	ticker := time.NewTicker(time.Minute) // it has to be longer then polling interval
 	go func() {
-		<-c
-		minlog.Log(ctx, "Tick")
-		r.Rooms.Range(func(k, v interface{}) bool {
-			if v.(*Storage).Tick() {
-				minlog.Log(ctx, "Delete", k)
-				r.Rooms.Delete(k)
+	L:
+		for {
+			select {
+			case <-ticker.C:
+			case <-ctx.Done():
+				break L
 			}
-			return true
-		})
+			count := 0
+			r.Rooms.Range(func(k, v interface{}) bool {
+				if v.(*Storage).Tick() {
+					minlog.Log(ctx, "Delete", k)
+					r.Rooms.Delete(k)
+				}
+				count++
+				return true
+			})
+			minlog.Log(ctx, "Tick: ~", count, "rooms")
+		}
+		ticker.Stop()
 	}()
 }

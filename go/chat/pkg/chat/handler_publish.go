@@ -27,7 +27,8 @@ func (h *PublishHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	ctx := minlog.Label(r.Context(), "room:"+req.RoomID)
 	minlog.Log(ctx, "Publish:", []byte(req.Message))
 	// TODO validate message
-	h.Rooms.Pub(req.RoomID, req.Message)
+	// TODO validate room id
+	h.Rooms.Pub(ctx, req.RoomID, req.Message)
 	hdr := w.Header()
 	hdr.Set("content-type", "application/json; charset=UTF-8")
 	w.Write([]byte(`{}`)) // JSON

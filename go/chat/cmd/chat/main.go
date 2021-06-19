@@ -11,19 +11,19 @@ import (
 	"github.com/michurin/warehouse/go/chat/pkg/chat"
 )
 
-func setupTrivial(mux *http.ServeMux) {
+func setupTrivial(ctx context.Context, mux *http.ServeMux) {
 	// TODO validations
 	rooms := &chat.Rooms{Rooms: new(sync.Map)}
-	chat.RoomCleaner(rooms)
+	chat.RoomCleaner(minlog.Label(ctx, "tick:trivial"), rooms)
 	wrapper := NewWraper("trivial")
 	mux.Handle("/api/publish", wrapper(&chat.PublishHandler{Rooms: rooms}))
 	mux.Handle("/api/poll", wrapper(&chat.PollHandler{Rooms: rooms}))
 }
 
-func setupSmall(mux *http.ServeMux) {
+func setupSimple(ctx context.Context, mux *http.ServeMux) {
 	// TODO validateions
 	rooms := &chat.Rooms{Rooms: new(sync.Map)}
-	chat.RoomCleaner(rooms)
+	chat.RoomCleaner(minlog.Label(ctx, "tick:simple"), rooms)
 	wrapper := NewWraper("small")
 	mux.Handle("/api/small/publish", wrapper(&chat.PublishHandler{Rooms: rooms}))
 	mux.Handle("/api/small/poll", wrapper(&chat.PollHandler{Rooms: rooms}))
@@ -34,8 +34,8 @@ func main() {
 	setupLogger()
 	mux := http.NewServeMux()
 	mux.Handle("/", http.FileServer(http.Dir("public_html")))
-	setupTrivial(mux)
-	setupSmall(mux)
+	setupTrivial(ctx, mux)
+	setupSimple(ctx, mux)
 	minlog.Log(ctx, "Listening...")
 	s := &http.Server{
 		Addr:           ":8080",

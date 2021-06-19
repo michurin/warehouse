@@ -14,7 +14,6 @@ type pollingRequest struct {
 
 type PollHandler struct {
 	Rooms *Rooms
-	// TODO add validator
 }
 
 func (h *PollHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -26,7 +25,11 @@ func (h *PollHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
+	// TODO validate room id
+	// TODO validate id
 	mm, lastID := h.Rooms.Fetch(ctx, req.RoomID, req.ID)
+	hdr := w.Header()
+	hdr.Set("content-type", "application/json; charset=UTF-8")
 	json.NewEncoder(w).Encode(map[string]interface{}{
 		"messages": mm,
 		"lastID":   lastID,
