@@ -8,7 +8,7 @@ window.chat = function (options) {
   var publishUrl = options.publishUrl || '/api/publish';
   var pollUrl = options.pollUrl || '/api/poll';
   // TODO argument? option?
-  var room = window.location.hash.substr(1);
+  var room = options.room || '__default__';
   // XHR inspired by jQuery
   var request = function (url, data, complete) {
     var xhr = new window.XMLHttpRequest();

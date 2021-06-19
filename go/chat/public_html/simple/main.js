@@ -11,12 +11,32 @@ function setFigure (f) {
   $('#fig-' + f).addClass('sel');
 }
 
+function setupShareLink () {
+  var f = function () {
+    try {
+      var s = window.getSelection();
+      var r = window.document.createRange();
+      r.selectNode(this);
+      s.removeAllRanges();
+      s.addRange(r);
+    } catch (exc) {}
+  };
+  $('#share').text(window.location.href).hover(f);
+}
+
 $(function () {
+  var room = window.location.hash.substr(1);
+  if (room === '') {
+    room = Math.ceil(Math.random() * 1125899906842624).toString(36);
+    window.location.hash = room;
+  }
+  setupShareLink();
   var sender = chat({
+    'room': room,
     'publishUrl': '/api/small/publish',
     'pollUrl': '/api/small/poll',
     'onmessages': function (messages) {
-      messages.reverse().forEach(function (msg) { // we reverse original array here
+      messages.reverse().forEach(function (msg) { // We reverse original array here
         if (msg.type === 'chat-message') {
           $('#conversation').append($('<div>').append(
             $('<span>').css('color', msg.color).text(msg.nick),
@@ -42,7 +62,7 @@ $(function () {
     },
     'onsuccess': function () { // TODO (e)
       $('#text').val('').focus();
-    },
+    }
   });
 
   var sendChatMessage = function () {
@@ -57,29 +77,30 @@ $(function () {
     sender({
       // TODO add nick, color and produce log-message
       'type': 'game-reset',
-      'size': size,
+      'size': size
     });
   };
 
   var initGameArea = function (size) {
+    var mkHandler = function (x, y) {
+      return function (e) {
+        e.preventDefault();
+        sender({
+          // TODO add nick, color and produce log-message
+          'type': 'game-tune',
+          'x': x,
+          'y': y,
+          'fig': currentFigure
+        });
+      };
+    };
     var t = $('#game-area');
     t.empty();
-    var i, j;
-    for (i = 0; i < size; i++) {
+    for (var i = 0; i < size; i++) {
       var tr = $('<tr>');
-      for (j = 0; j < size; j++) {
-        var img = $('<img src="e.svg" width="30" height="30" id="' + cellId(j, i) + '">').click(function (x, y){
-          return function (e) {
-            e.preventDefault();
-            sender({
-              // TODO add nick, color and produce log-message
-              'type': 'game-tune',
-              'x': x,
-              'y': y,
-              'fig': currentFigure
-            });
-          };
-        }(j, i));
+      for (var j = 0; j < size; j++) {
+        var txt = '<img src="e.svg" width="30" height="30" id="' + cellId(j, i) + '">';
+        var img = $(txt).click(mkHandler(j, i));
         var td = $('<td>').addClass('empty').append(img);
         tr.append(td);
       }
