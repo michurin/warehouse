@@ -8,11 +8,12 @@ import (
 )
 
 type publishRequest struct {
+	RoomID  string          `json:"room"`
 	Message json.RawMessage `json:"message"`
 }
 
 type PublishHandler struct {
-	Storage *Storage
+	Rooms *Rooms // TODO private
 }
 
 func (h *PublishHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -23,9 +24,10 @@ func (h *PublishHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-	minlog.Log(r.Context(), "Publish:", []byte(req.Message))
+	ctx := minlog.Label(r.Context(), "room:"+req.RoomID)
+	minlog.Log(ctx, "Publish:", []byte(req.Message))
 	// TODO validate message
-	h.Storage.Put(req.Message)
+	h.Rooms.Pub(req.RoomID, req.Message)
 	hdr := w.Header()
 	hdr.Set("content-type", "application/json; charset=UTF-8")
 	w.Write([]byte(`{}`)) // JSON

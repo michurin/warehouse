@@ -8,7 +8,9 @@ function chat(options) {
   var onerror = options.onerror || nop;
   var publishUrl = options.publishUrl || '/api/publish';
   var pollUrl = options.pollUrl || '/api/poll';
-  // XHR
+  // TODO argument? option?
+  var room = window.location.hash.substr(1);
+  // XHR inspired by jQuery
   var request = function(url, data, complete) {
     var xhr = new window.XMLHttpRequest();
     xhr.open('POST', url, true);
@@ -34,7 +36,7 @@ function chat(options) {
     if (id === undefined) {
       id = lastID;
     }
-    request(pollUrl, JSON.stringify({id: id}), function(st, body) {
+    request(pollUrl, JSON.stringify({id: id, room: room}), function(st, body) {
       if (st == 200) {
         var obj = JSON.parse(body);
         var id = obj.lastID;
@@ -54,7 +56,7 @@ function chat(options) {
   poll();
   // Sender
   return function(message) {
-    request(publishUrl, JSON.stringify({message: message}), function(st, body) {
+    request(publishUrl, JSON.stringify({message: message, room: room}), function(st, body) {
       if (st == 200) {
         onsuccess(body); // TODO id (has to be produced by server)
       } else {

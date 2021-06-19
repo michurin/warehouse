@@ -1,8 +1,8 @@
 $(function() {
   var sender = chat({
     onmessages: function(messages) {
-      messages.reverse().forEach(function(e) { // we reverse original array here
-        $('#conversation').append($('<div>').text(e.message));
+      messages.reverse().forEach(function(msg) { // we reverse original array here
+        $('#conversation').append($('<div>').text(msg));
       });
       var c = $('#conversation').children();
       for (var i = 0; i < c.length-10; i++) {
@@ -14,7 +14,7 @@ $(function() {
     },
   });
   var send = function() {
-    sender($('#text').val()); // it can be object here
+    sender($('#text').val()); // string, however it can be object here
   };
   $('#button').click(send);
   $('#text').keyup(function(e) {

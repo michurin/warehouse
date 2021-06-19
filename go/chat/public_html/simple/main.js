@@ -16,8 +16,7 @@ $(function() {
     publishUrl: '/api/small/publish',
     pollUrl: '/api/small/poll',
     onmessages: function(messages) {
-      messages.reverse().forEach(function(e) { // we reverse original array here
-        var msg = e.message;
+      messages.reverse().forEach(function(msg) { // we reverse original array here
         if (msg.type == 'chat-message') {
           $('#conversation').append($('<div>').append(
             $('<span>').css('color', msg.color).text(msg.nick),

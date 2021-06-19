@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"net/http"
+	"sync"
 	"time"
 
 	"github.com/michurin/minlog"
@@ -12,19 +13,20 @@ import (
 
 func setupTrivial(mux *http.ServeMux) {
 	// TODO validations
-	storage := chat.New(chat.InitialLastID())
+	rooms := &chat.Rooms{Rooms: new(sync.Map)}
+	chat.RoomCleaner(rooms)
 	wrapper := NewWraper("trivial")
-	mux.Handle("/api/publish", wrapper(&chat.PublishHandler{Storage: storage}))
-	mux.Handle("/api/poll", wrapper(&chat.PollHandler{Storage: storage}))
+	mux.Handle("/api/publish", wrapper(&chat.PublishHandler{Rooms: rooms}))
+	mux.Handle("/api/poll", wrapper(&chat.PollHandler{Rooms: rooms}))
 }
 
 func setupSmall(mux *http.ServeMux) {
 	// TODO validateions
-	// TODO multi room
-	storage := chat.New(chat.InitialLastID())
+	rooms := &chat.Rooms{Rooms: new(sync.Map)}
+	chat.RoomCleaner(rooms)
 	wrapper := NewWraper("small")
-	mux.Handle("/api/small/publish", wrapper(&chat.PublishHandler{Storage: storage}))
-	mux.Handle("/api/small/poll", wrapper(&chat.PollHandler{Storage: storage}))
+	mux.Handle("/api/small/publish", wrapper(&chat.PublishHandler{Rooms: rooms}))
+	mux.Handle("/api/small/poll", wrapper(&chat.PollHandler{Rooms: rooms}))
 }
 
 func main() {

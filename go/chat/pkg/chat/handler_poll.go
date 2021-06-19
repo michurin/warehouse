@@ -8,11 +8,12 @@ import (
 )
 
 type pollingRequest struct {
-	ID int `json:"id"`
+	RoomID string `json:"room"`
+	ID     int64  `json:"id"`
 }
 
 type PollHandler struct {
-	Storage *Storage
+	Rooms *Rooms
 	// TODO add validator
 }
 
@@ -25,7 +26,7 @@ func (h *PollHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-	mm, lastID := h.Storage.Get(ctx, req.ID)
+	mm, lastID := h.Rooms.Fetch(ctx, req.RoomID, req.ID)
 	json.NewEncoder(w).Encode(map[string]interface{}{
 		"messages": mm,
 		"lastID":   lastID,
