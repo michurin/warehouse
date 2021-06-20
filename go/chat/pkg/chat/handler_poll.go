@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"net/http"
 	"time"
+
+	"github.com/michurin/minlog"
 )
 
 type pollingRequest struct {
@@ -12,26 +14,51 @@ type pollingRequest struct {
 	ID     int64  `json:"id"`
 }
 
-type PollHandler struct {
-	Rooms *Rooms
+type pollingResponse struct {
+	Messages []json.RawMessage `json:"messages"`
+	LastID   int64             `json:"lastID"`
 }
 
-func (h *PollHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+type PollingHandler struct {
+	rooms *Rooms
+}
+
+func NewPollingHandler(r *Rooms) *PollingHandler {
+	return &PollingHandler{
+		rooms: r,
+	}
+}
+
+func (h *PollingHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithTimeout(r.Context(), 30*time.Second) // TODO make it tunable
 	defer cancel()
 	req := new(pollingRequest)
 	err := json.NewDecoder(r.Body).Decode(req)
 	if err != nil {
+		minlog.Log(ctx, err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-	// TODO validate room id
-	// TODO validate id
-	mm, lastID := h.Rooms.Fetch(ctx, req.RoomID, req.ID)
+	rid := req.RoomID
+	id := req.ID
+	if err = validateRoomID(rid); err != nil {
+		minlog.Log(ctx, err)
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	if err = validateID(id); err != nil {
+		minlog.Log(ctx, err)
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	mm, lastID := h.rooms.Fetch(ctx, rid, id)
 	hdr := w.Header()
 	hdr.Set("content-type", "application/json; charset=UTF-8")
-	json.NewEncoder(w).Encode(map[string]interface{}{
-		"messages": mm,
-		"lastID":   lastID,
+	err = json.NewEncoder(w).Encode(pollingResponse{
+		Messages: mm,
+		LastID:   lastID,
 	})
+	if err != nil {
+		minlog.Log(ctx, err)
+	}
 }

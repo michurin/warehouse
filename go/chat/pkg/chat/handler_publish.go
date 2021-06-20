@@ -12,11 +12,19 @@ type publishRequest struct {
 	Message json.RawMessage `json:"message"`
 }
 
-type PublishHandler struct {
-	Rooms *Rooms // TODO private
+type PublishingHandler struct {
+	rooms     *Rooms
+	validator func(json.RawMessage) error // TODO it would be nice to have interface here
 }
 
-func (h *PublishHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+func NewPublishingHandler(r *Rooms, v func(json.RawMessage) error) *PublishingHandler {
+	return &PublishingHandler{
+		rooms:     r,
+		validator: v,
+	}
+}
+
+func (h *PublishingHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	req := new(publishRequest)
 	err := json.NewDecoder(r.Body).Decode(req)
 	if err != nil {
@@ -26,10 +34,23 @@ func (h *PublishHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 	ctx := minlog.Label(r.Context(), "room:"+req.RoomID)
 	minlog.Log(ctx, "Publish:", []byte(req.Message))
-	// TODO validate message
-	// TODO validate room id
-	h.Rooms.Pub(ctx, req.RoomID, req.Message)
+	rid := req.RoomID
+	msg := req.Message
+	if err = validateRoomID(rid); err != nil {
+		minlog.Log(ctx, err)
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	if err = h.validator(msg); err != nil {
+		minlog.Log(ctx, err)
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	h.rooms.Pub(ctx, rid, msg)
 	hdr := w.Header()
 	hdr.Set("content-type", "application/json; charset=UTF-8")
-	w.Write([]byte(`{}`)) // JSON
+	_, err = w.Write([]byte(`{}`)) // JSON
+	if err != nil {
+		minlog.Log(ctx, err)
+	}
 }
