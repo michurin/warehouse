@@ -1,0 +1,4 @@
+bind "\e[1;2A" ed-search-prev-history
+bind "\e[1;2B" ed-search-next-history
+bind "\e[1;2C" vi-next-word
+bind "\e[1;2D" vi-prev-word
