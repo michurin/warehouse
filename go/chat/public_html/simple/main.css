@@ -1,0 +1,42 @@
+* {
+  font-family: sans-serif;
+}
+table {
+  border-spacing: 0;
+  border: 1px solid #000;
+  float: left;
+  margin-right: 1em;
+}
+td {
+  font-size: 1px;
+}
+td.empty:hover {
+  background-color: #cfc;
+  cursor: pointer;
+}
+.fig {
+  margin: 5px 0;
+  padding: 5px;
+  border: 2px solid #eee;
+  background-color: #eee;
+}
+.fig.sel {
+  margin: 5px 0;
+  padding: 5px;
+  border: 2px solid #000;
+  background-color: #9f9;
+}
+#share {
+  font-family: monotype;
+  color: #900;
+}
+img {
+  width: 20px;
+  height: 20px;
+}
+#error {
+  background-color: #900;
+  color: #ff0;
+  padding: 2em;
+  display: none;
+}

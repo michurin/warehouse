@@ -27,7 +27,7 @@ function setupShareLink () {
 $(function () {
   var room = window.location.hash.substr(1);
   if (room === '') {
-    room = Math.ceil(Math.random() * 1125899906842624).toString(36);
+    room = Math.ceil(Math.random() * 46655).toString(36);
     window.location.hash = room;
   }
   setupShareLink();
@@ -62,6 +62,12 @@ $(function () {
     },
     'onsuccess': function () { // TODO (e)
       $('#text').val('').focus();
+    },
+    'ondown': function () {
+      $('#error').show();
+    },
+    'onup': function () {
+      $('#error').hide();
     }
   });
 
@@ -99,7 +105,7 @@ $(function () {
     for (var i = 0; i < size; i++) {
       var tr = $('<tr>');
       for (var j = 0; j < size; j++) {
-        var txt = '<img src="e.svg" width="30" height="30" id="' + cellId(j, i) + '">';
+        var txt = '<img src="e.svg" id="' + cellId(j, i) + '">';
         var img = $(txt).click(mkHandler(j, i));
         var td = $('<td>').addClass('empty').append(img);
         tr.append(td);

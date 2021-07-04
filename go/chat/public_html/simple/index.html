@@ -1,13 +1,11 @@
 <!DOCTYPE html>
-<style>
-  table {border-spacing: 0; border: 1px solid #000; float: left; margin-right: 1em;}
-  td {font-size: 1px;}
-  td.empty:hover {background-color: #cfc; cursor: pointer}
-  .fig {margin: 5px 0; padding: 5px; border: 2px solid #eee; background-color: #eee;}
-  .fig.sel {margin: 5px 0; padding: 5px; border: 2px solid #000; background-color: #9f9;}
-  #share {font-family: monotype; color: #900;}
-</style>
+<head>
+  <title>Simple chat</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="main.css">
+</head>
 <body>
+  <div id="error">Transport error: connection lost</div>
   <h1>Invite</h1>
   <p>Share this URL <span id="share">...</span> to invite your friend to this private chat room.</p>
   <h1>Chat</h1>
