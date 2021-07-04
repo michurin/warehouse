@@ -34,7 +34,7 @@ func NewWraper(label string) func(http.Handler) http.Handler {
 	}
 }
 
-func trivialValidator(v json.RawMessage) error {
+func trivialValidator(_ *http.Request, v json.RawMessage) error {
 	var s string
 	if err := json.Unmarshal(v, &s); err != nil {
 		return err
@@ -82,7 +82,7 @@ func checkXY(n string, c *int) error {
 	return nil
 }
 
-func simpleValidator(v json.RawMessage) error {
+func simpleValidator(_ *http.Request, v json.RawMessage) error {
 	var m simplaPayload
 	if err := json.Unmarshal(v, &m); err != nil {
 		return err

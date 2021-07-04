@@ -14,10 +14,10 @@ type publishRequest struct {
 
 type PublishingHandler struct {
 	rooms     *Rooms
-	validator func(json.RawMessage) error // TODO it would be nice to have interface here
+	validator CustomValidator
 }
 
-func NewPublishingHandler(r *Rooms, v func(json.RawMessage) error) *PublishingHandler {
+func NewPublishingHandler(r *Rooms, v CustomValidator) *PublishingHandler {
 	return &PublishingHandler{
 		rooms:     r,
 		validator: v,
@@ -41,7 +41,7 @@ func (h *PublishingHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
-	if err = h.validator(msg); err != nil {
+	if err = h.validator.Validate(r, msg); err != nil {
 		minlog.Log(ctx, err)
 		w.WriteHeader(http.StatusBadRequest)
 		return
