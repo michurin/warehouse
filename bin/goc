@@ -6,9 +6,15 @@ clr0="`tput sgr0`"
 clrB="`tput bold`"
 clr1="`tput setaf 2`$clrB"
 clr2="`tput setab 1`$clrB"
+clr3="`tput setaf 3`$clrB"
+clr2a="`tput setaf 1`$clrB"
 
-go test -v -coverprofile=coverage.out "$@" |
+go test -coverprofile=coverage.out "$@" |
     sed "s/FAIL/${clr2}FAIL$clr0/" |
-    sed -e "s/^\([[:space:]]\/.*\)$/$clrB\1$clr0/" &&
+    sed "s/^\([[:space:]]\/.*\)\$/$clrB\1$clr0/" &&
+go tool cover -func=coverage.out |
+    sed "s-\(100.0%\)\$-$clr1\1$clr0-" |
+    sed "s-\([[:space:]]\)\(0.0%\)\$-\1$clr2a\2$clr0-" |
+    sed "s-\([^[:space:]]*%\)\$-$clr3\1$clr0-" &&
 go tool cover -html=coverage.out -o coverage.html &&
 echo "Open: $clr1$(pwd)/coverage.html$clr0"
