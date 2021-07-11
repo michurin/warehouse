@@ -4,62 +4,11 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"net/http"
-	"sort"
 	"strings"
 	"unicode"
-
-	"github.com/michurin/minlog"
-	"github.com/michurin/warehouse/go/chat/pkg/chat"
 )
 
-func logLineFormatter(tm, level, label, caller, msg string) string {
-	c := "\033[32;1m"
-	if level != minlog.DefaultInfoLabel {
-		c = "\033[31;1m"
-	}
-	return fmt.Sprintf("%s %s%s\033[0m %s \033[33m%s\033[0m %s", tm, c, level, label, caller, msg)
-}
-
-func setupLogger() {
-	minlog.SetDefaultLogger(minlog.New(
-		minlog.WithLabelPlaceholder("-"),
-		minlog.WithLineFormatter(logLineFormatter),
-	))
-}
-
-func NewWraper(label string) func(http.Handler) http.Handler {
-	return func(next http.Handler) http.Handler {
-		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			next.ServeHTTP(w, r.WithContext(minlog.Label(r.Context(), label)))
-		})
-	}
-}
-
-func NewMonHandler(rooms *chat.Rooms) http.Handler {
-	return http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
-		rw.Header().Set("Content-Type", "text/plain; charset=utf-8")
-		lst := chat.RoomsList(rooms)
-		if len(lst) == 0 {
-			rw.Write([]byte("(no rooms)"))
-			return
-		}
-		sections := make([]string, len(lst))
-		i := 0
-		for k, v := range lst {
-			q := make([]string, len(v))
-			for i, x := range v {
-				q[i] = string(x)
-			}
-			sections[i] = k + "\n\n" + strings.Join(q, "\n")
-			i++
-		}
-		sort.Strings(sections)
-		rw.Write([]byte(strings.Join(sections, "\n\n")))
-	})
-}
-
-func trivialValidator(_ *http.Request, v json.RawMessage) error {
+func trivialValidator(v json.RawMessage) error {
 	var s string
 	if err := json.Unmarshal(v, &s); err != nil {
 		return err
@@ -107,7 +56,7 @@ func checkXY(n string, c *int) error {
 	return nil
 }
 
-func simpleValidator(_ *http.Request, v json.RawMessage) error {
+func simpleValidator(v json.RawMessage) error {
 	var m simplaPayload
 	if err := json.Unmarshal(v, &m); err != nil {
 		return err

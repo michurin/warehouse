@@ -13,19 +13,17 @@ import (
 func setupTrivial(ctx context.Context, mux *http.ServeMux) {
 	rooms := chat.New()
 	go chat.RoomsCleaner(minlog.Label(ctx, "tick:trivial"), rooms)
-	wrapper := NewWraper("trivial")
-	mux.Handle("/api/publish", wrapper(chat.NewPublishingHandler(rooms, chat.ValidatorFunc(trivialValidator))))
-	mux.Handle("/api/poll", wrapper(chat.NewPollingHandler(rooms)))
-	mux.Handle("/mon/trivial", NewMonHandler(rooms))
+	mux.Handle("/api/publish", NewPublishingHandler(rooms, trivialValidator, "trivial"))
+	mux.Handle("/api/poll", NewPollingHandler(rooms, "trivial"))
+	mux.Handle("/mon/trivial", NewMonitoringHandler(rooms)) // TODO HTML: links to this
 }
 
 func setupSimple(ctx context.Context, mux *http.ServeMux) {
 	rooms := chat.New()
 	go chat.RoomsCleaner(minlog.Label(ctx, "tick:simple"), rooms)
-	wrapper := NewWraper("small")
-	mux.Handle("/api/small/publish", wrapper(chat.NewPublishingHandler(rooms, chat.ValidatorFunc(simpleValidator))))
-	mux.Handle("/api/small/poll", wrapper(chat.NewPollingHandler(rooms)))
-	mux.Handle("/mon/small", NewMonHandler(rooms))
+	mux.Handle("/api/small/publish", NewPublishingHandler(rooms, simpleValidator, "small"))
+	mux.Handle("/api/small/poll", NewPollingHandler(rooms, "small"))
+	mux.Handle("/mon/small", NewMonitoringHandler(rooms))
 }
 
 func main() {
