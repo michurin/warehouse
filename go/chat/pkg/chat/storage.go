@@ -137,17 +137,12 @@ func (r *Rooms) Fetch(ctx context.Context, rid string, lastID int64) ([]json.Raw
 	return r.room(ctx, rid).fetch(ctx, lastID)
 }
 
-func RoomCleaner(ctx context.Context, r *Rooms) {
-	// TODO instrumentation?
+func RoomsCleaner(ctx context.Context, r *Rooms) {
 	ticker := time.NewTicker(time.Minute) // it has to be longer then polling interval
-	go func() {
-	L:
-		for {
-			select {
-			case <-ticker.C:
-			case <-ctx.Done():
-				break L
-			}
+L:
+	for {
+		select {
+		case <-ticker.C:
 			count := 0
 			r.rooms.Range(func(k, v interface{}) bool {
 				if v.(*oneRoom).tick() {
@@ -158,7 +153,20 @@ func RoomCleaner(ctx context.Context, r *Rooms) {
 				return true
 			})
 			minlog.Log(ctx, "Tick: ~", count, "rooms")
+		case <-ctx.Done():
+			break L
 		}
-		ticker.Stop()
-	}()
+	}
+	minlog.Log(ctx, "Ticker stopping")
+	ticker.Stop()
+}
+
+func RoomsList(r *Rooms) map[string][]json.RawMessage {
+	lst := map[string][]json.RawMessage{}
+	r.rooms.Range(func(k, v interface{}) bool {
+		m, _, _ := v.(*oneRoom).get(0)
+		lst[k.(string)] = m
+		return true
+	})
+	return lst
 }

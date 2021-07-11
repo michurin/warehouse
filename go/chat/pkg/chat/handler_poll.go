@@ -41,6 +41,7 @@ func (h *PollingHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 	rid := req.RoomID
 	id := req.ID
+	ctx = minlog.Label(ctx, "room:"+rid)
 	if err = validateRoomID(rid); err != nil {
 		minlog.Log(ctx, err)
 		w.WriteHeader(http.StatusBadRequest)

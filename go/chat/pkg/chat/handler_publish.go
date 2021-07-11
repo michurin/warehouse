@@ -25,17 +25,18 @@ func NewPublishingHandler(r *Rooms, v CustomValidator) *PublishingHandler {
 }
 
 func (h *PublishingHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
 	req := new(publishRequest)
 	err := json.NewDecoder(r.Body).Decode(req)
 	if err != nil {
-		minlog.Log(r.Context(), err)
+		minlog.Log(ctx, err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-	ctx := minlog.Label(r.Context(), "room:"+req.RoomID)
-	minlog.Log(ctx, "Publish:", []byte(req.Message))
 	rid := req.RoomID
 	msg := req.Message
+	ctx = minlog.Label(ctx, "room:"+rid)
+	minlog.Log(ctx, "Publish:", []byte(req.Message))
 	if err = validateRoomID(rid); err != nil {
 		minlog.Log(ctx, err)
 		w.WriteHeader(http.StatusBadRequest)

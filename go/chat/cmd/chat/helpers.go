@@ -5,10 +5,12 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"sort"
 	"strings"
 	"unicode"
 
 	"github.com/michurin/minlog"
+	"github.com/michurin/warehouse/go/chat/pkg/chat"
 )
 
 func logLineFormatter(tm, level, label, caller, msg string) string {
@@ -32,6 +34,29 @@ func NewWraper(label string) func(http.Handler) http.Handler {
 			next.ServeHTTP(w, r.WithContext(minlog.Label(r.Context(), label)))
 		})
 	}
+}
+
+func NewMonHandler(rooms *chat.Rooms) http.Handler {
+	return http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
+		rw.Header().Set("Content-Type", "text/plain; charset=utf-8")
+		lst := chat.RoomsList(rooms)
+		if len(lst) == 0 {
+			rw.Write([]byte("(no rooms)"))
+			return
+		}
+		sections := make([]string, len(lst))
+		i := 0
+		for k, v := range lst {
+			q := make([]string, len(v))
+			for i, x := range v {
+				q[i] = string(x)
+			}
+			sections[i] = k + "\n\n" + strings.Join(q, "\n")
+			i++
+		}
+		sort.Strings(sections)
+		rw.Write([]byte(strings.Join(sections, "\n\n")))
+	})
 }
 
 func trivialValidator(_ *http.Request, v json.RawMessage) error {

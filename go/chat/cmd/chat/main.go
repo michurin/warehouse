@@ -12,18 +12,20 @@ import (
 
 func setupTrivial(ctx context.Context, mux *http.ServeMux) {
 	rooms := chat.New()
-	chat.RoomCleaner(minlog.Label(ctx, "tick:trivial"), rooms)
+	go chat.RoomsCleaner(minlog.Label(ctx, "tick:trivial"), rooms)
 	wrapper := NewWraper("trivial")
 	mux.Handle("/api/publish", wrapper(chat.NewPublishingHandler(rooms, chat.ValidatorFunc(trivialValidator))))
 	mux.Handle("/api/poll", wrapper(chat.NewPollingHandler(rooms)))
+	mux.Handle("/mon/trivial", NewMonHandler(rooms))
 }
 
 func setupSimple(ctx context.Context, mux *http.ServeMux) {
 	rooms := chat.New()
-	chat.RoomCleaner(minlog.Label(ctx, "tick:simple"), rooms)
+	go chat.RoomsCleaner(minlog.Label(ctx, "tick:simple"), rooms)
 	wrapper := NewWraper("small")
 	mux.Handle("/api/small/publish", wrapper(chat.NewPublishingHandler(rooms, chat.ValidatorFunc(simpleValidator))))
 	mux.Handle("/api/small/poll", wrapper(chat.NewPollingHandler(rooms)))
+	mux.Handle("/mon/small", NewMonHandler(rooms))
 }
 
 func main() {
