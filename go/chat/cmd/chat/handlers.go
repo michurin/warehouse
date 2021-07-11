@@ -13,10 +13,20 @@ import (
 	"github.com/michurin/warehouse/go/chat/pkg/chat"
 )
 
-func NewPublishingHandler(rooms *chat.Rooms, validator func(json.RawMessage) error, label string) http.Handler {
+func wrap(label string, next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		ctx := minlog.Label(r.Context(), label+":pub")
-		// You may want to validate session, cookies here...
+		// You may want to validate session/cookies here
+		// or log something
+		// or add things like client IP to context for contextual logging.
+		//
+		// It is just very simple example
+		next.ServeHTTP(w, r.WithContext(minlog.Label(r.Context(), label)))
+	})
+}
+
+func NewPublishingHandler(rooms *chat.Rooms, validator func(json.RawMessage) error, label string) http.Handler {
+	return wrap(label+":pub", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		ctx := r.Context()
 		rid, msg, err := chat.DecodePublishingRequest(r.Body)
 		if err != nil {
 			minlog.Log(ctx, err)
@@ -36,13 +46,12 @@ func NewPublishingHandler(rooms *chat.Rooms, validator func(json.RawMessage) err
 		if err != nil {
 			minlog.Log(ctx, err)
 		}
-	})
+	}))
 }
 
 func NewPollingHandler(rooms *chat.Rooms, label string) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		ctx := minlog.Label(r.Context(), label+":poll")
-		// You may want to validate session, cookies here...
+	return wrap(label+":poll", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		ctx := r.Context()
 		ctx, cancel := context.WithTimeout(ctx, 30*time.Second)
 		defer cancel()
 		rid, id, err := chat.DecodePollingRequest(r.Body)
@@ -58,7 +67,7 @@ func NewPollingHandler(rooms *chat.Rooms, label string) http.Handler {
 		if err != nil {
 			minlog.Log(ctx, err)
 		}
-	})
+	}))
 }
 
 func NewMonitoringHandler(rooms *chat.Rooms) http.Handler {

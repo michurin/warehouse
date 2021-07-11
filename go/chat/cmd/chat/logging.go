@@ -14,9 +14,9 @@ func logLineFormatter(tm, level, label, caller, msg string) string {
 	return fmt.Sprintf("%s %s%s\033[0m %s \033[33m%s\033[0m %s", tm, c, level, label, caller, msg)
 }
 
-func setupLogger() {
-	minlog.SetDefaultLogger(minlog.New(
+func setupLogger() *minlog.Logger {
+	return minlog.New(
 		minlog.WithLabelPlaceholder("-"),
 		minlog.WithLineFormatter(logLineFormatter),
-	))
+	)
 }

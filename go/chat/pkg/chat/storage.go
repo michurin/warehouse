@@ -6,8 +6,6 @@ import (
 	"encoding/json"
 	"sync"
 	"time"
-
-	"github.com/michurin/minlog"
 )
 
 func timeBasedIDIniter() int64 {
@@ -111,20 +109,29 @@ func (s *oneRoom) tick() bool {
 	return s.coundDown < 0
 }
 
-type Rooms struct {
-	rooms *sync.Map
+type Logger interface {
+	Log(ctx context.Context, message ...interface{})
 }
 
-func New() *Rooms {
+type Rooms struct {
+	rooms  *sync.Map
+	logger Logger
+}
+
+func New(l Logger) *Rooms {
+	if l == nil { // TODO default logger
+		panic("Logger must to be not nil")
+	}
 	return &Rooms{
-		rooms: new(sync.Map),
+		rooms:  new(sync.Map),
+		logger: l,
 	}
 }
 
 func (r *Rooms) room(ctx context.Context, rid string) *oneRoom {
 	si, loaded := r.rooms.LoadOrStore(rid, newRoom(timeBasedIDIniter))
 	if !loaded {
-		minlog.Log(ctx, "New room created:", rid)
+		r.logger.Log(ctx, "New room created:", rid)
 	}
 	return si.(*oneRoom)
 }
@@ -146,18 +153,18 @@ L:
 			count := 0
 			r.rooms.Range(func(k, v interface{}) bool {
 				if v.(*oneRoom).tick() {
-					minlog.Log(ctx, "Delete", k)
+					r.logger.Log(ctx, "Delete", k)
 					r.rooms.Delete(k)
 				}
 				count++
 				return true
 			})
-			minlog.Log(ctx, "Tick: ~", count, "rooms")
+			r.logger.Log(ctx, "Tick: ~", count, "rooms")
 		case <-ctx.Done():
 			break L
 		}
 	}
-	minlog.Log(ctx, "Ticker stopping")
+	r.logger.Log(ctx, "Ticker stopping")
 	ticker.Stop()
 }
 
