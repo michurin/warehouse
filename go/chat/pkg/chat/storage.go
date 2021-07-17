@@ -115,11 +115,11 @@ type Logger interface {
 
 type Rooms struct {
 	rooms  *sync.Map
-	logger Logger
+	logger Logger // TODO use oneRoom middleware for logging and custom instrumentation instead logger
 }
 
 func New(l Logger) *Rooms {
-	if l == nil { // TODO default logger
+	if l == nil {
 		panic("Logger must to be not nil")
 	}
 	return &Rooms{
@@ -153,6 +153,15 @@ L:
 			count := 0
 			r.rooms.Range(func(k, v interface{}) bool {
 				if v.(*oneRoom).tick() {
+					// It is oversimplification point. It is race:
+					// we can receive new message before Delete-ing.
+					// However it is simplest and relatively safe way
+					// to avoid global locking of all chats. Moreover,
+					// even safest approaches and global locking are
+					// not able to eliminate possibility of losing
+					// messages. The only way to keep room and
+					// solid connection in between chatters is to keep it
+					// alive sending periodical messages.
 					r.logger.Log(ctx, "Delete", k)
 					r.rooms.Delete(k)
 				}

@@ -24,19 +24,19 @@ func wrap(label string, next http.Handler) http.Handler {
 	})
 }
 
-func NewPublishingHandler(rooms *chat.Rooms, validator func(json.RawMessage) error, label string) http.Handler {
+func NewPublishingHandler(rooms *chat.Rooms, validator func(json.RawMessage) error, log minlog.Interface, label string) http.Handler {
 	return wrap(label+":pub", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
 		rid, msg, err := chat.DecodePublishingRequest(r.Body)
 		if err != nil {
-			minlog.Log(ctx, err)
+			log.Log(ctx, err)
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
 		ctx = minlog.Label(ctx, "room:"+rid)
-		minlog.Log(ctx, "Publish:", []byte(msg))
+		log.Log(ctx, "Publish:", []byte(msg))
 		if err = validator(msg); err != nil {
-			minlog.Log(ctx, err)
+			log.Log(ctx, err)
 			w.WriteHeader(http.StatusBadRequest)
 			return
 		}
@@ -44,19 +44,19 @@ func NewPublishingHandler(rooms *chat.Rooms, validator func(json.RawMessage) err
 		chat.SetContentType(w.Header())
 		err = chat.EncodePublishingResponse(w)
 		if err != nil {
-			minlog.Log(ctx, err)
+			log.Log(ctx, err)
 		}
 	}))
 }
 
-func NewPollingHandler(rooms *chat.Rooms, label string) http.Handler {
+func NewPollingHandler(rooms *chat.Rooms, log minlog.Interface, label string) http.Handler {
 	return wrap(label+":poll", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
 		ctx, cancel := context.WithTimeout(ctx, 30*time.Second)
 		defer cancel()
 		rid, id, err := chat.DecodePollingRequest(r.Body)
 		if err != nil {
-			minlog.Log(ctx, err)
+			log.Log(ctx, err)
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
@@ -65,17 +65,17 @@ func NewPollingHandler(rooms *chat.Rooms, label string) http.Handler {
 		chat.SetContentType(w.Header())
 		err = chat.EncodePollingResponse(w, mm, lastID)
 		if err != nil {
-			minlog.Log(ctx, err)
+			log.Log(ctx, err)
 		}
 	}))
 }
 
 func NewMonitoringHandler(rooms *chat.Rooms) http.Handler {
-	return http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
-		rw.Header().Set("Content-Type", "text/plain; charset=utf-8")
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "text/plain; charset=utf-8")
 		lst := chat.RoomsList(rooms)
 		if len(lst) == 0 {
-			rw.Write([]byte("(no rooms)"))
+			w.Write([]byte("(no rooms)"))
 			return
 		}
 		sections := make([]string, len(lst))
@@ -89,6 +89,6 @@ func NewMonitoringHandler(rooms *chat.Rooms) http.Handler {
 			i++
 		}
 		sort.Strings(sections)
-		rw.Write([]byte(strings.Join(sections, "\n\n")))
+		w.Write([]byte(strings.Join(sections, "\n\n")))
 	})
 }

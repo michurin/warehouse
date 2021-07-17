@@ -13,17 +13,17 @@ import (
 func setupTrivial(ctx context.Context, log chat.Logger, mux *http.ServeMux) {
 	rooms := chat.New(log)
 	go chat.RoomsCleaner(minlog.Label(ctx, "trivial:tick"), rooms)
-	mux.Handle("/api/publish", NewPublishingHandler(rooms, trivialValidator, "trivial"))
-	mux.Handle("/api/poll", NewPollingHandler(rooms, "trivial"))
-	mux.Handle("/mon/trivial", NewMonitoringHandler(rooms)) // TODO HTML: links to this
+	mux.Handle("/api/publish", NewPublishingHandler(rooms, trivialValidator, log, "trivial"))
+	mux.Handle("/api/poll", NewPollingHandler(rooms, log, "trivial"))
+	mux.Handle("/mon/trivial", NewMonitoringHandler(rooms))
 }
 
 func setupSimple(ctx context.Context, log chat.Logger, mux *http.ServeMux) {
 	rooms := chat.New(log)
 	go chat.RoomsCleaner(minlog.Label(ctx, "simple:tick"), rooms)
-	mux.Handle("/api/small/publish", NewPublishingHandler(rooms, simpleValidator, "small"))
-	mux.Handle("/api/small/poll", NewPollingHandler(rooms, "small"))
-	mux.Handle("/mon/small", NewMonitoringHandler(rooms))
+	mux.Handle("/api/simple/publish", NewPublishingHandler(rooms, simpleValidator, log, "simple"))
+	mux.Handle("/api/simple/poll", NewPollingHandler(rooms, log, "simple"))
+	mux.Handle("/mon/simple", NewMonitoringHandler(rooms))
 }
 
 func main() {
