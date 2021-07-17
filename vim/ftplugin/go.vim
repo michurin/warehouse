@@ -34,3 +34,8 @@ set autowrite
 " REMAP CTRL-] (ugly)
 nmap <silent> <c-]> <Plug>(coc-definition)
 nmap <silent> <c-t> <c-o>
+
+" Grep Methods | hint: :llc closes it
+command GM :execute 'lvimgrep /func.*'.expand('<cword>').'/ '.expand('%:p:h').  '/*' | lopen
+" Grep *.Go
+command GG :execute 'lvimgrep /'.expand('<cword>').'/ `find . \( -path */node_modules -o -path */vendor \) -prune -false -o -type f -name *.go`' | lopen

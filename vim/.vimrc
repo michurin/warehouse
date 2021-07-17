@@ -329,9 +329,6 @@ nnoremap <silent> <space>p  :<C-u>CocListResume<CR>
 highlight Pmenu ctermfg=153 ctermbg=234
 highlight PmenuSel ctermfg=153 ctermbg=240
 
-" Grep Methods | :llc closes it
-command GM :execute 'vimgrep /func.*'.expand('<cword>').'/ '.expand('%:p:h').'/*' | copen
-
 " https://github.com/aklt/plantuml-syntaxw
 " .vim/indent/plantuml.vim
 " .vim/ftplugin/plantuml.vim
