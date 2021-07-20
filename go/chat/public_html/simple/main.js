@@ -37,8 +37,8 @@ $(function () {
 
   var chat = new Room();
   chat.room = room;
-  chat.urlPoll = '/api/small/poll';
-  chat.urlPublish = '/api/small/publish';
+  chat.urlPoll = '/api/simple/poll';
+  chat.urlPublish = '/api/simple/publish';
 
   // Setup and run receiver loop
 
