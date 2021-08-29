@@ -22,7 +22,8 @@ set hlsearch
 set incsearch
 highlight Search ctermfg=194 ctermbg=29
 highlight IncSearch ctermfg=226 ctermbg=100 cterm=bold
-highlight CursorLine ctermbg=23 cterm=none
+highlight CursorLine ctermbg=235 cterm=none               " set cursorline
+highlight CursorLineNr ctermbg=235 ctermfg=230 cterm=none " set cursorline
 
 autocmd InsertEnter * highlight statusline ctermbg=117
 autocmd InsertLeave * highlight statusline ctermbg=244
@@ -61,6 +62,8 @@ set encoding=utf8
 set nobackup
 set nowb
 set noswapfile
+
+set exrc " .vimrc in current directory
 
 set lbr
 set tw=0 " disable autowrap on paste
