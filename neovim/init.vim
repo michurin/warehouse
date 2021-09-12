@@ -209,6 +209,38 @@ endfunction
 command! -nargs=* GG call s:MornGG(<q-args>)
 command! GM :execute 'lvimgrep /func[^()]*([^()]*\<'.expand('<cword>').'\>)/ '.expand('%:p:h').  '/*' | lopen
 
+" ---------- Splash
+
+set shortmess=atI " all abbreviations and truncate on CTRL-G, don't give intro
+
+function! MornHelp()
+  enew
+  setlocal bufhidden=wipe buftype=nofile nobuflisted nocursorcolumn nocursorline nolist nonumber norelativenumber noswapfile filetype=markdown nospell
+  let l:msg =<< EOF
+     _      ____  ___   _      _   _
+    | |\ | | |_  / / \ \ \  / | | | |\/|
+    |_| \| |_|__ \_\_/  \_\/  |_| |_|  |
+
+# Customization
+
+## Go commands
+
+:GM — grep method
+:GG — fuzzy find string — `*.go` excluding `vendor/` and `*_test.go`
+:GA — go alternate
+:GAA — :GA vsplit
+EOF
+  call append(0, l:msg)
+  setlocal nomodifiable nomodified
+  nnoremap <buffer><silent> e :enew<CR>
+  nnoremap <buffer><silent> i :enew <bar> startinsert<CR>
+  nnoremap <buffer><silent> o :enew <bar> startinsert<CR>
+endfunction
+
+if argc() == 0
+  autocmd VimEnter * call MornHelp()
+endif
+
 " Helpful links:
 " https://github.com/junegunn/fzf.vim/blob/master/plugin/fzf.vim
 " https://github.com/nanotee/nvim-lua-guide
