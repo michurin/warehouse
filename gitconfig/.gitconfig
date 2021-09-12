@@ -1,5 +1,6 @@
 [core]
 	excludesfile = ~/.gitignoreglobal
+	hooksPath = ~/.git/hooks
 [user]
 	email = a.michurin@gmail.com
 	name = Alexey Michurin
