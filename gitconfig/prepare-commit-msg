@@ -3,4 +3,21 @@
 exec &>"$1"
 
 echo
+echo
+echo '# git log -n 5 ####################################'
+echo
 git log -n 5 --format=oneline | sed 's-^-# -'
+echo
+echo '# git diff (NOT ADDED YET) ########################'
+echo
+git diff --stat | sed 's-^-# -'
+echo
+echo '# git diff --staged (OVERVIEW) ####################'
+echo
+git diff --stat --staged | sed 's-^-# -'
+echo
+echo '# git diff --staged ###############################'
+echo
+git diff --staged | sed 's-^-# -'
+echo
+echo '# ################################################# EOF'
