@@ -1,5 +1,6 @@
 call plug#begin() " https://github.com/junegunn/vim-plug +PlugInstall
   Plug 'neovim/nvim-lspconfig'
+  Plug 'steelsojka/completion-buffers'
   Plug 'nvim-lua/completion-nvim'
   Plug 'junegunn/fzf' " , { 'do': { -> fzf#install() } }
   Plug 'junegunn/fzf.vim'
@@ -7,9 +8,14 @@ call plug#end()
 
 " ---------- Go Stuff
 
+" How to debug https://www.getman.io/posts/gopls/
 lua << EOF
   -- https://github.com/golang/tools/blob/master/gopls/doc/vim.md#neovim-imports
   function goimports(timeout_ms)
+    -- https://github.com/neovim/neovim/blob/23fe6dba138859c1c22850b9ce76219141f546a0/runtime/doc/lsp.txt#L135
+    -- https://github.com/neovim/neovim/blob/c1f573fbc94aecd0f5841f7eb671be1a0a29758c/runtime/lua/vim/lsp/buf.lua#L174
+    vim.lsp.buf.formatting_sync() -- hackish
+
     local context = { only = { "source.organizeImports" } }
     vim.validate { context = { context, "t", true } }
 
@@ -19,6 +25,10 @@ lua << EOF
     -- See the implementation of the textDocument/codeAction callback
     -- (lua/vim/lsp/handler.lua) for how to do this properly.
     local result = vim.lsp.buf_request_sync(0, "textDocument/codeAction", params, timeout_ms)
+    -- Todo:
+    -- add formatting
+    -- https://github.com/neovim/nvim-lspconfig/issues/115#issuecomment-616844477
+    -- local result = vim.lsp.buf_request_sync(0, "textDocument/formatting", params, timeout)
     if not result or next(result) == nil then return end
     local actions = result[1].result
     if not actions then return end
@@ -64,7 +74,7 @@ local on_attach = function(client, bufnr)
   buf_set_keymap('n', '<space>wa', '<cmd>lua vim.lsp.buf.add_workspace_folder()<CR>', opts)
   buf_set_keymap('n', '<space>wr', '<cmd>lua vim.lsp.buf.remove_workspace_folder()<CR>', opts)
   buf_set_keymap('n', '<space>wl', '<cmd>lua print(vim.inspect(vim.lsp.buf.list_workspace_folders()))<CR>', opts)
-  buf_set_keymap('n', '<space>D', '<cmd>lua vim.lsp.buf.type_definition()<CR>', opts)
+  buf_set_keymap('n', 'gy', '<cmd>lua vim.lsp.buf.type_definition()<CR>', opts)
   buf_set_keymap('n', '<space>rn', '<cmd>lua vim.lsp.buf.rename()<CR>', opts)
   buf_set_keymap('n', '<space>ca', '<cmd>lua vim.lsp.buf.code_action()<CR>', opts)
   buf_set_keymap('n', 'gr', '<cmd>lua vim.lsp.buf.references()<CR>', opts)
@@ -83,12 +93,31 @@ end
 -- TODO gofumpt but according extra vars from *exrc*
 -- https://neovim.discourse.group/t/gopls-settings-buildflags/790
 -- https://www.gitmemory.com/issue/golang/go/44204/781570319
-local servers = {'gopls', 'intelephense', 'pyright'}
+local servers = {
+  {name='gopls'},
+  {name='intelephense'},
+  {name='pyright'}
+}
 for _, lsp in ipairs(servers) do
-  nvim_lsp[lsp].setup {
+  nvim_lsp[lsp.name].setup {
     on_attach = on_attach,
     flags = {
       debounce_text_changes = 150,
+    },
+    settings={
+      python={
+        analysis={
+          useLibraryCodeForTypes = false,
+          typeCheckingMode = "off"
+        },
+        linting = {
+          pylintEnabled = true,
+          enabled = true
+        }
+      },
+      gopls = { -- https://github.com/golang/tools/blob/master/gopls/doc/settings.md
+        gofumpt = true
+      }
     }
   }
 end
@@ -118,13 +147,22 @@ command! GAA call s:GoAlt('bo vs')
 " ---------- Misc
 
 autocmd FileType go autocmd BufWritePre *.go lua goimports(1000)
-autocmd FileType go setlocal number shiftwidth=4 tabstop=4 softtabstop=4 autoindent list lcs=trail:+,tab:▹·
+autocmd FileType go setlocal number shiftwidth=4 tabstop=4 softtabstop=4 autoindent list lcs=trail:+,tab:▹· foldmethod=syntax foldlevelstart=99 foldlevel=99 synmaxcol=10000
 autocmd FileType sh setlocal number shiftwidth=4 tabstop=4 softtabstop=4 expandtab autoindent list lcs=trail:+,tab:▹·
+autocmd FileType zsh setlocal number shiftwidth=4 tabstop=4 softtabstop=4 expandtab autoindent list lcs=trail:+,tab:▹·
 autocmd FileType python setlocal number shiftwidth=4 tabstop=4 softtabstop=4 expandtab autoindent list lcs=trail:+,tab:▹·
 autocmd FileType vim setlocal number shiftwidth=2 tabstop=2 softtabstop=2 expandtab autoindent list lcs=trail:+,tab:▹·
+autocmd FileType lua setlocal number shiftwidth=2 tabstop=2 softtabstop=2 expandtab autoindent list lcs=trail:+,tab:▹·
+autocmd FileType css setlocal number shiftwidth=2 tabstop=8 softtabstop=2 expandtab autoindent list lcs=trail:+,tab:▹·
+autocmd FileType html setlocal number shiftwidth=2 tabstop=8 softtabstop=2 expandtab autoindent list lcs=trail:+,tab:▹·
+autocmd FileType javascript setlocal number shiftwidth=2 tabstop=8 softtabstop=2 expandtab autoindent list lcs=trail:+,tab:▹·
+autocmd FileType json setlocal number shiftwidth=2 tabstop=8 softtabstop=2 expandtab autoindent list lcs=trail:+,tab:▹· foldmethod=syntax foldlevelstart=99 foldlevel=99
+autocmd FileType make setlocal number tabstop=8 autoindent list lcs=trail:+,tab:▹· foldmethod=syntax foldlevelstart=99 foldlevel=99
+autocmd FileType tcl setlocal number shiftwidth=2 tabstop=8 softtabstop=2 expandtab autoindent list lcs=trail:+,tab:▹· foldmethod=indent foldlevelstart=99 foldlevel=99
 
 highlight Whitespace term=none cterm=none ctermfg=DarkGray gui=none guifg=DarkGray ctermbg=none
 highlight EndOfBuffer term=none cterm=none ctermfg=DarkGray gui=none guifg=DarkGray ctermbg=none
+highlight LineNr ctermfg=grey
 
 set nofixendofline
 
@@ -141,7 +179,20 @@ highlight SpellLocal term=none cterm=underline ctermfg=none gui=bold guifg=none 
 
 " ---------- Completion (https://github.com/nvim-lua/completion-nvim)
 
+let g:completion_chain_complete_list = {
+  \'default': [
+  \ {'complete_items': ['lsp']},
+  \ {'complete_items': ['buffers']},
+  \ {'mode': '<c-p>'},
+  \ {'mode': '<c-n>'}]}
+
+let g:completion_matching_strategy_list = ['exact', 'substring', 'fuzzy', 'all']
+let g:completion_matching_smart_case = 1
+let g:completion_trigger_on_delete = 1
+let g:completion_auto_change_source = 1 " <Plug>(completion_next_source) / *_prev_*
+
 set completeopt=menuone,noinsert,noselect
+
 highlight Pmenu ctermfg=153 ctermbg=234
 highlight PmenuSel ctermfg=153 ctermbg=240
 
@@ -150,7 +201,7 @@ highlight PmenuSel ctermfg=153 ctermbg=240
 let g:fzf_layout = { 'window': { 'width': 0.95, 'height': 0.95 } }
 
 function! s:MornGG(pat)
-  let l:root = luaeval("vim.lsp.buf.list_workspace_folders()[1] or '.'")
+  let l:root = luaeval("vim.lsp.buf.list_workspace_folders()[1] or '.'") " Todo multi folders?
   let l:cmd = "rg --column --line-number --no-heading --color=always -g '!vendor' -g '!.git' -g '*.go' -g '!*_test.go' --smart-case -- ".shellescape(a:pat)." ".shellescape(l:root)
   call fzf#vim#grep(l:cmd, 1, fzf#vim#with_preview({'options': ['--prompt', 'GG> ']}), 0)
 endfunction
@@ -162,8 +213,10 @@ command! GM :execute 'lvimgrep /func[^()]*([^()]*\<'.expand('<cword>').'\>)/ '.e
 " https://github.com/junegunn/fzf.vim/blob/master/plugin/fzf.vim
 " https://github.com/nanotee/nvim-lua-guide
 " https://github.com/neovim/neovim/blob/master/runtime/doc/lsp.txt
+" :h ins-completion-menu
 " Memo:
 " source $MYVIMRC
 " :lcl closes it
 " Todo:
 " group settings by filetype
+" https://github.com/airblade/vim-gitgutter
