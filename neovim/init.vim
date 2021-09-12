@@ -6,49 +6,7 @@ call plug#begin() " https://github.com/junegunn/vim-plug +PlugInstall
   Plug 'junegunn/fzf.vim'
 call plug#end()
 
-" ---------- Go Stuff
-
-" How to debug https://www.getman.io/posts/gopls/
-lua << EOF
-  -- https://github.com/golang/tools/blob/master/gopls/doc/vim.md#neovim-imports
-  function goimports(timeout_ms)
-    -- https://github.com/neovim/neovim/blob/23fe6dba138859c1c22850b9ce76219141f546a0/runtime/doc/lsp.txt#L135
-    -- https://github.com/neovim/neovim/blob/c1f573fbc94aecd0f5841f7eb671be1a0a29758c/runtime/lua/vim/lsp/buf.lua#L174
-    vim.lsp.buf.formatting_sync() -- hackish
-
-    local context = { only = { "source.organizeImports" } }
-    vim.validate { context = { context, "t", true } }
-
-    local params = vim.lsp.util.make_range_params()
-    params.context = context
-
-    -- See the implementation of the textDocument/codeAction callback
-    -- (lua/vim/lsp/handler.lua) for how to do this properly.
-    local result = vim.lsp.buf_request_sync(0, "textDocument/codeAction", params, timeout_ms)
-    -- Todo:
-    -- add formatting
-    -- https://github.com/neovim/nvim-lspconfig/issues/115#issuecomment-616844477
-    -- local result = vim.lsp.buf_request_sync(0, "textDocument/formatting", params, timeout)
-    if not result or next(result) == nil then return end
-    local actions = result[1].result
-    if not actions then return end
-    local action = actions[1]
-
-    -- textDocument/codeAction can return either Command[] or CodeAction[]. If it
-    -- is a CodeAction, it can have either an edit, a command or both. Edits
-    -- should be executed first.
-    if action.edit or type(action.command) == "table" then
-      if action.edit then
-        vim.lsp.util.apply_workspace_edit(action.edit)
-      end
-      if type(action.command) == "table" then
-        vim.lsp.buf.execute_command(action.command)
-      end
-    else
-      vim.lsp.buf.execute_command(action)
-    end
-  end
-EOF
+" ---------- LSP
 
 lua << EOF
 local nvim_lsp = require('lspconfig')
@@ -121,6 +79,55 @@ for _, lsp in ipairs(servers) do
     }
   }
 end
+EOF
+
+highlight LspDiagnosticsDefaultHint ctermfg=64 ctermbg=234
+highlight LspDiagnosticsDefaultInformation ctermfg=31 ctermbg=234
+highlight LspDiagnosticsDefaultWarning ctermfg=137 ctermbg=234
+highlight LspDiagnosticsDefaultError ctermfg=124 ctermbg=234
+
+" ---------- Go Stuff
+
+" How to debug https://www.getman.io/posts/gopls/
+lua << EOF
+  -- https://github.com/golang/tools/blob/master/gopls/doc/vim.md#neovim-imports
+  function goimports(timeout_ms)
+    -- https://github.com/neovim/neovim/blob/23fe6dba138859c1c22850b9ce76219141f546a0/runtime/doc/lsp.txt#L135
+    -- https://github.com/neovim/neovim/blob/c1f573fbc94aecd0f5841f7eb671be1a0a29758c/runtime/lua/vim/lsp/buf.lua#L174
+    vim.lsp.buf.formatting_sync() -- hackish
+
+    local context = { only = { "source.organizeImports" } }
+    vim.validate { context = { context, "t", true } }
+
+    local params = vim.lsp.util.make_range_params()
+    params.context = context
+
+    -- See the implementation of the textDocument/codeAction callback
+    -- (lua/vim/lsp/handler.lua) for how to do this properly.
+    local result = vim.lsp.buf_request_sync(0, "textDocument/codeAction", params, timeout_ms)
+    -- Todo:
+    -- add formatting
+    -- https://github.com/neovim/nvim-lspconfig/issues/115#issuecomment-616844477
+    -- local result = vim.lsp.buf_request_sync(0, "textDocument/formatting", params, timeout)
+    if not result or next(result) == nil then return end
+    local actions = result[1].result
+    if not actions then return end
+    local action = actions[1]
+
+    -- textDocument/codeAction can return either Command[] or CodeAction[]. If it
+    -- is a CodeAction, it can have either an edit, a command or both. Edits
+    -- should be executed first.
+    if action.edit or type(action.command) == "table" then
+      if action.edit then
+        vim.lsp.util.apply_workspace_edit(action.edit)
+      end
+      if type(action.command) == "table" then
+        vim.lsp.buf.execute_command(action.command)
+      end
+    else
+      vim.lsp.buf.execute_command(action)
+    end
+  end
 EOF
 
 function! s:GoAlt(cmd)
