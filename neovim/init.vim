@@ -170,7 +170,7 @@ set nofixendofline
 
 setlocal spell spelllang=en_us,ru_yo
 
-syn match UrlNoSpell 'https\?:\/\/[^[:space:]]\+' contains=@NoSpell
+syntax match UrlNoSpell 'https\?:\/\/[^[:space:]]\+' contains=@NoSpell
 
 highlight SpellBad term=none cterm=underline ctermfg=none gui=bold guifg=none ctermbg=none
 highlight SpellCap term=none cterm=underline ctermfg=none gui=bold guifg=none ctermbg=none
@@ -215,11 +215,15 @@ set shortmess=atI " all abbreviations and truncate on CTRL-G, don't give intro
 
 function! MornHelp()
   enew
-  setlocal bufhidden=wipe buftype=nofile nobuflisted nocursorcolumn nocursorline nolist nonumber norelativenumber noswapfile filetype=markdown nospell
+  setlocal bufhidden=wipe buftype=nofile nobuflisted nocursorcolumn nocursorline nolist nonumber norelativenumber filetype=help noswapfile nospell
+  syntax region helpNote start=":[A-Za-z]"hs=s+1 end=" "he=s-1
+  syntax region helpVim start="^  " end="\n"
+  syntax region helpUnderlined start="^##* *"hs=e+1 end="\n"
+  syntax region helpOption start="`"hs=e+1 end="`"he=s-1
   let l:msg =<< EOF
-     _      ____  ___   _      _   _
-    | |\ | | |_  / / \ \ \  / | | | |\/|
-    |_| \| |_|__ \_\_/  \_\/  |_| |_|  |
+   _      ____  ___   _      _   _
+  | |\ | | |_  / / \ \ \  / | | | |\/|
+  |_| \| |_|__ \_\_/  \_\/  |_| |_|  |
 
 # Customization
 
