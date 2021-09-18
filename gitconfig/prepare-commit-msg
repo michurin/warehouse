@@ -1,7 +1,8 @@
 #!/bin/bash
 
-exec &>"$1"
-
+t="$(git config --get commit.template)"
+test -z "$t" && exit 1
+(
 echo
 echo
 echo '# git log -n 5 ####################################'
@@ -21,3 +22,4 @@ echo
 git diff --staged | sed 's-^-# -'
 echo
 echo '# ################################################# EOF'
+) > "$(eval echo "$t")"

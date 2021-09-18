@@ -1,6 +1,7 @@
 [core]
 	excludesfile = ~/.gitignoreglobal
-	hooksPath = ~/.git/hooks
+	hookspath = /home/user/.git/hooks ; <---- it has to be full path
+	editor = nvim -c 'set filetype=gitcommit'
 [user]
 	email = a.michurin@gmail.com
 	name = Alexey Michurin
@@ -11,3 +12,5 @@
 	interactive = auto
 [url "git@github.com:"]
 	insteadOf = https://github.com/
+[commit]
+	template = ~/.gitmessage
