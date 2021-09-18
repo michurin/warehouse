@@ -1,3 +1,7 @@
+" Very minimal working setup
+"
+" However, this one https://github.com/ray-x/go.nvim has to be tested
+"
 call plug#begin() " https://github.com/junegunn/vim-plug +PlugInstall
   Plug 'neovim/nvim-lspconfig'
   Plug 'steelsojka/completion-buffers'
@@ -7,6 +11,10 @@ call plug#begin() " https://github.com/junegunn/vim-plug +PlugInstall
 call plug#end()
 
 " ---------- LSP
+
+if filereadable(getcwd() . "/.nogofumpt") " Oh, too hackish. vim.lsp.buf.list_workspace_folders() or util.root_pattern?
+  let g:nogofumpt_tweak = 1
+endif
 
 lua << EOF
 local nvim_lsp = require('lspconfig')
@@ -74,7 +82,7 @@ for _, lsp in ipairs(servers) do
         }
       },
       gopls = { -- https://github.com/golang/tools/blob/master/gopls/doc/settings.md
-        gofumpt = true
+        gofumpt = vim.api.nvim_eval('exists("g:nogofumpt_tweak")') == 0 -- true
       }
     }
   }
@@ -151,31 +159,41 @@ endfunction
 command! GA call s:GoAlt('e')
 command! GAA call s:GoAlt('bo vs')
 
+map <silent> [[ :noh<CR>?^func\><CR>:let @/=''<CR>:set hls<CR>
+map <silent> ]] :noh<CR>/^func\><CR>:let @/=''<CR>:set hls<CR>
+
 " ---------- Misc
 
 autocmd FileType go autocmd BufWritePre *.go lua goimports(1000)
-autocmd FileType go setlocal number shiftwidth=4 tabstop=4 softtabstop=4 autoindent list lcs=trail:+,tab:▹· foldmethod=syntax foldlevelstart=99 foldlevel=99 synmaxcol=10000
-autocmd FileType sh setlocal number shiftwidth=4 tabstop=4 softtabstop=4 expandtab autoindent list lcs=trail:+,tab:▹·
-autocmd FileType zsh setlocal number shiftwidth=4 tabstop=4 softtabstop=4 expandtab autoindent list lcs=trail:+,tab:▹·
-autocmd FileType python setlocal number shiftwidth=4 tabstop=4 softtabstop=4 expandtab autoindent list lcs=trail:+,tab:▹·
-autocmd FileType vim setlocal number shiftwidth=2 tabstop=2 softtabstop=2 expandtab autoindent list lcs=trail:+,tab:▹·
-autocmd FileType lua setlocal number shiftwidth=2 tabstop=2 softtabstop=2 expandtab autoindent list lcs=trail:+,tab:▹·
-autocmd FileType css setlocal number shiftwidth=2 tabstop=8 softtabstop=2 expandtab autoindent list lcs=trail:+,tab:▹·
-autocmd FileType html setlocal number shiftwidth=2 tabstop=8 softtabstop=2 expandtab autoindent list lcs=trail:+,tab:▹·
-autocmd FileType javascript setlocal number shiftwidth=2 tabstop=8 softtabstop=2 expandtab autoindent list lcs=trail:+,tab:▹·
-autocmd FileType json setlocal number shiftwidth=2 tabstop=8 softtabstop=2 expandtab autoindent list lcs=trail:+,tab:▹· foldmethod=syntax foldlevelstart=99 foldlevel=99
-autocmd FileType make setlocal number tabstop=8 autoindent list lcs=trail:+,tab:▹· foldmethod=syntax foldlevelstart=99 foldlevel=99
-autocmd FileType tcl setlocal number shiftwidth=2 tabstop=8 softtabstop=2 expandtab autoindent list lcs=trail:+,tab:▹· foldmethod=indent foldlevelstart=99 foldlevel=99
+autocmd FileType go setlocal shiftwidth=4 tabstop=4 softtabstop=4 autoindent list lcs=trail:+,tab:▹· foldmethod=syntax foldlevelstart=99 foldlevel=99 synmaxcol=10000
+autocmd FileType sh setlocal shiftwidth=4 tabstop=4 softtabstop=4 expandtab autoindent list lcs=trail:+,tab:▹·
+autocmd FileType zsh setlocal shiftwidth=4 tabstop=4 softtabstop=4 expandtab autoindent list lcs=trail:+,tab:▹·
+autocmd FileType python setlocal shiftwidth=4 tabstop=4 softtabstop=4 expandtab autoindent list lcs=trail:+,tab:▹·
+autocmd FileType vim setlocal shiftwidth=2 tabstop=2 softtabstop=2 expandtab autoindent list lcs=trail:+,tab:▹·
+autocmd FileType lua setlocal shiftwidth=2 tabstop=2 softtabstop=2 expandtab autoindent list lcs=trail:+,tab:▹·
+autocmd FileType css setlocal shiftwidth=2 tabstop=8 softtabstop=2 expandtab autoindent list lcs=trail:+,tab:▹·
+autocmd FileType html setlocal shiftwidth=2 tabstop=8 softtabstop=2 expandtab autoindent list lcs=trail:+,tab:▹·
+autocmd FileType javascript setlocal shiftwidth=2 tabstop=8 softtabstop=2 expandtab autoindent list lcs=trail:+,tab:▹·
+autocmd FileType json setlocal shiftwidth=2 tabstop=8 softtabstop=2 expandtab autoindent list lcs=trail:+,tab:▹· foldmethod=syntax foldlevelstart=99 foldlevel=99
+autocmd FileType yaml setlocal shiftwidth=2 tabstop=2 softtabstop=2 expandtab autoindent list lcs=trail:+,tab:▹· foldmethod=indent foldlevelstart=99 foldlevel=99
+autocmd FileType make setlocal tabstop=8 autoindent list lcs=trail:+,tab:▹· foldmethod=syntax foldlevelstart=99 foldlevel=99
+autocmd FileType tcl setlocal shiftwidth=2 tabstop=8 softtabstop=2 expandtab autoindent list lcs=trail:+,tab:▹· foldmethod=indent foldlevelstart=99 foldlevel=99
 
 highlight Whitespace term=none cterm=none ctermfg=DarkGray gui=none guifg=DarkGray ctermbg=none
 highlight EndOfBuffer term=none cterm=none ctermfg=DarkGray gui=none guifg=DarkGray ctermbg=none
 highlight LineNr ctermfg=grey
 
+autocmd TextYankPost * lua vim.highlight.on_yank {higroup="hlTextYankPost", timeout=400}
+highlight hlTextYankPost ctermbg=239
+
 set nofixendofline
+set scrolloff=4
+set number relativenumber
+" set shortmess=atI " all abbreviations and truncate on CTRL-G, don't give intro -- however, it works weird with -o and -O, investigation needed
 
 " ---------- Spell
 
-setlocal spell spelllang=en_us,ru_yo
+setlocal spell spelllang=en_us,ru_yo spelloptions=camel spellcapcheck=
 
 syntax match UrlNoSpell 'https\?:\/\/[^[:space:]]\+' contains=@NoSpell
 
@@ -187,11 +205,13 @@ highlight SpellLocal term=none cterm=underline ctermfg=none gui=bold guifg=none 
 " ---------- Completion (https://github.com/nvim-lua/completion-nvim)
 
 let g:completion_chain_complete_list = {
-  \'default': [
-  \ {'complete_items': ['lsp']},
-  \ {'complete_items': ['buffers']},
-  \ {'mode': '<c-p>'},
-  \ {'mode': '<c-n>'}]}
+  \ 'go': [ {'complete_items': ['lsp']}, {'complete_items': ['buffers']}, {'mode': '<c-p>'}, {'mode': '<c-n>'} ],
+  \ 'python': [ {'complete_items': ['lsp']}, {'complete_items': ['buffers']}, {'mode': '<c-p>'}, {'mode': '<c-n>'} ],
+  \ 'php': [ {'complete_items': ['lsp']}, {'complete_items': ['buffers']}, {'mode': '<c-p>'}, {'mode': '<c-n>'} ],
+  \ 'default': [ {'complete_items': ['buffers']}, {'mode': '<c-p>'}, {'mode': '<c-n>'} ],
+  \ }
+
+autocmd BufEnter * lua require'completion'.on_attach()
 
 let g:completion_matching_strategy_list = ['exact', 'substring', 'fuzzy', 'all']
 let g:completion_matching_smart_case = 1
@@ -207,25 +227,43 @@ highlight PmenuSel ctermfg=153 ctermbg=240
 
 let g:fzf_layout = { 'window': { 'width': 0.95, 'height': 0.95 } }
 
-function! s:MornGG(pat)
-  let l:root = luaeval("vim.lsp.buf.list_workspace_folders()[1] or '.'") " Todo multi folders?
-  let l:cmd = "rg --column --line-number --no-heading --color=always -g '!vendor' -g '!.git' -g '*.go' -g '!*_test.go' --smart-case -- ".shellescape(a:pat)." ".shellescape(l:root)
-  call fzf#vim#grep(l:cmd, 1, fzf#vim#with_preview({'options': ['--prompt', 'GG> ']}), 0)
+function! s:MornGG(pat, exclude_tests, use_project_root) " TODO options: '--query', "'".expand('<cword>')
+  if a:use_project_root
+    let l:root = luaeval("vim.lsp.buf.list_workspace_folders()[1] or '.'") " Todo multi folders?
+  else
+    let l:root = expand('%:p:h')
+  endif
+  let l:cmd = "rg --column --line-number --no-heading --color=always -g '!vendor' -g '!.git' -g '*.go' "
+  if a:exclude_tests
+    let l:cmd = l:cmd."-g '!*_test.go' "
+  endif
+  let l:cmd = l:cmd."--smart-case -- ".shellescape(a:pat)." ".shellescape(l:root)
+  call fzf#vim#grep(l:cmd, 0, fzf#vim#with_preview({'options': ['--prompt', 'GG> ', '--phony']}), 1)
 endfunction
 
-command! -nargs=* GG call s:MornGG(<q-args>)
-command! GM :execute 'lvimgrep /func[^()]*([^()]*\<'.expand('<cword>').'\>)/ '.expand('%:p:h').  '/*' | lopen
+command! -nargs=* GG call s:MornGG(<q-args>, 1, 1)
+command! -nargs=* GGT call s:MornGG(<q-args>, 0, 1)
+command! -nargs=* GGC call s:MornGG(<q-args>, 1, 0)
+command! -nargs=* GGTC call s:MornGG(<q-args>, 0, 0)
+command! GM :execute 'lvimgrep /func[^()]*([^()]*\<'.escape(expand('<cword>')).'\>)/ '.expand('%:p:h').  '/*' | lopen
+
+map <silent> g/ :BLines<CR>
+map <silent> g./ :call fzf#vim#buffer_lines('', {'options': ['--prompt', 'BL> ', '--query', "'".expand('<cword>')]})<CR>
+map <silent> g? :Lines<CR>
+map <silent> g.? :call fzf#vim#lines('', {'options': ['--prompt', 'BL> ', '--query', "'".expand('<cword>')]})<CR>
+map <silent> g' :Rg<CR>
+map <silent> g.' :call fzf#vim#grep("rg --column --line-number --no-heading --color=always --smart-case -- .", 1, fzf#vim#with_preview({'options':['--query', expand('<cword>'), '--ansi', '--multi', '--delimiter', ':', '--preview-window', '+{2}-/2']}), 1)<CR>
 
 " ---------- Splash
-
-set shortmess=atI " all abbreviations and truncate on CTRL-G, don't give intro
 
 function! MornHelp()
   enew
   setlocal bufhidden=wipe buftype=nofile nobuflisted nocursorcolumn nocursorline nolist nonumber norelativenumber filetype=help noswapfile nospell
-  syntax region helpNote start=":[A-Za-z]"hs=s+1 end=" "he=s-1
+  "syntax region helpNote start=":[A-Za-z]"hs=s+1 end=" "he=s-1
+  syntax match helpStatement ":\<[A-Za-z]\+\>"hs=s+1
+  syntax match helpStatement "\<g\.\?[?/']"
   syntax region helpVim start="^  " end="\n"
-  syntax region helpUnderlined start="^##* *"hs=e+1 end="\n"
+  syntax region helpHeader start="^#\+ *"hs=e+1 end="\n"
   syntax region helpOption start="`"hs=e+1 end="`"he=s-1
   let l:msg =<< EOF
    _      ____  ___   _      _   _
@@ -236,10 +274,26 @@ function! MornHelp()
 
 ## Go commands
 
-:GM — grep method
-:GG — fuzzy find string — `*.go` excluding `vendor/` and `*_test.go`
-:GA — go alternate
+:GM  — grep method of the sturcture under cursor
+:GG  — fuzzy find string — `*.go` excluding `vendor/` and `*_test.go`
+:GGT — fuzzy find string — `*.go` excluding `vendor/`
+:GGC —
+:GGTC — :GG and :GGT in perspective of current dir
+:GA  — go alternate
 :GAA — :GA vsplit
+
+## Go hacks
+
+`touch .nogofumpt` in cwd to disable gofumpt
+
+## Sugar
+
+g/ — :BLines
+g? — :Lines
+g' — :Files
+g./ —
+g.? —
+g.' — the same with <cword>
 EOF
   call append(0, l:msg)
   setlocal nomodifiable nomodified
@@ -256,6 +310,7 @@ endif
 " https://github.com/junegunn/fzf.vim/blob/master/plugin/fzf.vim
 " https://github.com/nanotee/nvim-lua-guide
 " https://github.com/neovim/neovim/blob/master/runtime/doc/lsp.txt
+" https://devhints.io/vimscript
 " :h ins-completion-menu
 " Memo:
 " source $MYVIMRC
