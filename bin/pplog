@@ -1,29 +1,39 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 import sys
 import json
 import re
+import io
 
 date_re = re.compile(r'^([\d-]+)T([\d:]+)\..*')
 
 HINTS = (
-    ('ts', 10, '44;34;1', lambda _, x: date_re.sub(lambda t: t.group(1) + ' ' + t.group(2), x)),
-    ('level', 20, None, lambda _, x: '\033[' + {
-        'info': '32;1',
-        'error': '33;41;1',
-    }.get(x.lower(), '33;1') + 'm' + x + '\033[0m'),
-    ('comp', 30, '35;1', None),
-    ('method', 31, '35;1', None),
+    ('time', -1, None, None),
+    ('env', -1, None, None),
+    ('tag', -1, None, None),
+    ('type', 100, None, lambda _, x: '\033[' + {
+        'E': '33;41;1',
+        'W': '33;1',
+        }.get(x, '32;1') + 'm' + x + '\033[0m'),
+    ('function', 200, '34;1', None),
+    ('lineno', 200, '34;1', None),
+#    ('ts', 10, '44;34;1', lambda _, x: date_re.sub(lambda t: t.group(1) + ' ' + t.group(2), x)),
+#    ('level', 20, None, lambda _, x: '\033[' + {
+#        'info': '32;1',
+#        'error': '33;41;1',
+#    }.get(x.lower(), '33;1') + 'm' + x + '\033[0m'),
+#    ('comp', 30, '35;1', None),
+#    ('method', 31, '35;1', None),
     ('component', 32, '35;1', None),
-    ('operation_type', 33, '35', None),
-    ('caller', 40, '32', None), # lambda _, x: '/'.join(x.split('/')[:])), # [:6]
-    ('query', 100, '35', None),
-    ('req', 101, '35;1', None),
-    ('msg', 1000, None, None),
+#    ('operation_type', 33, '35', None),
+#    ('caller', 40, '32', None), # lambda _, x: '/'.join(x.split('/')[:])), # [:6]
+#    ('query', 100, '35', None),
+#    ('req', 101, '35;1', None),
+#    ('msg', 1000, None, None),
     ('message', 1000, None, None),
-    ('start_time', -1, None, None),
-    ('time_finish', -1, None, None),
-    ('time_took', -1, None, None),
+#    ('start_time', -1, None, None),
+#    ('time_finish', -1, None, None),
+#    ('time_took', -1, None, None),
 )
 
 HINTS_MAP = {t[0]: (t[1], t[0], t[2], t[3]) for t in HINTS}
@@ -49,8 +59,9 @@ def encode_line(rec):
     return ' '.join(fields)
 
 def main():
+    strim = io.TextIOWrapper(sys.stdin.buffer, errors='replace')
     while True:
-        rec_text = sys.stdin.readline()
+        rec_text = strim.readline()
         if rec_text == '':
             break
         try:
@@ -58,9 +69,12 @@ def main():
         except ValueError:
             rec = None
         if rec is not None:
-            line = encode_line(rec)
+            try:
+                line = encode_line(rec)
+            except Exception as exc:
+                line = '\033[30;41mException:\033[0m ' + repr(exc) + " Raw: " + repr(rec_text)
         else:
-            line = '\033[30;41mINVALID LINE\033[0m \033[31;1m' + rec_text.strip() + '\033[0m'
+            line = '\033[30;41mRAW\033[0m \033[31;1m' + rec_text.strip() + '\033[0m'
         sys.stdout.write(line + '\n')
         sys.stdout.flush()
 
