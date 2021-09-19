@@ -25,7 +25,7 @@ do
     then
       echo "$clr2[INFO]$clr0 Left name \"$aname\""
     else
-      tar -c -C "$dir" -z -f "$aname" "$base"
+      tar -c -C "$dir" -z -f "$aname" -L "$base"
       if test "a$?" = 'a0'
       then
         echo "$clr1[OK]$clr0 $arg -> $aname"
