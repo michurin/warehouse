@@ -184,11 +184,12 @@ highlight EndOfBuffer term=none cterm=none ctermfg=DarkGray gui=none guifg=DarkG
 highlight LineNr ctermfg=grey
 
 autocmd TextYankPost * lua vim.highlight.on_yank {higroup="hlTextYankPost", timeout=400}
-highlight hlTextYankPost ctermbg=239
+highlight link hlTextYankPost Visual
 
 set nofixendofline
 set scrolloff=4
 set number relativenumber
+set title
 " set shortmess=atI " all abbreviations and truncate on CTRL-G, don't give intro -- however, it works weird with -o and -O, investigation needed
 
 " ---------- Spell
