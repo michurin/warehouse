@@ -4,37 +4,85 @@ const fs = require('fs');
 
 const port = 3000;
 
-let config = [{
-  urlRe: /\/search/,
+const config = [{ // TODO reread on every request
+  urlRe: /\/search/, // curl -d '{}' localhost:3000/search
   respFile: 'serp.json',
+}, {
+  urlRe: /\/json/, // curl http://localhost:3000/json
+  proxyHost: 'api.sunrise-sunset.org', // curl http://api.sunrise-sunset.org/json
+  proxyPort: 0, // default i.e. 80
 }];
 
-const logJSON = (v) => {
-  console.log(util.inspect(JSON.parse(v), {
-    depth: null,
-    colors: true,
-    breakLength: 160,
-    sorted: true,
-  }));
-};
+function logJSON(v) {
+  try {
+    console.log(util.inspect(JSON.parse(v), {
+      depth: null,
+      colors: true,
+      breakLength: 160,
+      sorted: true,
+    }));
+  } catch (err) {
+    console.log(v);
+  }
+}
 
-const requestHandler = (request, response) => {
+function readFile(filename) {
+  return new Promise((resolve, reject) => {
+    fs.readFile(filename, 'utf8', (err, data) => {
+      if (err) {
+        reject(err);
+        return;
+      }
+      resolve(data);
+    });
+  });
+}
+
+function proxyCall(options, data) {
+  logJSON(options);
+  return new Promise((resolve, reject) => {
+    const req = http.request(options, (resp) => {
+      let d = '';
+      resp.on('data', (chunk) => { d += chunk; });
+      resp.on('end', () => { resolve(d); });
+      resp.on('error', (err) => { reject(err); });
+    });
+    req.write(data);
+    req.end();
+  });
+}
+
+function requestHandler(request, response) {
   const { headers, method, url } = request;
-  var data = '';
-  request.on('data', chunk => {data += chunk});
-  request.on('end', () => {
-    var resp = undefined;
-    for(var i = 0; i < config.length; i++) {
-      var c = config[i];
+  console.log(`\x1b[1;44;36m${method} ${url}\x1b[K\x1b[0m`);
+  let data = '';
+  request.on('data', (chunk) => { data += chunk; });
+  request.on('end', async () => {
+    let resp;
+    for (let i = 0; i < config.length; i++) { // TODO no-await-in-loop
+      const c = config[i];
       if (c.urlRe.test(url)) {
-        console.log('matched', c);
-        resp = fs.readFileSync(c.respFile);
+        console.log('Matched', c);
+        if (c.respFile) {
+          resp = await readFile(c.respFile);
+        } else if (c.proxyHost) {
+          const h = { ...headers };
+          h.host = c.proxyHost;
+          const opts = {
+            host: c.proxyHost,
+            headers: h,
+            method,
+            path: url,
+            port: c.proxyPort || 80,
+            setHost: true,
+          };
+          resp = await proxyCall(opts, data);
+        }
         break;
       } else {
-        console.log('skipped', c);
+        console.log('Skipped', c);
       }
     }
-    console.log(`\x1b[1;44;36m${url}\x1b[K\x1b[0m`);
     logJSON(data);
     logJSON(resp);
     response.end(resp);
@@ -44,8 +92,8 @@ const requestHandler = (request, response) => {
 const server = http.createServer(requestHandler);
 
 server.listen(port, (err) => {
-    if (err) {
-        return console.log('something bad happened', err);
-    }
-    console.log(`server is listening on ${port}`);
+  if (err) {
+    console.log('Something bad happened', err);
+  }
+  console.log(`Server is listening on ${port}`);
 });
