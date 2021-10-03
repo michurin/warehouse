@@ -2,16 +2,7 @@ const http = require('http');
 const util = require('util');
 const fs = require('fs');
 
-const port = 3000;
-
-const config = [{ // TODO reread on every request
-  urlRe: /\/search/, // curl -d '{}' localhost:3000/search
-  respFile: 'serp.json',
-}, {
-  urlRe: /\/json/, // curl http://localhost:3000/json
-  proxyHost: 'api.sunrise-sunset.org', // curl http://api.sunrise-sunset.org/json
-  proxyPort: 0, // default i.e. 80
-}];
+const port = process.argv[2] || 3000;
 
 function logJSON(v) {
   try {
@@ -58,11 +49,12 @@ function requestHandler(request, response) {
   let data = '';
   request.on('data', (chunk) => { data += chunk; });
   request.on('end', async () => {
+    let config = JSON.parse(await readFile('config.json'));
     let resp;
     for (let i = 0; i < config.length; i++) { // TODO no-await-in-loop
       const c = config[i];
-      if (c.urlRe.test(url)) {
-        console.log('Matched', c);
+      if ((new RegExp(c.urlRe)).test(url)) {
+        console.log('Matched', c.urlRe);
         if (c.respFile) {
           resp = await readFile(c.respFile);
         } else if (c.proxyHost) {
@@ -80,7 +72,7 @@ function requestHandler(request, response) {
         }
         break;
       } else {
-        console.log('Skipped', c);
+        console.log('Skipped', c.urlRe);
       }
     }
     logJSON(data);

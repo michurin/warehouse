@@ -1,0 +1,12 @@
+[{
+  "___comment": "curl -d '{}' localhost:3000/search",
+  "urlRe": "/search",
+  "respFile": "serp.json"
+}, {
+  "___comment": "curl http://localhost:3000/json",
+  "urlRe": "/json",
+  "___comment": "curl http://api.sunrise-sunset.org/json",
+  "proxyHost": "api.sunrise-sunset.org",
+  "___comment": "0 == default == 80",
+  "proxyPort": 0
+}]
