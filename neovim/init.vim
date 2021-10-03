@@ -190,6 +190,7 @@ set nofixendofline
 set scrolloff=4
 set number relativenumber
 set title
+set hidden
 " set shortmess=atI " all abbreviations and truncate on CTRL-G, don't give intro -- however, it works weird with -o and -O, investigation needed
 
 " ---------- Spell
@@ -239,21 +240,20 @@ function! s:MornGG(pat, exclude_tests, use_project_root) " TODO options: '--quer
     let l:cmd = l:cmd."-g '!*_test.go' "
   endif
   let l:cmd = l:cmd."--smart-case -- ".shellescape(a:pat)." ".shellescape(l:root)
-  call fzf#vim#grep(l:cmd, 0, fzf#vim#with_preview({'options': ['--prompt', 'GG> ', '--phony']}), 1)
+  call fzf#vim#grep(l:cmd, 1, fzf#vim#with_preview({'options': ['--prompt', 'GG> ']}), 1)
 endfunction
 
 command! -nargs=* GG call s:MornGG(<q-args>, 1, 1)
 command! -nargs=* GGT call s:MornGG(<q-args>, 0, 1)
 command! -nargs=* GGC call s:MornGG(<q-args>, 1, 0)
 command! -nargs=* GGTC call s:MornGG(<q-args>, 0, 0)
-command! GM :execute 'lvimgrep /func[^()]*([^()]*\<'.escape(expand('<cword>')).'\>)/ '.expand('%:p:h').  '/*' | lopen
+command! GM :execute 'lvimgrep /func[^()]*([^()]*\<'.escape(expand('<cword>'), '\').'\>)/ '.expand('%:p:h').  '/*' | lopen
+command! GP :lgetexpr system("pbpaste | sed -n '/^\t/ {s/^\t//; s/\\(:[0-9][0-9]*\\)/\\1:>/; p;}'") | lopen " Uh. Ugly
 
 map <silent> g/ :BLines<CR>
 map <silent> g./ :call fzf#vim#buffer_lines('', {'options': ['--prompt', 'BL> ', '--query', "'".expand('<cword>')]})<CR>
 map <silent> g? :Lines<CR>
 map <silent> g.? :call fzf#vim#lines('', {'options': ['--prompt', 'BL> ', '--query', "'".expand('<cword>')]})<CR>
-map <silent> g' :Rg<CR>
-map <silent> g.' :call fzf#vim#grep("rg --column --line-number --no-heading --color=always --smart-case -- .", 1, fzf#vim#with_preview({'options':['--query', expand('<cword>'), '--ansi', '--multi', '--delimiter', ':', '--preview-window', '+{2}-/2']}), 1)<CR>
 
 " ---------- Splash
 
@@ -262,7 +262,7 @@ function! MornHelp()
   setlocal bufhidden=wipe buftype=nofile nobuflisted nocursorcolumn nocursorline nolist nonumber norelativenumber filetype=help noswapfile nospell
   "syntax region helpNote start=":[A-Za-z]"hs=s+1 end=" "he=s-1
   syntax match helpStatement ":\<[A-Za-z]\+\>"hs=s+1
-  syntax match helpStatement "\<g\.\?[?/']"
+  syntax match helpStatement "\<g[?/]"
   syntax region helpVim start="^  " end="\n"
   syntax region helpHeader start="^#\+ *"hs=e+1 end="\n"
   syntax region helpOption start="`"hs=e+1 end="`"he=s-1
@@ -282,6 +282,7 @@ function! MornHelp()
 :GGTC — :GG and :GGT in perspective of current dir
 :GA  — go alternate
 :GAA — :GA vsplit
+:GP  — lgetexpr from pbpaste (assuming panic message)
 
 ## Go hacks
 
@@ -291,10 +292,16 @@ function! MornHelp()
 
 g/ — :BLines
 g? — :Lines
-g' — :Files
 g./ —
-g.? —
-g.' — the same with <cword>
+g.? — the same with <cword>
+
+## You may want to
+
+export FZF_DEFAULT_OPTS="--history=$HOME/.fzf_history"
+alias pbcopy='xclip -selection clipboard'
+alias pbpaste='xclip -selection clipboard -o'
+alias pbcopy='xsel --clipboard --input'
+alias pbpaste='xsel --clipboard --output'
 EOF
   call append(0, l:msg)
   setlocal nomodifiable nomodified
