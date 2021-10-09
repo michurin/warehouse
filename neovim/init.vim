@@ -248,7 +248,7 @@ command! -nargs=* GGT call s:MornGG(<q-args>, 0, 1)
 command! -nargs=* GGC call s:MornGG(<q-args>, 1, 0)
 command! -nargs=* GGTC call s:MornGG(<q-args>, 0, 0)
 command! GM :execute 'lvimgrep /func[^()]*([^()]*\<'.escape(expand('<cword>'), '\').'\>)/ '.expand('%:p:h').  '/*' | lopen
-command! GP :lgetexpr system("pbpaste | sed -n '/^\t/ {s/^\t//; s/\\(:[0-9][0-9]*\\)/\\1:>/; p;}'") | lopen " Uh. Ugly
+command! GP :lgetexpr system("pbpaste | sed -n '/^[[:space:]]/ {s/^[[:space:]]*//; s/\\(:[0-9][0-9]*\\)/\\1:>/; p;}'") | lopen " Uh. Ugly
 
 map <silent> g/ :BLines<CR>
 map <silent> g./ :call fzf#vim#buffer_lines('', {'options': ['--prompt', 'BL> ', '--query', "'".expand('<cword>')]})<CR>
@@ -262,7 +262,7 @@ function! MornHelp()
   setlocal bufhidden=wipe buftype=nofile nobuflisted nocursorcolumn nocursorline nolist nonumber norelativenumber filetype=help noswapfile nospell
   "syntax region helpNote start=":[A-Za-z]"hs=s+1 end=" "he=s-1
   syntax match helpStatement ":\<[A-Za-z]\+\>"hs=s+1
-  syntax match helpStatement "\<g[?/]"
+  syntax match helpStatement "\<g\.\?[?/]"
   syntax region helpVim start="^  " end="\n"
   syntax region helpHeader start="^#\+ *"hs=e+1 end="\n"
   syntax region helpOption start="`"hs=e+1 end="`"he=s-1
