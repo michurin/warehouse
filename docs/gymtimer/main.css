@@ -1,0 +1,27 @@
+* {
+  font-size: 20vw;
+  font-family: monospace;
+  text-align: center;
+  color: #888;
+}
+body {
+  margin: 20vw 0;
+  background-color: #000;
+}
+button {
+  background-color: #222;
+  border-width: 0;
+  margin: 2vw;
+  padding: 0 5vw;
+}
+p:nth-child(3) button {
+  padding: 0 30vw;
+}
+p {
+  margin: 0;
+}
+p:nth-child(2) {
+  font-size: 50vw;
+  font-weight: bold;
+}
+
