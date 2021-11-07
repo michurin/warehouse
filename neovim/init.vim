@@ -62,7 +62,10 @@ end
 local servers = {
   {name='gopls'},
   {name='intelephense'},
-  {name='pyright'}
+  {name='pyright'},
+  -- npm config set prefix "${HOME}/.npm-packages"
+  -- npm install -g typescript typescript-language-server
+  {name='tsserver'}
 }
 for _, lsp in ipairs(servers) do
   nvim_lsp[lsp.name].setup {
@@ -166,6 +169,7 @@ map <silent> ]] :noh<CR>/^func\><CR>:let @/=''<CR>:set hls<CR>
 
 autocmd FileType go autocmd BufWritePre *.go lua goimports(1000)
 autocmd FileType go setlocal shiftwidth=4 tabstop=4 softtabstop=4 autoindent list lcs=trail:+,tab:▹· foldmethod=syntax foldlevelstart=99 foldlevel=99 synmaxcol=10000
+autocmd FileType javascript autocmd BufWritePre *.js lua vim.lsp.buf.formatting_sync(nil, 500)
 autocmd FileType sh setlocal shiftwidth=4 tabstop=4 softtabstop=4 expandtab autoindent list lcs=trail:+,tab:▹·
 autocmd FileType zsh setlocal shiftwidth=4 tabstop=4 softtabstop=4 expandtab autoindent list lcs=trail:+,tab:▹·
 autocmd FileType python setlocal shiftwidth=4 tabstop=4 softtabstop=4 expandtab autoindent list lcs=trail:+,tab:▹·
@@ -188,7 +192,7 @@ highlight link hlTextYankPost Visual
 
 set nofixendofline
 set scrolloff=4
-set number relativenumber
+set number " relativenumber " /, C-G, C-T instead
 set title
 set hidden
 " set shortmess=atI " all abbreviations and truncate on CTRL-G, don't give intro -- however, it works weird with -o and -O, investigation needed
@@ -248,7 +252,7 @@ command! -nargs=* GGT call s:MornGG(<q-args>, 0, 1)
 command! -nargs=* GGC call s:MornGG(<q-args>, 1, 0)
 command! -nargs=* GGTC call s:MornGG(<q-args>, 0, 0)
 command! GM :execute 'lvimgrep /func[^()]*([^()]*\<'.escape(expand('<cword>'), '\').'\>)/ '.expand('%:p:h').  '/*' | lopen
-command! GP :lgetexpr system("pbpaste | sed -n '/^[[:space:]]/ {s/^[[:space:]]*//; s/\\(:[0-9][0-9]*\\)/\\1:>/; p;}'") | lopen " Uh. Ugly
+command! GP :lgetexpr system("pbpaste | sed -n '/^\t/ {s/^\t//; s/\\(:[0-9][0-9]*\\)/\\1:>/; p;}'") | lopen " Uh. Ugly
 
 map <silent> g/ :BLines<CR>
 map <silent> g./ :call fzf#vim#buffer_lines('', {'options': ['--prompt', 'BL> ', '--query', "'".expand('<cword>')]})<CR>
@@ -262,7 +266,7 @@ function! MornHelp()
   setlocal bufhidden=wipe buftype=nofile nobuflisted nocursorcolumn nocursorline nolist nonumber norelativenumber filetype=help noswapfile nospell
   "syntax region helpNote start=":[A-Za-z]"hs=s+1 end=" "he=s-1
   syntax match helpStatement ":\<[A-Za-z]\+\>"hs=s+1
-  syntax match helpStatement "\<g\.\?[?/]"
+  syntax match helpStatement "\<g[?/]"
   syntax region helpVim start="^  " end="\n"
   syntax region helpHeader start="^#\+ *"hs=e+1 end="\n"
   syntax region helpOption start="`"hs=e+1 end="`"he=s-1
