@@ -236,6 +236,7 @@ let g:fzf_layout = { 'window': { 'width': 0.95, 'height': 0.95 } }
 function! s:MornGG(pat, exclude_tests, use_project_root) " TODO options: '--query', "'".expand('<cword>')
   if a:use_project_root
     let l:root = luaeval("vim.lsp.buf.list_workspace_folders()[1] or '.'") " Todo multi folders?
+    let l:root = substitute(l:root."/.", "^".escape(getcwd(), ".\\^$[]")."/", "", "e")
   else
     let l:root = expand('%:p:h')
   endif
@@ -244,7 +245,8 @@ function! s:MornGG(pat, exclude_tests, use_project_root) " TODO options: '--quer
     let l:cmd = l:cmd."-g '!*_test.go' "
   endif
   let l:cmd = l:cmd."--smart-case -- ".shellescape(a:pat)." ".shellescape(l:root)
-  call fzf#vim#grep(l:cmd, 1, fzf#vim#with_preview({'options': ['--prompt', 'GG> ']}), 1)
+  " '--delimiter : --nth 4..' do not search filenames
+  call fzf#vim#grep(l:cmd, 1, fzf#vim#with_preview({'options': ['--prompt', 'GG> ', '--delimiter', ':', '--nth', '4..']}), 1)
 endfunction
 
 command! -nargs=* GG call s:MornGG(<q-args>, 1, 1)
@@ -252,7 +254,7 @@ command! -nargs=* GGT call s:MornGG(<q-args>, 0, 1)
 command! -nargs=* GGC call s:MornGG(<q-args>, 1, 0)
 command! -nargs=* GGTC call s:MornGG(<q-args>, 0, 0)
 command! GM :execute 'lvimgrep /func[^()]*([^()]*\<'.escape(expand('<cword>'), '\').'\>)/ '.expand('%:p:h').  '/*' | lopen
-command! GP :lgetexpr system("pbpaste | sed -n '/^\t/ {s/^\t//; s/\\(:[0-9][0-9]*\\)/\\1:>/; p;}'") | lopen " Uh. Ugly
+command! GP :lgetexpr system("pbpaste | sed -n '/^[[:space:]]/ {s/^[[:space:]]*//; s/\\(:[0-9][0-9]*\\)/\\1:>/; p;}'") | lopen " Uh. Ugly
 
 map <silent> g/ :BLines<CR>
 map <silent> g./ :call fzf#vim#buffer_lines('', {'options': ['--prompt', 'BL> ', '--query', "'".expand('<cword>')]})<CR>
@@ -266,7 +268,7 @@ function! MornHelp()
   setlocal bufhidden=wipe buftype=nofile nobuflisted nocursorcolumn nocursorline nolist nonumber norelativenumber filetype=help noswapfile nospell
   "syntax region helpNote start=":[A-Za-z]"hs=s+1 end=" "he=s-1
   syntax match helpStatement ":\<[A-Za-z]\+\>"hs=s+1
-  syntax match helpStatement "\<g[?/]"
+  syntax match helpStatement "\<g\.\?[?/]"
   syntax region helpVim start="^  " end="\n"
   syntax region helpHeader start="^#\+ *"hs=e+1 end="\n"
   syntax region helpOption start="`"hs=e+1 end="`"he=s-1
