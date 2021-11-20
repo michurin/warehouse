@@ -165,6 +165,13 @@ command! GAA call s:GoAlt('bo vs')
 map <silent> [[ :noh<CR>?^func\><CR>:let @/=''<CR>:set hls<CR>
 map <silent> ]] :noh<CR>/^func\><CR>:let @/=''<CR>:set hls<CR>
 
+nnoremap <silent> ]c :cnext<CR>
+nnoremap <silent> [c :cprevious<CR>
+nnoremap <silent> ]l :lnext<CR>
+nnoremap <silent> [l :lprevious<CR>
+nnoremap <silent> ]b :bnext<CR>
+nnoremap <silent> [b :bprevious<CR>
+
 " ---------- Misc
 
 autocmd FileType go autocmd BufWritePre *.go lua goimports(1000)
@@ -173,6 +180,7 @@ autocmd FileType javascript autocmd BufWritePre *.js lua vim.lsp.buf.formatting_
 autocmd FileType sh setlocal shiftwidth=4 tabstop=4 softtabstop=4 expandtab autoindent list lcs=trail:+,tab:▹·
 autocmd FileType zsh setlocal shiftwidth=4 tabstop=4 softtabstop=4 expandtab autoindent list lcs=trail:+,tab:▹·
 autocmd FileType python setlocal shiftwidth=4 tabstop=4 softtabstop=4 expandtab autoindent list lcs=trail:+,tab:▹·
+autocmd FileType php setlocal shiftwidth=4 tabstop=4 softtabstop=4 expandtab autoindent list lcs=trail:+,tab:▹·
 autocmd FileType vim setlocal shiftwidth=2 tabstop=2 softtabstop=2 expandtab autoindent list lcs=trail:+,tab:▹·
 autocmd FileType lua setlocal shiftwidth=2 tabstop=2 softtabstop=2 expandtab autoindent list lcs=trail:+,tab:▹·
 autocmd FileType css setlocal shiftwidth=2 tabstop=8 softtabstop=2 expandtab autoindent list lcs=trail:+,tab:▹·
@@ -182,6 +190,7 @@ autocmd FileType json setlocal shiftwidth=2 tabstop=8 softtabstop=2 expandtab au
 autocmd FileType yaml setlocal shiftwidth=2 tabstop=2 softtabstop=2 expandtab autoindent list lcs=trail:+,tab:▹· foldmethod=indent foldlevelstart=99 foldlevel=99
 autocmd FileType make setlocal tabstop=8 autoindent list lcs=trail:+,tab:▹· foldmethod=syntax foldlevelstart=99 foldlevel=99
 autocmd FileType tcl setlocal shiftwidth=2 tabstop=8 softtabstop=2 expandtab autoindent list lcs=trail:+,tab:▹· foldmethod=indent foldlevelstart=99 foldlevel=99
+autocmd FileType qf setlocal nobuflisted
 
 highlight Whitespace term=none cterm=none ctermfg=DarkGray gui=none guifg=DarkGray ctermbg=none
 highlight EndOfBuffer term=none cterm=none ctermfg=DarkGray gui=none guifg=DarkGray ctermbg=none
@@ -269,6 +278,7 @@ function! MornHelp()
   "syntax region helpNote start=":[A-Za-z]"hs=s+1 end=" "he=s-1
   syntax match helpStatement ":\<[A-Za-z]\+\>"hs=s+1
   syntax match helpStatement "\<g\.\?[?/]"
+  syntax match helpStatement "[\[\]]\+[lcb]\+"
   syntax region helpVim start="^  " end="\n"
   syntax region helpHeader start="^#\+ *"hs=e+1 end="\n"
   syntax region helpOption start="`"hs=e+1 end="`"he=s-1
@@ -300,6 +310,7 @@ g/ — :BLines
 g? — :Lines
 g./ —
 g.? — the same with <cword>
+[]lcb — i.e. [l, ]b etc.
 
 ## You may want to
 
@@ -325,6 +336,7 @@ endif
 " https://github.com/nanotee/nvim-lua-guide
 " https://github.com/neovim/neovim/blob/master/runtime/doc/lsp.txt
 " https://devhints.io/vimscript
+" https://gist.github.com/awidegreen/3854277
 " :h ins-completion-menu
 " Memo:
 " source $MYVIMRC
