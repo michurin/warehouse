@@ -68,13 +68,13 @@ def main():
             rec = json.loads(rec_text)
         except ValueError:
             rec = None
-        if rec is not None:
+        if hasattr(rec, 'keys'):  # 'false' is valid JSON too
             try:
                 line = encode_line(rec)
             except Exception as exc:
-                line = '\033[30;41mException:\033[0m ' + repr(exc) + " Raw: " + repr(rec_text)
+                line = '\033[30;41mException:\033[0m ' + repr(exc) + ' Raw: \033[31;1m' + rec_text + '\033[0m'
         else:
-            line = '\033[30;41mRAW\033[0m \033[31;1m' + rec_text.strip() + '\033[0m'
+            line = '\033[31;1m' + rec_text.rstrip('\n\r') + '\033[0m'
         sys.stdout.write(line + '\n')
         sys.stdout.flush()
 
