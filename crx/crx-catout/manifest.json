@@ -1,6 +1,6 @@
 {
   "name": "XCutOut",
-  "version": "1.20",
+  "version": "1.21",
   "description": "Cut out annoying unwanted elements",
   "manifest_version": 2,
   "content_scripts": [
@@ -9,7 +9,9 @@
     {"matches": ["https://context.reverso.net/*"], "js": ["c.js"]},
     {"matches": ["https://dictionary.cambridge.org/*"], "js": ["d.js"]},
     {"matches": ["https://www.openstreetmap.org/*"], "js": ["osm.js"]},
+    {"matches": ["https://www.radarbox.com/*"], "js": ["rb.js"]},
     {"matches": ["https://*.zoom.us/j/*"], "js": ["z.js"]},
+    {"matches": ["https://*.zoom.us/saml/*"], "js": ["z.js"]},
     {"matches": ["https://*.slack.com/archives/*"], "js": ["z.js"]}
   ]
 }
