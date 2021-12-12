@@ -1,8 +1,8 @@
 {
   "name": "XCutOut",
-  "version": "1.21",
+  "version": "1.22",
   "description": "Cut out annoying unwanted elements",
-  "manifest_version": 2,
+  "manifest_version": 3,
   "content_scripts": [
     {"matches": ["https://mail.yandex.ru/*"], "js": ["m.js"]},
     {"matches": ["https://yandex.ru/*"], "js": ["ym.js", "p.js"]},
