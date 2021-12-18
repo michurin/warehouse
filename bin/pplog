@@ -79,7 +79,9 @@ def main():
             except Exception as exc:
                 line = '\033[30;41mException:\033[0m ' + repr(exc) + ' Raw: \033[31;1m' + rec_text + '\033[0m'
         else:
-            line = '\033[31;1m' + rec_text.rstrip('\n\r') + '\033[0m'
+            line = rec_text.rstrip('\n\r')
+            if not '\033' in line:
+                line = '\033[31;1m' + line + '\033[0m'
         sys.stdout.write(line + '\n')
         sys.stdout.flush()
 
