@@ -2,65 +2,83 @@
 
 import sys
 import json
-import re
 import io
 
-date_re = re.compile(r'^([\d-]+)T([\d:]+)\..*')
+def C(c):
+    a = '\033[' + str(c) + 'm'
+    def q(t):
+        return a + t + '\033[0m'
+    return q
 
-HINTS = (
-    ('time', -1, None, None),
-    ('env', -1, None, None),
-    ('tag', -1, None, None),
-    ('cluster_name', -1, None, None),
-    ('type', 100, None, lambda _, x: '\033[' + {
+def skip_arg(f):  # we use first arg for unknown fields only
+    def g(_, x):
+        return f(x)
+    return g
+
+def preprocess_hints(h):
+    m = {}
+    for f, p, d in h:
+        if f in m:
+            raise Exception(f'Field {f} is already in map')
+        if d is None:
+            d = lambda x: x
+        elif not callable(d):
+            d = C(d)
+        m[f] = (p, f, skip_arg(d))
+    return m
+
+# triplets:
+# - field name
+# - priority (order); default priority is 500
+# - decoration: None, color code, or callable
+HINTS = preprocess_hints((
+    ('time', -1, None),
+    ('ts', -1, None),
+    ('env', -1, None),
+    ('tag', -1, None),
+    ('cluster_name', -1, None),
+    ('type', 100, lambda x: C({
         'E': '33;41;1',
         'W': '33;1',
-        }.get(x, '32;1') + 'm' + x + '\033[0m'),
-    ('function', 200, '34;1', None),
-    ('lineno', 200, '34;1', None),
-    ('comp', 210, '32;1', None),
-    ('scope', 211, '32', None),
-#    ('ts', 10, '44;34;1', lambda _, x: date_re.sub(lambda t: t.group(1) + ' ' + t.group(2), x)),
-#    ('level', 20, None, lambda _, x: '\033[' + {
-#        'info': '32;1',
-#        'error': '33;41;1',
-#    }.get(x.lower(), '33;1') + 'm' + x + '\033[0m'),
-#    ('comp', 30, '35;1', None),
-#    ('method', 31, '35;1', None),
-    ('component', 32, '35;1', None),
-#    ('operation_type', 33, '35', None),
-#    ('caller', 40, '32', None), # lambda _, x: '/'.join(x.split('/')[:])), # [:6]
-#    ('query', 100, '35', None),
-#    ('req', 101, '35;1', None),
-#    ('msg', 1000, None, None),
-    ('message', 1000, '1', None),
-    ('error', 1001, '31;1', None),
-    ('data', 1400, '33', None),
-#    ('start_time', -1, None, None),
-#    ('time_finish', -1, None, None),
-#    ('time_took', -1, None, None),
-)
+        'D': '35;1',
+        }.get(x, '32;1'))(x)),
+    ('function', 200, '34;1'),
+    ('lineno', 201, '34;1'),
+    ('comp', 210, '32;1'),
+    ('scope', 211, 32),
 
-HINTS_MAP = {t[0]: (t[1], t[0], t[2], t[3]) for t in HINTS}
+    ('level', 20, lambda x: C({
+        'info': '32;1',
+        'error': '33;41;1',
+    }.get(x.lower(), '33;1'))(x)),
+    ('method', 31, '35;1'),
+
+    ('component', 32, '35;1'),
+
+    ('operation_type', 33, 35),
+    ('caller', 40, 32),  # lambda x: '/'.join(x.split('/')[:])), # [:6]
+    ('query', 100, 35),
+    ('req', 101, '35;1'),
+    ('msg', 1000, None),
+
+    ('message', 1000, 1),
+    ('error', 1001, '31;1'),
+    ('data', 1400, 33),
+
+    ('start_time', -1, None),
+    ('time_finish', -1, None),
+    ('time_took', -1, None),
+))
 
 def format_str(f):
-    if not hasattr(f, 'lower'): # str and unicode (Py2/3)
+    if not hasattr(f, 'lower'):  # str and unicode (Py2/3)
         f = json.dumps(f, ensure_ascii=False, indent=4, separators=(',', ': '), sort_keys=True)
     return f
 
-def format_field(f, k):
-    _, fld, color, proc = k
-    f = format_str(f)
-    if proc is not None:
-        f = proc(fld, f)
-    if color is not None:
-        f = '\033[' + color + 'm' + f + '\033[0m'
-    return f
-
 def encode_line(rec):
-    keys = (HINTS_MAP.get(k, (500, k, None, lambda k, v: k + '=\033[33;1m' + format_str(v) + '\033[0m')) for k in rec.keys())
+    keys = (HINTS.get(k, (500, k, lambda k, v: k + '=\033[33;1m' + format_str(v) + '\033[0m')) for k in rec.keys())
     keys = sorted(k for k in keys if k[0] > 0)
-    fields = (format_field(rec[k[1]], k) for k in keys)
+    fields = (d(f, format_str(rec[f])) for _, f, d in keys)
     return ' '.join(fields)
 
 def main():
@@ -80,7 +98,7 @@ def main():
                 line = '\033[30;41mException:\033[0m ' + repr(exc) + ' Raw: \033[31;1m' + rec_text + '\033[0m'
         else:
             line = rec_text.rstrip('\n\r')
-            if not '\033' in line:
+            if '\033' not in line:
                 line = '\033[31;1m' + line + '\033[0m'
         sys.stdout.write(line + '\n')
         sys.stdout.flush()
