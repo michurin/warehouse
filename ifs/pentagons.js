@@ -12,7 +12,7 @@ const ctx = (() => {
   ctx.setTransform(s / l, 0, 0, -s / l, s / 2, s / 2);
   return ctx;
 })();
-const scaleLimit = .005;
+const scaleLimit = 0.005;
 
 // Point
 function pnt(x, y) {
@@ -28,28 +28,28 @@ function scale(p, k) {
 }
 
 function hypot(p) {
-  return Math.hypot(p.x, p.y)
+  return Math.hypot(p.x, p.y);
 }
 
 // Draw pentagon
 function drw(o, d, color) {
   const s = hypot(d);
   ctx.save();
-  ctx.fillStyle = color || `rgba(${255 * (s ** .6)}, 255, 0, 1)`;
+  ctx.fillStyle = color || `rgba(${255 * (s ** 0.6)}, 255, 0, 1)`;
   ctx.translate(o.x, o.y);
   ctx.beginPath();
   ctx.save();
   ctx.moveTo(d.x, d.y);
-  for (var i = 0; i < 4; i++) {
+  for (let i = 0; i < 4; i++) {
     ctx.rotate(Math.PI * 0.4);
     ctx.lineTo(d.x, d.y);
   }
   ctx.restore();
   ctx.fill();
-  if (s > .02) {
+  if (s > 0.02) {
     ctx.fillStyle = '#fff';
     ctx.beginPath();
-    ctx.arc(d.x * 0.6, d.y * 0.6, s * .2, 0, 2 * Math.PI, false);
+    ctx.arc(d.x * 0.6, d.y * 0.6, s * 0.2, 0, 2 * Math.PI, false);
     ctx.fill();
   }
   ctx.restore();
@@ -61,8 +61,8 @@ const [rot, arot] = (() => {
   const c = Math.cos(a);
   const s = Math.sin(a);
   return [
-    p => ({ x: p.x * c + p.y * s, y: p.y * c - p.x * s }),
-    p => ({ x: p.x * c - p.y * s, y: p.y * c + p.x * s }),
+    (p) => ({ x: p.x * c + p.y * s, y: p.y * c - p.x * s }),
+    (p) => ({ x: p.x * c - p.y * s, y: p.y * c + p.x * s }),
   ];
 })();
 
@@ -79,17 +79,13 @@ const k = (() => {
 
 // Recursion functions
 
-function one(o, d) { // TODO remove it
-  drw(o, d);
-}
-
 // All children, clockwise
 function allChilren(o, od) {
   const r = [];
-  var d = scale(od, -k);
-  var s = scale(od, (1 + k)); // shift
+  let d = scale(od, -k);
+  let s = scale(od, (1 + k)); // shift
   //  d = scale(d, -1);
-  for (var i = 0; i < 5; i++) {
+  for (let i = 0; i < 5; i++) {
     r.push([sum(o, s), d]);
     s = rot(s);
     d = rot(d);
@@ -98,7 +94,7 @@ function allChilren(o, od) {
 }
 
 function rY(oo, od, leftMost, rightMost) {
-  if (hypot(od) < scaleLimit) { return }
+  if (hypot(od) < scaleLimit) { return; }
   drw(oo, od);
   rH3(oo, od);
   const cc = allChilren(oo, od);
@@ -120,9 +116,6 @@ function rY(oo, od, leftMost, rightMost) {
   }
   // Right
   drw(...cc[3]);
-  //  if (!rightMost) {
-  //    drw(...cc[4], '#0f0');
-  //  }
   rH3(...cc[3]);
   const rcc = allChilren(...cc[3]);
   rY(...rcc[2], false, rightMost);
@@ -151,9 +144,8 @@ function rH3(o, d) {
 }
 
 function rH(o, d) {
-  var s = scale(d, -(1 + k));
-  while (true) {
-    if (hypot(d) < scaleLimit) { return }
+  let s = scale(d, -(1 + k));
+  for (; hypot(d) >= scaleLimit;) {
     d = scale(d, k * k);
     o = sum(o, s);
     drw(o, d);
@@ -167,11 +159,12 @@ function r0() {
   const d = pnt(0, 1);
   drw(o, d);
   const cc = allChilren(o, d);
-  for (var i = 0; i < 5; i++) {
+  let i;
+  for (i = 0; i < 5; i++) {
     rY(...cc[i], true, true);
   }
-  var vd = d;
-  for (var i = 0; i < 5; i++) {
+  let vd = d;
+  for (i = 0; i < 5; i++) {
     rH(o, vd);
     vd = rot(vd);
   }
