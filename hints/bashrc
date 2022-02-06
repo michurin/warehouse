@@ -9,7 +9,7 @@ test -e ~/.bashrc.local && . ~/.bashrc.local
 
 [[ $DISPLAY ]] && shopt -s checkwinsize
 
-PS1='[\[\033[1;32m\]'"${force_name:-\u}"'\[\033[0m\] \W]\$ '
+PS1='[\[\033[1;32m\]am\[\033[0m\] \W]\$ '
 PS2='\[\e[32m\]>\[\e[0m\] '
 
 shopt -s histappend
@@ -39,8 +39,8 @@ export LC_TIME="$locale"
 export PYTHONIOENCODING='utf-8'
 export PYTHONDONTWRITEBYTECODE='1'
 
-export EDITOR='/usr/bin/vim'
-export VIEWER='/usr/bin/vim'
+export EDITOR='/usr/local/bin/nvim'
+export VIEWER='/usr/local/bin/nvim'
 export PAGER='/usr/bin/less'
 export LESS='FRSXQ'
 export LESSCHARSET='utf-8'
@@ -50,12 +50,13 @@ export HGENCODING='utf-8'
 unalias -a
 alias grep='grep --color=always'
 alias ls='ls -G'
+alias vim='nvim'
+alias vimdiff='nvim -d'
 
-for i in \
-  /usr/share/fzf/ \
-  /usr/local/Cellar/fzf/0.25.0/shell/ \
-  /data/data/com.termux/files/usr/share/fzf/
+for i in /usr/share/fzf/ /usr/local/Cellar/fzf/0.25.0/shell/
 do
+#. /usr/share/fzf/{key-bindings,completion}.bash
+#. /usr/local/Cellar/fzf/0.25.0/shell/{key-bindings,completion}.bash
   test -d "$i" && . "$i"/{key-bindings,completion}.bash
 done
 
@@ -64,3 +65,4 @@ function ssh-agent() {
 }
 
 test -e ~/.bashrc.agent && . ~/.bashrc.agent
+

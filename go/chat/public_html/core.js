@@ -1,4 +1,4 @@
-function Room () {
+window.Room = function () {
   var nop = function () {};
   // Defaults
   this.room = '__default__';
@@ -75,4 +75,4 @@ function Room () {
   this.run = function () {
     poll(); // TODO? Check if already run
   };
-}
+};

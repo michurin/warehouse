@@ -26,7 +26,7 @@ type slot struct {
 
 type oneRoom struct {
 	lastID    int64
-	bank      *list.List
+	bank      *list.List // TODO list.Ring? Or just typed slice?
 	coundDown int
 	lock      *sync.Mutex // TODO RWMutex?
 	signal    chan struct{}

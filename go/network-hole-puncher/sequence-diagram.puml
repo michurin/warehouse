@@ -1,0 +1,44 @@
+@startuml
+!theme mars
+' !theme materia
+' !theme mimeograph
+' !theme plain
+' !theme toy
+<style>
+root {
+  Margin 30
+}
+</style>
+
+actor "Node A\n192.168.0.2" as A
+queue "NAT A" as NA
+participant "Server" as C
+queue "NAT B" as NB
+actor "Node B\n10.0.0.2" as B
+
+A -> NA: from 192.168.0.2:1194
+NA -> C: from x.x.x.x:P
+C -> C: store x.x.x.x:P
+NA <- C: to: x.x.x.x:P\nno data yet
+A <- NA: no data yet
+
+...
+
+B -> NB: from 10.0.0.2:12345
+NB -> C: from y.y.y.y:Q
+C -> C: store y.y.y.y:Q\nand return\nprivies x.x.x.x:P
+note left C
+if A will be back,
+it will obtain
+y.y.y.y:Q in response
+end note
+NB <- C: to: y.y.y.y:Q\ndata: x.x.x.x:P
+B <- NB: data: x.x.x.x:P
+
+... start applications on both A and B node ...
+
+B -> NA: to: x.x.x.x:P
+NA -> A: to: 192.168.0.2:1194
+A <-> B: hole is punched
+
+@enduml
