@@ -9,4 +9,5 @@ images like this:
 
 ![One more pseudo IFS](pentagons.png)
 
-([Discussion on reddit](https://www.reddit.com/r/GeometryIsNeat/comments/sfo6vh/meta_fibonacci_quasi_fractal_pentagons_frankly_i/))
+([Discussion on reddit](https://www.reddit.com/r/GeometryIsNeat/comments/sfo6vh/meta_fibonacci_quasi_fractal_pentagons_frankly_i/),
+[and one more animated](https://www.reddit.com/r/generative/comments/sg565y/fibonacci_pentagons/))
