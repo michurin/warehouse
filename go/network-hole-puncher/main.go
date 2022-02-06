@@ -11,6 +11,9 @@ TODO:
 - timeouts
 - refactoring, logging
 - smarter contract. check punch
+- usage
+- readme and instruction
+- tests (after refactoring and decomposition)
 */
 
 import (
@@ -160,7 +163,7 @@ func clientMode(address, remoteAddress string) {
 }
 
 func help() {
-	fmt.Print(`Usage: TODO`)
+	fmt.Println(`Usage: TODO`)
 }
 
 func match(op, pat string) bool {
