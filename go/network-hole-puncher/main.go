@@ -197,6 +197,7 @@ func app(args []string) {
 		clientMode(args[1], args[2])
 		return
 	}
+	help() // invalid role
 }
 
 func main() {
