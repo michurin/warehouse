@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"net"
-	"sync"
 	"time"
 
 	"github.com/michurin/warehouse/go/network-hole-puncher/internal/udp"
@@ -13,43 +12,26 @@ import (
 
 var slotTooLongError = errors.New("Slot is too long")
 
-type peer struct { // TODO move it to separate file
-	mx      *sync.Mutex
-	address net.UDPAddr
-	ttl     int
+type task struct {
+	message  []byte
+	addr     *net.UDPAddr
+	tries    int
+	interval time.Duration
+	fin      bool
 }
 
-func newPeer() *peer {
-	return &peer{
-		mx: new(sync.Mutex),
-	}
+type result struct {
+	addr *net.UDPAddr
+	err  error
 }
 
-func (p *peer) Get() (net.UDPAddr, bool) {
-	p.mx.Lock()
-	defer p.mx.Unlock()
-	if p.ttl <= 0 {
-		return net.UDPAddr{}, false
-	}
-	p.ttl--
-	return p.address, true
-}
-
-func (p *peer) Set(addr net.UDPAddr) {
-	p.mx.Lock()
-	defer p.mx.Unlock()
-	p.address = addr
-	p.ttl = 10
-}
-
-func newClientHandler(p *peer) udp.Handler {
+func newClientHandler(tq chan task, res chan result) udp.Handler {
 	return func(
 		conn *net.UDPConn,
 		addr *net.UDPAddr,
 		data []byte,
 	) (bool, error) {
-		fmt.Printf("THE RESULT: REMOTE GLOBAL ADDRESS: %q\n", data)
-		fmt.Println(data)
+		fmt.Printf("DATA: %q\n", data)
 		ff := bytes.Split(data, []byte{'@'})
 		fmt.Println(ff)
 		if len(ff) == 0 { // TODO we have to have this check; HOWEVER server has to return correct signature
@@ -58,71 +40,118 @@ func newClientHandler(p *peer) udp.Handler {
 		if len(ff[0]) == 0 {
 			return false, nil
 		}
+		// TODO |
+		// TODO | ff[0][1] is ugly! The message format has to be reinvented
+		// TODO |
 		if ff[0][1] == 'E' { // (PEER) we receive peer information
-			addr, err := net.ResolveUDPAddr("udp", string(ff[2]))
+			peerAddr, err := net.ResolveUDPAddr("udp", string(ff[2]))
 			if err != nil {
 				return false, err
 			}
-			p.Set(*addr)
-			udp.Send(conn, addr, []byte("PING@0")) // TODO few tries
-			return false, nil                      // keep going
+			tq <- task{
+				message:  []byte("PING"),
+				addr:     peerAddr,
+				tries:    10, // increase?
+				interval: time.Second,
+				fin:      false,
+			}
+			return false, nil // keep going
 		}
 		if ff[0][1] == 'I' { // (PING) from host
+			tq <- task{
+				message:  []byte("PONG"),
+				addr:     addr,
+				tries:    10,
+				interval: 100 * time.Millisecond,
+				fin:      false, // TODO maybe true?
+			}
+			return false, nil // keep going
 		}
-		// TODO p.Set() if it is data from server
-		// TODO reply if it is data from peer
-		// TODO finish if it is PONG from peer (Nth pong?)
-		return true, nil // TODO exit only if we obtain address
+		if ff[0][1] == 'O' { // (PONG) from host
+			tq <- task{
+				message:  []byte("CLOSE"),
+				addr:     addr,
+				tries:    5,
+				interval: 100 * time.Microsecond,
+				fin:      true, // it is final task
+			}
+			return false, nil
+		}
+		if ff[0][1] == 'L' { // (CLOSE) from host (fast done)
+			fmt.Println("FIN BY CLOSE")
+			res <- result{addr: addr, err: nil}
+			return false, nil // we have to keep going! TODO remove first result flag... or even both
+		}
+		// TODO unexpected data; error that has to be ignore. It evaporates when protocol gets more strict and secure
+		return false, nil
 	}
 }
 
-func Client(slot, address, remoteAddress string) error {
+func taskEexecutor(conn *net.UDPConn, serverAddr *net.UDPAddr, serverMessage []byte, tq chan task, res chan result) { // TODO repeat sending
+	defaultTask := task{
+		message:  serverMessage, // request to server
+		addr:     serverAddr,    // address of server
+		tries:    -1,            // infinite
+		interval: 10 * time.Second,
+	}
+	tsk := defaultTask
+	for {
+		// execute task
+		fmt.Println("Execute task:", string(tsk.message), tsk)
+		err := udp.Send(conn, tsk.addr, tsk.message)
+		if err != nil {
+			res <- result{addr: nil, err: err}
+			return
+		}
+		if tsk.tries > 0 {
+			tsk.tries--
+		}
+		if tsk.tries == 0 {
+			if tsk.fin {
+				fmt.Println("FIN BY FIN")
+				res <- result{addr: tsk.addr, err: nil}
+				return
+			}
+			tsk = defaultTask // back to server polling
+		}
+		select {
+		case <-time.After(tsk.interval):
+			fmt.Println("timeout")
+		case tsk = <-tq:
+			fmt.Println("new task", tsk.message)
+		}
+	}
+}
+
+func serveForever(conn *net.UDPConn, h udp.Handler, res chan result) {
+	err := udp.Serve(conn, h)
+	res <- result{addr: nil, err: err}
+}
+
+func Client(slot, address, remoteAddress string) (*net.UDPAddr, error) {
 	// TODO check slot letters and digits only!
 	if len(slot) > 16 {
-		return slotTooLongError
+		return nil, slotTooLongError
 	}
 	message := []byte(slot)
 
-	p := newPeer()
-
 	conn, err := udp.Connect(address)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	defer conn.Close()
 
 	addr, err := net.ResolveUDPAddr("udp", remoteAddress)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	go func() { // TODO repeat sending
-		for {
-			peer, ok := p.Get()
-			fmt.Println(peer, ok)
-			if ok { // connect to peer
-				fmt.Println("Sending to peer...")
-				err = udp.Send(conn, &peer, []byte("PING@0"))
-				if err != nil {
-					fmt.Println(err)
-					return // TODO remove it
-				}
-			} else { // connect to server
-				fmt.Println("Sending to server...")
-				err = udp.Send(conn, addr, message)
-				if err != nil {
-					fmt.Println(err)
-				}
-			}
-			time.Sleep(5 * time.Second)
-		}
-	}()
+	taskQueue := make(chan task, 8)
+	resultChan := make(chan result, 1)
 
-	err = udp.Serve(conn, newClientHandler(p))
-	if err != nil {
-		fmt.Println(err)
-	}
-	fmt.Println("Server is stopped")
-	return nil
+	go taskEexecutor(conn, addr, message, taskQueue, resultChan)
+	go serveForever(conn, newClientHandler(taskQueue, resultChan), resultChan)
+
+	res := <-resultChan
+	return res.addr, res.err
 }
-

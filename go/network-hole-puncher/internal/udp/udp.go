@@ -5,6 +5,8 @@ import (
 	"net"
 )
 
+// TODO Remove boolean flag. And remove error too?
+// TODO Handler must not be able to interapt server
 type Handler func(*net.UDPConn, *net.UDPAddr, []byte) (bool, error)
 
 func Connect(address string) (*net.UDPConn, error) {

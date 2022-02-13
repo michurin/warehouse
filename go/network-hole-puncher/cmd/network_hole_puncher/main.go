@@ -26,11 +26,13 @@ func main() {
 		return
 	}
 	if os.Args[1] == "c" && len(os.Args) == 5 {
-		err := app.Client(os.Args[2], os.Args[3], os.Args[4])
+		addr, err := app.Client(os.Args[2], os.Args[3], os.Args[4])
 		if err != nil {
 			help((os.Args[0]))
 			return
 		}
+		fmt.Println("RESULT:", addr)
+		fmt.Printf("remote %s %d udp\n", addr.IP, addr.Port)
 		return
 	}
 	help(os.Args[0])
