@@ -2,15 +2,12 @@ package app
 
 import (
 	"bytes"
-	"errors"
 	"fmt"
 	"net"
 	"time"
 
 	"github.com/michurin/warehouse/go/network-hole-puncher/internal/udp"
 )
-
-var slotTooLongError = errors.New("Slot is too long")
 
 type task struct {
 	message  []byte
@@ -30,15 +27,15 @@ func newClientHandler(tq chan task, res chan result) udp.Handler {
 		conn *net.UDPConn,
 		addr *net.UDPAddr,
 		data []byte,
-	) (bool, error) {
+	) {
 		fmt.Printf("DATA: %q\n", data)
 		ff := bytes.Split(data, []byte{'@'})
 		fmt.Println(ff)
 		if len(ff) == 0 { // TODO we have to have this check; HOWEVER server has to return correct signature
-			return false, nil
+			return
 		}
 		if len(ff[0]) == 0 {
-			return false, nil
+			return
 		}
 		// TODO |
 		// TODO | ff[0][1] is ugly! The message format has to be reinvented
@@ -46,7 +43,8 @@ func newClientHandler(tq chan task, res chan result) udp.Handler {
 		if ff[0][1] == 'E' { // (PEER) we receive peer information
 			peerAddr, err := net.ResolveUDPAddr("udp", string(ff[2]))
 			if err != nil {
-				return false, err
+				// TODO log?
+				return
 			}
 			tq <- task{
 				message:  []byte("PING"),
@@ -55,7 +53,7 @@ func newClientHandler(tq chan task, res chan result) udp.Handler {
 				interval: time.Second,
 				fin:      false,
 			}
-			return false, nil // keep going
+			return
 		}
 		if ff[0][1] == 'I' { // (PING) from host
 			tq <- task{
@@ -65,25 +63,24 @@ func newClientHandler(tq chan task, res chan result) udp.Handler {
 				interval: 100 * time.Millisecond,
 				fin:      false, // TODO maybe true?
 			}
-			return false, nil // keep going
+			return
 		}
 		if ff[0][1] == 'O' { // (PONG) from host
 			tq <- task{
 				message:  []byte("CLOSE"),
 				addr:     addr,
 				tries:    5,
-				interval: 100 * time.Microsecond,
+				interval: 100 * time.Millisecond,
 				fin:      true, // it is final task
 			}
-			return false, nil
+			return
 		}
 		if ff[0][1] == 'L' { // (CLOSE) from host (fast done)
 			fmt.Println("FIN BY CLOSE")
 			res <- result{addr: addr, err: nil}
-			return false, nil // we have to keep going! TODO remove first result flag... or even both
+			return
 		}
 		// TODO unexpected data; error that has to be ignore. It evaporates when protocol gets more strict and secure
-		return false, nil
 	}
 }
 
@@ -129,11 +126,7 @@ func serveForever(conn *net.UDPConn, h udp.Handler, res chan result) {
 }
 
 func Client(slot, address, remoteAddress string) (*net.UDPAddr, error) {
-	// TODO check slot letters and digits only!
-	if len(slot) > 16 {
-		return nil, slotTooLongError
-	}
-	message := []byte(slot)
+	message := []byte(slot) // TODO check if slot = 'a'|'b'
 
 	conn, err := udp.Connect(address)
 	if err != nil {

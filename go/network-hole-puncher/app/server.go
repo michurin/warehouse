@@ -16,9 +16,9 @@ func newServerHandler() udp.Handler {
 		conn *net.UDPConn,
 		addr *net.UDPAddr,
 		data []byte,
-	) (bool, error) {
+	) {
 		if len(data) < 1 {
-			return false, noDataErr
+			return
 		}
 		idx := int(data[0]) & 1
 		addresses[idx] = append([]byte("PEER@"), append(append(data, '@'), []byte(addr.String())...)...)
@@ -26,9 +26,8 @@ func newServerHandler() udp.Handler {
 		err := udp.Send(conn, addr, payload)
 		if err != nil {
 			fmt.Println(err)
-			return false, err
+			return
 		}
-		return false, nil
 	}
 }
 

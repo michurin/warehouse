@@ -5,9 +5,7 @@ import (
 	"net"
 )
 
-// TODO Remove boolean flag. And remove error too?
-// TODO Handler must not be able to interapt server
-type Handler func(*net.UDPConn, *net.UDPAddr, []byte) (bool, error)
+type Handler func(*net.UDPConn, *net.UDPAddr, []byte)
 
 func Connect(address string) (*net.UDPConn, error) {
 	addr, err := net.ResolveUDPAddr("udp", address)
@@ -33,15 +31,8 @@ func Serve(
 			return err
 		}
 		fmt.Printf("call handler: data=%q, from %s\n", string(data[:n]), addr)
-		last, err := handler(conn, addr, data[:n])
-		if err != nil {
-			return nil
-		}
-		if last {
-			break
-		}
+		handler(conn, addr, data[:n])
 	}
-	return nil
 }
 
 func Send(conn *net.UDPConn, addr *net.UDPAddr, data []byte) error {
