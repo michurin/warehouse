@@ -1,11 +1,20 @@
 package app
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
 	"net"
 
 	"github.com/michurin/warehouse/go/network-hole-puncher/internal/udp"
+)
+
+const ( // TODO move to sep file
+	labelPeerInfo   = 'I'
+	labelPing       = 'x'
+	labelPong       = 'y'
+	labelClose      = 'z'
+	labelsSeporator = '|'
 )
 
 var noDataErr = errors.New("Empty data")
@@ -21,7 +30,11 @@ func newServerHandler() udp.Handler {
 			return
 		}
 		idx := int(data[0]) & 1
-		addresses[idx] = append([]byte("PEER@"), append(append(data, '@'), []byte(addr.String())...)...)
+		addresses[idx] = bytes.Join([][]byte{
+			{labelPeerInfo},
+			data,
+			[]byte(addr.String()),
+		}, []byte{labelsSeporator})
 		payload := addresses[idx^1]
 		err := udp.Send(conn, addr, payload)
 		if err != nil {

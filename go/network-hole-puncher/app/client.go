@@ -22,6 +22,45 @@ type result struct {
 	err  error
 }
 
+func taskPing(addr *net.UDPAddr) task {
+	return task{
+		message:  []byte{labelPing},
+		addr:     addr,
+		tries:    10, // increase?
+		interval: time.Second,
+		fin:      false,
+	}
+}
+
+func taskPong(addr *net.UDPAddr) task {
+	return task{
+		message:  []byte{labelPong},
+		addr:     addr,
+		tries:    10,
+		interval: 100 * time.Millisecond,
+		fin:      false, // TODO maybe true?
+	}
+}
+
+func taskClose(addr *net.UDPAddr) task {
+	return task{
+		message:  []byte{labelClose},
+		addr:     addr,
+		tries:    5,
+		interval: 100 * time.Millisecond,
+		fin:      true, // it is final task
+	}
+}
+
+func taskRequestToServer(addr *net.UDPAddr, message []byte) task {
+	return task{
+		message:  message,
+		addr:     addr,
+		tries:    -1, // infinite
+		interval: 10 * time.Second,
+	}
+}
+
 func newClientHandler(tq chan task, res chan result) udp.Handler {
 	return func(
 		conn *net.UDPConn,
@@ -29,7 +68,7 @@ func newClientHandler(tq chan task, res chan result) udp.Handler {
 		data []byte,
 	) {
 		fmt.Printf("DATA: %q\n", data)
-		ff := bytes.Split(data, []byte{'@'})
+		ff := bytes.Split(data, []byte{labelsSeporator})
 		fmt.Println(ff)
 		if len(ff) == 0 { // TODO we have to have this check; HOWEVER server has to return correct signature
 			return
@@ -37,60 +76,29 @@ func newClientHandler(tq chan task, res chan result) udp.Handler {
 		if len(ff[0]) == 0 {
 			return
 		}
-		// TODO |
-		// TODO | ff[0][1] is ugly! The message format has to be reinvented
-		// TODO |
-		if ff[0][1] == 'E' { // (PEER) we receive peer information
+		switch ff[0][0] {
+		case labelPeerInfo:
 			peerAddr, err := net.ResolveUDPAddr("udp", string(ff[2]))
 			if err != nil {
-				// TODO log?
+				// TODO log? stop?
 				return
 			}
-			tq <- task{
-				message:  []byte("PING"),
-				addr:     peerAddr,
-				tries:    10, // increase?
-				interval: time.Second,
-				fin:      false,
-			}
-			return
-		}
-		if ff[0][1] == 'I' { // (PING) from host
-			tq <- task{
-				message:  []byte("PONG"),
-				addr:     addr,
-				tries:    10,
-				interval: 100 * time.Millisecond,
-				fin:      false, // TODO maybe true?
-			}
-			return
-		}
-		if ff[0][1] == 'O' { // (PONG) from host
-			tq <- task{
-				message:  []byte("CLOSE"),
-				addr:     addr,
-				tries:    5,
-				interval: 100 * time.Millisecond,
-				fin:      true, // it is final task
-			}
-			return
-		}
-		if ff[0][1] == 'L' { // (CLOSE) from host (fast done)
+			tq <- taskPing(peerAddr)
+		case labelPing:
+			tq <- taskPong(addr)
+		case labelPong:
+			tq <- taskClose(addr)
+		case labelClose:
 			fmt.Println("FIN BY CLOSE")
 			res <- result{addr: addr, err: nil}
-			return
+		default:
+			// TODO Unexpected data. Log? stop?
 		}
-		// TODO unexpected data; error that has to be ignore. It evaporates when protocol gets more strict and secure
 	}
 }
 
-func taskEexecutor(conn *net.UDPConn, serverAddr *net.UDPAddr, serverMessage []byte, tq chan task, res chan result) { // TODO repeat sending
-	defaultTask := task{
-		message:  serverMessage, // request to server
-		addr:     serverAddr,    // address of server
-		tries:    -1,            // infinite
-		interval: 10 * time.Second,
-	}
+func taskEexecutor(conn *net.UDPConn, serverAddr *net.UDPAddr, serverMessage []byte, tq chan task, res chan result) {
+	defaultTask := taskRequestToServer(serverAddr, serverMessage)
 	tsk := defaultTask
 	for {
 		// execute task
