@@ -2,12 +2,16 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"os"
 
 	"github.com/michurin/warehouse/go/network-hole-puncher/app"
 )
 
-func help(a string) { // TODO
+func help(err error) { // TODO
+	if err != nil {
+		fmt.Println("ERROR:", err.Error())
+	}
 	fmt.Printf(`USAGE:
 %[1]s role local_addr [server_addr]
 
@@ -22,25 +26,29 @@ Server mode:
 Client mode:
 %[1]s a :7777 1.2.3.4:5555
 %[1]s b :7777 1.2.3.4:5555
-`, a)
+`, os.Args[0])
 }
 
 func main() {
 	if len(os.Args[1:]) < 2 {
-		help(os.Args[0])
+		help(nil)
 		return
 	}
+
+	logger := log.New(os.Stderr, "", log.Ldate|log.Ltime|log.Lmicroseconds)
+	opts := app.ConnOption(app.SignMW([]byte("SECRET")), app.LogMW(logger))
+
 	switch os.Args[1] {
 	case "c":
 		if len(os.Args) == 3 {
-			app.Server(os.Args[2])
+			app.Server(os.Args[2], opts)
 			return
 		}
 	case "a", "b":
 		if len(os.Args) == 4 {
-			addr, err := app.Client(os.Args[1], os.Args[2], os.Args[3])
+			addr, err := app.Client(os.Args[1], os.Args[2], os.Args[3], opts)
 			if err != nil {
-				help((os.Args[0]))
+				help(err)
 				return
 			}
 			fmt.Println("RESULT:", addr)
@@ -48,6 +56,6 @@ func main() {
 			return
 		}
 	}
-	fmt.Println("Invalid arguments")
-	help(os.Args[0])
+
+	help(nil)
 }

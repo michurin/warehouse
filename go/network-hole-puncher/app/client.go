@@ -120,7 +120,9 @@ func serveForever(conn Connenction, tq chan task, res chan result) {
 	}
 }
 
-func Client(slot, address, remoteAddress string) (*net.UDPAddr, error) {
+func Client(slot, address, remoteAddress string, opt ...Option) (*net.UDPAddr, error) {
+	config := newConfig(opt...)
+
 	message := []byte(slot) // TODO check if slot = 'a'|'b'
 
 	addr, err := net.ResolveUDPAddr("udp", address)
@@ -131,7 +133,10 @@ func Client(slot, address, remoteAddress string) (*net.UDPAddr, error) {
 	if err != nil {
 		return nil, err
 	}
-	conn := LogMW(Logger())(SignMW([]byte("LABEL"))(udpConn))
+	conn := Connenction(udpConn)
+	for _, mw := range config.connMW {
+		conn = mw(conn)
+	}
 	defer conn.Close()
 
 	addr, err = net.ResolveUDPAddr("udp", remoteAddress)

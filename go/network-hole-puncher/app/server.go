@@ -5,7 +5,8 @@ import (
 	"net"
 )
 
-func Server(address string) error {
+func Server(address string, options ...Option) error {
+	config := newConfig(options...)
 	addr, err := net.ResolveUDPAddr("udp", address)
 	if err != nil {
 		return err
@@ -14,7 +15,10 @@ func Server(address string) error {
 	if err != nil {
 		return err
 	}
-	conn := LogMW(Logger())(SignMW([]byte("LABEL"))(udpConn))
+	conn := Connenction(udpConn)
+	for _, wm := range config.connMW {
+		conn = wm(conn)
+	}
 	defer conn.Close()
 
 	addresses := [][]byte{nil, nil}
