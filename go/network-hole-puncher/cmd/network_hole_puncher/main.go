@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"log"
+	"net"
 	"os"
 
 	"github.com/michurin/warehouse/go/network-hole-puncher/app"
@@ -10,10 +11,10 @@ import (
 
 func help(err error) { // TODO
 	if err != nil {
-		fmt.Println("ERROR:", err.Error())
+		fmt.Println("\nERROR:", err.Error())
 	}
 	fmt.Printf(`USAGE:
-%[1]s role local_addr [server_addr]
+%[1]s role secret local_addr [server_addr]
 
 Roles:
   a — Node A
@@ -29,32 +30,59 @@ Client mode:
 `, os.Args[0])
 }
 
-func main() {
-	if len(os.Args[1:]) < 2 {
-		help(nil)
+func safeIP(ip net.IP) string {
+	switch len(ip) {
+	case net.IPv4len, net.IPv6len:
+		return ip.String()
+	}
+	return "n/a"
+}
+
+func printResult(laddr, addr *net.UDPAddr) {
+	fmt.Println(
+		"LADDR/LHOST/LPORT/RADDR/RHOST/RPORT:",
+		laddr,
+		safeIP(laddr.IP),
+		laddr.Port,
+		addr,
+		safeIP(addr.IP),
+		addr.Port)
+}
+
+func parseArgs() (role string, secret []byte, laddr, raddr string) {
+	l := len(os.Args)
+	if l < 4 {
 		return
 	}
+	role = os.Args[1]
+	secret = []byte(os.Args[2])
+	laddr = os.Args[3]
+	if l < 5 {
+		return
+	}
+	raddr = os.Args[4]
+	return
+}
+
+func main() {
+	role, secret, laddr, raddr := parseArgs()
 
 	logger := log.New(os.Stderr, "", log.Ldate|log.Ltime|log.Lmicroseconds)
-	opts := app.ConnOption(app.SignMW([]byte("SECRET")), app.LogMW(logger))
+	opts := app.ConnOption(app.SignMW(secret), app.LogMW(logger))
 
-	switch os.Args[1] {
+	switch role {
 	case "c":
-		if len(os.Args) == 3 {
-			app.Server(os.Args[2], opts)
-			return
-		}
+		logger.Print("[INFO] Server started on " + laddr)
+		app.Server(laddr, opts)
+		return
 	case "a", "b":
-		if len(os.Args) == 4 {
-			addr, err := app.Client(os.Args[1], os.Args[2], os.Args[3], opts)
-			if err != nil {
-				help(err)
-				return
-			}
-			fmt.Println("RESULT:", addr)
-			fmt.Printf("remote %s %d udp\n", addr.IP, addr.Port)
+		laddr, addr, err := app.Client(role, laddr, raddr, opts)
+		if err != nil {
+			help(err)
 			return
 		}
+		printResult(laddr, addr)
+		return
 	}
 
 	help(nil)

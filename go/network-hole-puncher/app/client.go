@@ -120,18 +120,18 @@ func serveForever(conn Connenction, tq chan task, res chan result) {
 	}
 }
 
-func Client(slot, address, remoteAddress string, opt ...Option) (*net.UDPAddr, error) {
+func Client(slot, address, remoteAddress string, opt ...Option) (*net.UDPAddr, *net.UDPAddr, error) {
 	config := newConfig(opt...)
 
 	message := []byte(slot) // TODO check if slot = 'a'|'b'
 
-	addr, err := net.ResolveUDPAddr("udp", address)
+	laddr, err := net.ResolveUDPAddr("udp", address)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
-	udpConn, err := net.ListenUDP("udp", addr)
+	udpConn, err := net.ListenUDP("udp", laddr)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	conn := Connenction(udpConn)
 	for _, mw := range config.connMW {
@@ -139,9 +139,9 @@ func Client(slot, address, remoteAddress string, opt ...Option) (*net.UDPAddr, e
 	}
 	defer conn.Close()
 
-	addr, err = net.ResolveUDPAddr("udp", remoteAddress)
+	addr, err := net.ResolveUDPAddr("udp", remoteAddress)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	taskQueue := make(chan task, 8)
@@ -151,5 +151,5 @@ func Client(slot, address, remoteAddress string, opt ...Option) (*net.UDPAddr, e
 	go serveForever(conn, taskQueue, resultChan)
 
 	res := <-resultChan
-	return res.addr, res.err
+	return laddr, res.addr, res.err
 }
