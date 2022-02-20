@@ -45,7 +45,7 @@ func (w *logWrapper) ReadFromUDP(b []byte) (int, *net.UDPAddr, error) {
 		w.err("read", err)
 		return n, addr, err
 	}
-	w.info("read", fmt.Sprintf("%s <- %s", b[:n], addr))
+	w.info("read", fmt.Sprintf("%q <- %s", b[:n], addr))
 	return n, addr, err
 }
 
@@ -55,11 +55,10 @@ func (w *logWrapper) WriteToUDP(b []byte, addr *net.UDPAddr) (int, error) {
 		w.err("write", err)
 		return n, err
 	}
-	w.info("write", fmt.Sprintf("%s -> %s", b[:n], addr))
+	w.info("write", fmt.Sprintf("%q -> %s", b[:n], addr))
 	return n, err
 }
 
 func Logger() *log.Logger { // TODO remove it from here
 	return log.New(os.Stderr, "", log.Ldate|log.Ltime|log.Lmicroseconds)
 }
-

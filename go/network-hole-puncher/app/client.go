@@ -44,7 +44,7 @@ func taskClose(addr *net.UDPAddr) task {
 		message:  []byte{labelClose},
 		addr:     addr,
 		tries:    5,
-		interval: 100 * time.Millisecond,
+		interval: 50 * time.Millisecond,
 		fin:      true, // it is final task
 	}
 }
@@ -58,10 +58,17 @@ func taskRequestToServer(addr *net.UDPAddr, message []byte) task {
 	}
 }
 
-func taskEexecutor(conn Connenction, serverAddr *net.UDPAddr, serverMessage []byte, tq chan task, res chan result) {
+func taskEexecutor(
+	conn Connenction,
+	serverAddr *net.UDPAddr,
+	serverMessage []byte,
+	tq chan task,
+	res chan result,
+) {
 	defaultTask := taskRequestToServer(serverAddr, serverMessage)
 	tsk := defaultTask
-	for {
+	ok := true
+	for ok {
 		// execute task
 		_, err := conn.WriteToUDP(tsk.message, tsk.addr)
 		if err != nil {
@@ -80,7 +87,7 @@ func taskEexecutor(conn Connenction, serverAddr *net.UDPAddr, serverMessage []by
 		}
 		select {
 		case <-time.After(tsk.interval):
-		case tsk = <-tq:
+		case tsk, ok = <-tq: // stop looping if chan is closed
 		}
 	}
 }
@@ -94,7 +101,7 @@ func serveForever(conn Connenction, tq chan task, res chan result) {
 			break
 		}
 		ff := bytes.Split(buff[:n], []byte{labelsSeporator}) // TODO we don't need it here
-		if len(ff) == 0 {                                    // TODO we have to have this check; HOWEVER server has to return correct signature
+		if len(ff) == 0 {
 			continue
 		}
 		if len(ff[0]) == 0 {
@@ -111,11 +118,14 @@ func serveForever(conn Connenction, tq chan task, res chan result) {
 		case labelPing:
 			tq <- taskPong(addr)
 		case labelPong:
-			tq <- taskClose(addr)
+			tq <- taskClose(addr) // task "close" will stop executor after all tries
+			return                // stop listning on first pong
 		case labelClose:
+			close(tq) // stop execution immediately
 			res <- result{addr: addr, err: nil}
+			return // stop listning on first close
 		default:
-			// TODO Unexpected data. Log? stop?
+			// TODO Unexpected data. Log? stop? sleep?
 		}
 	}
 }
