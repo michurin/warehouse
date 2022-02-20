@@ -7,4 +7,3 @@ const (
 	labelClose      = 'z'
 	labelsSeporator = '|'
 )
-
