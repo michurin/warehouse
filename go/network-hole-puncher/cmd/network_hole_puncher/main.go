@@ -73,9 +73,14 @@ func main() {
 	switch role {
 	case "c":
 		logger.Print("[INFO] Server started on " + laddr)
-		app.Server(laddr, opts)
+		err := app.Server(laddr, opts)
+		if err != nil {
+			help(err)
+			return
+		}
 		return
 	case "a", "b":
+		logger.Print("[INFO] Client started on " + laddr)
 		laddr, addr, err := app.Client(role, laddr, raddr, opts)
 		if err != nil {
 			help(err)
