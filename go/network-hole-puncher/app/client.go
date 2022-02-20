@@ -23,8 +23,8 @@ func taskPing(addr *net.UDPAddr) task {
 	return task{
 		message:  []byte{labelPing},
 		addr:     addr,
-		tries:    10, // increase?
-		interval: time.Second,
+		tries:    20,
+		interval: 100 * time.Millisecond,
 		fin:      false,
 	}
 }
@@ -33,9 +33,9 @@ func taskPong(addr *net.UDPAddr) task {
 	return task{
 		message:  []byte{labelPong},
 		addr:     addr,
-		tries:    10,
+		tries:    20,
 		interval: 100 * time.Millisecond,
-		fin:      false, // TODO maybe true?
+		fin:      false,
 	}
 }
 
@@ -54,7 +54,8 @@ func taskRequestToServer(addr *net.UDPAddr, message []byte) task {
 		message:  message,
 		addr:     addr,
 		tries:    -1, // infinite
-		interval: 10 * time.Second,
+		interval: 20 * time.Second,
+		fin:      false,
 	}
 }
 
@@ -69,7 +70,6 @@ func taskEexecutor(
 	tsk := defaultTask
 	ok := true
 	for ok {
-		// execute task
 		_, err := conn.WriteToUDP(tsk.message, tsk.addr)
 		if err != nil {
 			res <- result{addr: nil, err: err}
@@ -87,7 +87,7 @@ func taskEexecutor(
 		}
 		select {
 		case <-time.After(tsk.interval):
-		case tsk, ok = <-tq: // stop looping if chan is closed
+		case tsk, ok = <-tq: // stop looping if channel is closed
 		}
 	}
 }
@@ -119,11 +119,11 @@ func serveForever(conn Connenction, tq chan task, res chan result) {
 			tq <- taskPong(addr)
 		case labelPong:
 			tq <- taskClose(addr) // task "close" will stop executor after all tries
-			return                // stop listning on first pong
+			return                // stop listening on first pong
 		case labelClose:
 			close(tq) // stop execution immediately
 			res <- result{addr: addr, err: nil}
-			return // stop listning on first close
+			return // stop listening on first close
 		default:
 			// TODO Unexpected data. Log? stop? sleep?
 		}

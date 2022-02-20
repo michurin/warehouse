@@ -116,6 +116,14 @@ sequenceDiagram
     B ->> B: exit after emitting all "CLOSE"
 ```
 
+There are two phases:
+
+- IP discover, using server with public IP (200.2.2.2 on diagram) and
+- drilling, using PING-PONG-CLOSE communication
+
+The PING-PONG-CLOSE approach is very similar to SYN-SYNACK-ACK. The
+final phase, when we send all CLOSE packets, is similar to TIME-WAIT.
+
 ## Related links
 
 - [Peer-to-Peer Communication Across Network Address Translators](https://bford.info/pub/net/p2pnat/): fundamental work on P2P drilling
