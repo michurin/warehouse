@@ -2,57 +2,45 @@ package app
 
 import (
 	"bytes"
-	"errors"
-	"fmt"
 	"net"
-
-	"github.com/michurin/warehouse/go/network-hole-puncher/internal/udp"
 )
 
-const ( // TODO move to sep file
-	labelPeerInfo   = 'I'
-	labelPing       = 'x'
-	labelPong       = 'y'
-	labelClose      = 'z'
-	labelsSeporator = '|'
-)
+func Server(address string) error {
+	addr, err := net.ResolveUDPAddr("udp", address)
+	if err != nil {
+		return err
+	}
+	udpConn, err := net.ListenUDP("udp", addr)
+	if err != nil {
+		return err
+	}
+	conn := LogMW(Logger())(SignMW([]byte("LABEL"))(udpConn))
+	defer conn.Close()
 
-var noDataErr = errors.New("Empty data")
-
-func newServerHandler() udp.Handler {
 	addresses := [][]byte{nil, nil}
-	return func(
-		conn *net.UDPConn,
-		addr *net.UDPAddr,
-		data []byte,
-	) {
-		if len(data) < 1 {
-			return
+
+	for {
+		data := make([]byte, 1024) // we create new slice every time to prevent sharing memory between server and handler
+		n, addr, err := conn.ReadFromUDP(data)
+		if err != nil {
+			continue
+		}
+		if n < 1 {
+			continue
 		}
 		idx := int(data[0]) & 1
 		addresses[idx] = bytes.Join([][]byte{
 			{labelPeerInfo},
-			data,
+			data[:1],
 			[]byte(addr.String()),
 		}, []byte{labelsSeporator})
 		payload := addresses[idx^1]
-		err := udp.Send(conn, addr, payload)
+		if payload == nil {
+			continue
+		}
+		_, err = conn.WriteToUDP(payload, addr)
 		if err != nil {
-			fmt.Println(err)
-			return
+			continue
 		}
 	}
-}
-
-func Server(address string) error {
-	conn, err := udp.Connect(address)
-	if err != nil {
-		return err
-	}
-	defer conn.Close()
-	err = udp.Serve(conn, newServerHandler())
-	if err != nil {
-		return err
-	}
-	return nil
 }

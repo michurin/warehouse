@@ -2,11 +2,8 @@ package app
 
 import (
 	"bytes"
-	"fmt"
 	"net"
 	"time"
-
-	"github.com/michurin/warehouse/go/network-hole-puncher/internal/udp"
 )
 
 type task struct {
@@ -61,49 +58,12 @@ func taskRequestToServer(addr *net.UDPAddr, message []byte) task {
 	}
 }
 
-func newClientHandler(tq chan task, res chan result) udp.Handler {
-	return func(
-		conn *net.UDPConn,
-		addr *net.UDPAddr,
-		data []byte,
-	) {
-		fmt.Printf("DATA: %q\n", data)
-		ff := bytes.Split(data, []byte{labelsSeporator})
-		fmt.Println(ff)
-		if len(ff) == 0 { // TODO we have to have this check; HOWEVER server has to return correct signature
-			return
-		}
-		if len(ff[0]) == 0 {
-			return
-		}
-		switch ff[0][0] {
-		case labelPeerInfo:
-			peerAddr, err := net.ResolveUDPAddr("udp", string(ff[2]))
-			if err != nil {
-				// TODO log? stop?
-				return
-			}
-			tq <- taskPing(peerAddr)
-		case labelPing:
-			tq <- taskPong(addr)
-		case labelPong:
-			tq <- taskClose(addr)
-		case labelClose:
-			fmt.Println("FIN BY CLOSE")
-			res <- result{addr: addr, err: nil}
-		default:
-			// TODO Unexpected data. Log? stop?
-		}
-	}
-}
-
-func taskEexecutor(conn *net.UDPConn, serverAddr *net.UDPAddr, serverMessage []byte, tq chan task, res chan result) {
+func taskEexecutor(conn Connenction, serverAddr *net.UDPAddr, serverMessage []byte, tq chan task, res chan result) {
 	defaultTask := taskRequestToServer(serverAddr, serverMessage)
 	tsk := defaultTask
 	for {
 		// execute task
-		fmt.Println("Execute task:", string(tsk.message), tsk)
-		err := udp.Send(conn, tsk.addr, tsk.message)
+		_, err := conn.WriteToUDP(tsk.message, tsk.addr)
 		if err != nil {
 			res <- result{addr: nil, err: err}
 			return
@@ -113,7 +73,6 @@ func taskEexecutor(conn *net.UDPConn, serverAddr *net.UDPAddr, serverMessage []b
 		}
 		if tsk.tries == 0 {
 			if tsk.fin {
-				fmt.Println("FIN BY FIN")
 				res <- result{addr: tsk.addr, err: nil}
 				return
 			}
@@ -121,28 +80,61 @@ func taskEexecutor(conn *net.UDPConn, serverAddr *net.UDPAddr, serverMessage []b
 		}
 		select {
 		case <-time.After(tsk.interval):
-			fmt.Println("timeout")
 		case tsk = <-tq:
-			fmt.Println("new task", tsk.message)
 		}
 	}
 }
 
-func serveForever(conn *net.UDPConn, h udp.Handler, res chan result) {
-	err := udp.Serve(conn, h)
-	res <- result{addr: nil, err: err}
+func serveForever(conn Connenction, tq chan task, res chan result) {
+	buff := make([]byte, 1024)
+	for {
+		n, addr, err := conn.ReadFromUDP(buff)
+		if err != nil {
+			res <- result{addr: nil, err: err}
+			break
+		}
+		ff := bytes.Split(buff[:n], []byte{labelsSeporator}) // TODO we don't need it here
+		if len(ff) == 0 {                                    // TODO we have to have this check; HOWEVER server has to return correct signature
+			continue
+		}
+		if len(ff[0]) == 0 {
+			continue
+		}
+		switch ff[0][0] {
+		case labelPeerInfo:
+			peerAddr, err := net.ResolveUDPAddr("udp", string(ff[2]))
+			if err != nil {
+				// TODO log? stop?
+				continue
+			}
+			tq <- taskPing(peerAddr)
+		case labelPing:
+			tq <- taskPong(addr)
+		case labelPong:
+			tq <- taskClose(addr)
+		case labelClose:
+			res <- result{addr: addr, err: nil}
+		default:
+			// TODO Unexpected data. Log? stop?
+		}
+	}
 }
 
 func Client(slot, address, remoteAddress string) (*net.UDPAddr, error) {
 	message := []byte(slot) // TODO check if slot = 'a'|'b'
 
-	conn, err := udp.Connect(address)
+	addr, err := net.ResolveUDPAddr("udp", address)
 	if err != nil {
 		return nil, err
 	}
+	udpConn, err := net.ListenUDP("udp", addr)
+	if err != nil {
+		return nil, err
+	}
+	conn := LogMW(Logger())(SignMW([]byte("LABEL"))(udpConn))
 	defer conn.Close()
 
-	addr, err := net.ResolveUDPAddr("udp", remoteAddress)
+	addr, err = net.ResolveUDPAddr("udp", remoteAddress)
 	if err != nil {
 		return nil, err
 	}
@@ -151,7 +143,7 @@ func Client(slot, address, remoteAddress string) (*net.UDPAddr, error) {
 	resultChan := make(chan result, 1)
 
 	go taskEexecutor(conn, addr, message, taskQueue, resultChan)
-	go serveForever(conn, newClientHandler(taskQueue, resultChan), resultChan)
+	go serveForever(conn, taskQueue, resultChan)
 
 	res := <-resultChan
 	return res.addr, res.err
