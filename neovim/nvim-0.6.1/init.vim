@@ -13,13 +13,15 @@ call plug#begin() " https://github.com/junegunn/vim-plug +PlugInstall
   Plug 'nvim-treesitter/nvim-treesitter-textobjects'
 call plug#end()
 
-nnoremap <leader>ff <cmd>lua require('telescope.builtin').find_files()<cr>
-nnoremap <leader>fg <cmd>lua require('telescope.builtin').live_grep()<cr>
-nnoremap <leader>fb <cmd>lua require('telescope.builtin').buffers()<cr>
-nnoremap <leader>fh <cmd>lua require('telescope.builtin').help_tags()<cr>
-nnoremap <leader>fm <cmd>lua require('telescope.builtin').grep_string()<cr>
+nnoremap <space>ff <cmd>lua require('telescope.builtin').find_files()<cr>
+nnoremap <space>fg <cmd>lua require('telescope.builtin').live_grep()<cr>
+nnoremap <space>fb <cmd>lua require('telescope.builtin').buffers()<cr>
+nnoremap <space>fh <cmd>lua require('telescope.builtin').help_tags()<cr>
 
-nnoremap <leader>fr <cmd>lua require('telescope.builtin').resume()<cr>
+nnoremap <space>fm <cmd>lua require('telescope.builtin').grep_string()<cr>
+nnoremap <space>fd <cmd>lua require('telescope.builtin').diagnostics()<cr>
+
+nnoremap <space>fr <cmd>lua require('telescope.builtin').resume()<cr>
 
 nnoremap gr <cmd>lua require('telescope.builtin').lsp_references()<cr>
 nnoremap gi <cmd>lua require('telescope.builtin').lsp_implementations()<cr>
@@ -47,6 +49,10 @@ require('telescope').setup{
   },
 }
 TELESCOPE_SETTINGS
+
+if filereadable(getcwd() . "/.nogofumpt") " Oh, too hackish. vim.lsp.buf.list_workspace_folders() or util.root_pattern?
+  let g:nogofumpt_tweak = 1
+endif
 
 lua <<LSP_AND_COMPLETION_SETTINTS
 -- Completion
@@ -139,10 +145,25 @@ local capabilities = require('cmp_nvim_lsp').update_capabilities(vim.lsp.protoco
 for _, lsp in pairs(servers) do
   require('lspconfig')[lsp].setup {
     on_attach = on_attach,
+    capabilities = capabilities,
     flags = {
       debounce_text_changes = 150, -- This will be the default in neovim 0.7+
     },
-    capabilities = capabilities,
+    settings={
+      gopls = { -- https://github.com/golang/tools/blob/master/gopls/doc/settings.md
+        gofumpt = vim.api.nvim_eval('exists("g:nogofumpt_tweak")') == 0 -- true
+      },
+      python={
+        analysis={
+          useLibraryCodeForTypes = false,
+          typeCheckingMode = "off"
+        },
+        linting = {
+          pylintEnabled = true,
+          enabled = true
+        }
+      },
+    },
   }
 end
 LSP_AND_COMPLETION_SETTINTS
@@ -177,10 +198,10 @@ require'nvim-treesitter.configs'.setup {
     swap = {
       enable = true,
       swap_next = {
-        ["<leader>a"] = "@parameter.inner",
+        ["<space>a"] = "@parameter.inner",
       },
       swap_previous = {
-        ["<leader>A"] = "@parameter.inner",
+        ["<space>A"] = "@parameter.inner",
       },
     },
     move = {
@@ -325,7 +346,7 @@ endfunction
 command! GA call s:GoAlt('e')
 command! GAA call s:GoAlt('bo vs')
 
-" https://github.com/nvim-treesitter/nvim-treesitter-textobjects ?
+" https://github.com/nvim-treesitter/nvim-treesitter-textobjects
 " map <silent> [[ :noh<CR>?^func\><CR>:let @/=''<CR>:set hls<CR>
 " map <silent> ]] :noh<CR>/^func\><CR>:let @/=''<CR>:set hls<CR>
 
