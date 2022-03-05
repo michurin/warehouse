@@ -13,16 +13,54 @@ call plug#begin() " https://github.com/junegunn/vim-plug +PlugInstall
   Plug 'nvim-treesitter/nvim-treesitter-textobjects'
 call plug#end()
 
+lua <<TELESCOPE_HELPERS
+function ft_args()
+  local bufnr = vim.api.nvim_get_current_buf()
+  local filetype = vim.bo[bufnr].filetype
+  return ({ -- rg options
+    ["go"]={
+      "-g", "*.go",
+      "-g", "!vendor",
+      "-g", "!mock",
+      "-g", "!mocks",
+      "-g", "!.git",
+      "-g", "!*_test.go",
+    },
+    ["js"]={"-g", "*.js"},
+  })[filetype]
+end
+function ft_alt_args()
+  local bufnr = vim.api.nvim_get_current_buf()
+  local filetype = vim.bo[bufnr].filetype
+  return ({ -- rg options
+    ["go"]={
+      "-g", "*_test.go",
+      "-g", "!vendor",
+      "-g", "!mock",
+      "-g", "!mocks",
+      "-g", "!.git",
+    },
+  })[filetype]
+end
+TELESCOPE_HELPERS
+
+" std
 nnoremap <space>ff <cmd>lua require('telescope.builtin').find_files()<cr>
 nnoremap <space>fg <cmd>lua require('telescope.builtin').live_grep()<cr>
 nnoremap <space>fb <cmd>lua require('telescope.builtin').buffers()<cr>
 nnoremap <space>fh <cmd>lua require('telescope.builtin').help_tags()<cr>
-
+" like /
+nnoremap <space>f/ <cmd>lua require('telescope.builtin').current_buffer_fuzzy_find()<cr>
+" z=
+nnoremap z= <cmd>lua require('telescope.builtin').spell_suggest()<cr>
+" m — method, d — diagnostics, l — language, t — tests
 nnoremap <space>fm <cmd>lua require('telescope.builtin').grep_string()<cr>
 nnoremap <space>fd <cmd>lua require('telescope.builtin').diagnostics()<cr>
-
+nnoremap <space>fl <cmd>lua require('telescope.builtin').live_grep({additional_args=ft_args, wrap_results=true})<cr>
+nnoremap <space>ft <cmd>lua require('telescope.builtin').live_grep({additional_args=ft_alt_args, wrap_results=true})<cr>
+" resume
 nnoremap <space>fr <cmd>lua require('telescope.builtin').resume()<cr>
-
+" std LSP
 nnoremap gr <cmd>lua require('telescope.builtin').lsp_references()<cr>
 nnoremap gi <cmd>lua require('telescope.builtin').lsp_implementations()<cr>
 nnoremap gd <cmd>lua require('telescope.builtin').lsp_definitions()<cr>
@@ -34,9 +72,9 @@ require('telescope').setup{
   defaults = {
     layout_strategy = 'vertical',
     layout_config = {
-      height = 0.95,
-      width = 0.95,
-      preview_cutoff = 2,
+      height = 0.9,
+      width = 0.9,
+      preview_cutoff = 3,
     },
     mappings = {
       n = {
@@ -247,6 +285,7 @@ set hidden
 set shiftwidth=4
 set tabstop=4
 set softtabstop=4
+set expandtab
 set autoindent
 set list lcs=trail:+,tab:▹·
 set foldmethod=syntax
@@ -286,43 +325,43 @@ highlight SpellLocal term=none cterm=underline ctermfg=none gui=bold guifg=none 
 " How to debug https://www.getman.io/posts/gopls/
 lua << EOF
   -- https://github.com/golang/tools/blob/master/gopls/doc/vim.md#neovim-imports
-  function goimports(timeout_ms)
-    -- https://github.com/neovim/neovim/blob/23fe6dba138859c1c22850b9ce76219141f546a0/runtime/doc/lsp.txt#L135
-    -- https://github.com/neovim/neovim/blob/c1f573fbc94aecd0f5841f7eb671be1a0a29758c/runtime/lua/vim/lsp/buf.lua#L174
-    vim.lsp.buf.formatting_sync() -- hackish
+function goimports(timeout_ms)
+  -- https://github.com/neovim/neovim/blob/23fe6dba138859c1c22850b9ce76219141f546a0/runtime/doc/lsp.txt#L135
+  -- https://github.com/neovim/neovim/blob/c1f573fbc94aecd0f5841f7eb671be1a0a29758c/runtime/lua/vim/lsp/buf.lua#L174
+  vim.lsp.buf.formatting_sync() -- hackish
 
-    local context = { only = { "source.organizeImports" } }
-    vim.validate { context = { context, "t", true } }
+  local context = { only = { "source.organizeImports" } }
+  vim.validate { context = { context, "t", true } }
 
-    local params = vim.lsp.util.make_range_params()
-    params.context = context
+  local params = vim.lsp.util.make_range_params()
+  params.context = context
 
-    -- See the implementation of the textDocument/codeAction callback
-    -- (lua/vim/lsp/handler.lua) for how to do this properly.
-    local result = vim.lsp.buf_request_sync(0, "textDocument/codeAction", params, timeout_ms)
-    -- Todo:
-    -- add formatting
-    -- https://github.com/neovim/nvim-lspconfig/issues/115#issuecomment-616844477
-    -- local result = vim.lsp.buf_request_sync(0, "textDocument/formatting", params, timeout)
-    if not result or next(result) == nil then return end
-    local actions = result[1].result
-    if not actions then return end
-    local action = actions[1]
+  -- See the implementation of the textDocument/codeAction callback
+  -- (lua/vim/lsp/handler.lua) for how to do this properly.
+  local result = vim.lsp.buf_request_sync(0, "textDocument/codeAction", params, timeout_ms)
+  -- Todo:
+  -- add formatting
+  -- https://github.com/neovim/nvim-lspconfig/issues/115#issuecomment-616844477
+  -- local result = vim.lsp.buf_request_sync(0, "textDocument/formatting", params, timeout)
+  if not result or next(result) == nil then return end
+  local actions = result[1].result
+  if not actions then return end
+  local action = actions[1]
 
-    -- textDocument/codeAction can return either Command[] or CodeAction[]. If it
-    -- is a CodeAction, it can have either an edit, a command or both. Edits
-    -- should be executed first.
-    if action.edit or type(action.command) == "table" then
-      if action.edit then
-        vim.lsp.util.apply_workspace_edit(action.edit)
-      end
-      if type(action.command) == "table" then
-        vim.lsp.buf.execute_command(action.command)
-      end
-    else
-      vim.lsp.buf.execute_command(action)
+  -- textDocument/codeAction can return either Command[] or CodeAction[]. If it
+  -- is a CodeAction, it can have either an edit, a command or both. Edits
+  -- should be executed first.
+  if action.edit or type(action.command) == "table" then
+    if action.edit then
+      vim.lsp.util.apply_workspace_edit(action.edit)
     end
+    if type(action.command) == "table" then
+      vim.lsp.buf.execute_command(action.command)
+    end
+  else
+    vim.lsp.buf.execute_command(action)
   end
+end
 EOF
 
 function! s:GoAlt(cmd)
@@ -356,12 +395,13 @@ autocmd FileType go autocmd BufWritePre *.go lua goimports(1000)
 
 autocmd FileType javascript autocmd BufWritePre *.js lua vim.lsp.buf.formatting_sync(nil, 500)
 
-autocmd FileType vim  setlocal shiftwidth=2 tabstop=2 softtabstop=2
-autocmd FileType lua  setlocal shiftwidth=2 tabstop=2 softtabstop=2
-autocmd FileType css  setlocal shiftwidth=2 tabstop=8 softtabstop=2
-autocmd FileType html setlocal shiftwidth=2 tabstop=8 softtabstop=2
+autocmd FileType go     setlocal noexpandtab
+autocmd FileType vim    setlocal shiftwidth=2 tabstop=2 softtabstop=2
+autocmd FileType lua    setlocal shiftwidth=2 tabstop=2 softtabstop=2
+autocmd FileType css    setlocal shiftwidth=2 tabstop=8 softtabstop=2
+autocmd FileType html   setlocal shiftwidth=2 tabstop=8 softtabstop=2
 autocmd FileType javascript setlocal shiftwidth=2 tabstop=8 softtabstop=2
-autocmd FileType json setlocal shiftwidth=2 tabstop=8 softtabstop=2
-autocmd FileType yaml setlocal shiftwidth=2 tabstop=2 softtabstop=2 foldmethod=indent
-autocmd FileType make setlocal tabstop=8
-autocmd FileType tcl  setlocal shiftwidth=2 tabstop=8 softtabstop=2 foldmethod=indent
+autocmd FileType json   setlocal shiftwidth=2 tabstop=8 softtabstop=2
+autocmd FileType yaml   setlocal shiftwidth=2 tabstop=2 softtabstop=2 foldmethod=indent
+autocmd FileType make   setlocal tabstop=8
+autocmd FileType tcl    setlocal shiftwidth=2 tabstop=8 softtabstop=2 foldmethod=indent
