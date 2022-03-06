@@ -15,10 +15,7 @@ func Server(address string, options ...Option) error {
 	if err != nil {
 		return err
 	}
-	conn := Connenction(udpConn)
-	for _, wm := range config.connMW {
-		conn = wm(conn)
-	}
+	conn := config.wrapConnection(udpConn)
 	defer conn.Close()
 
 	addresses := [][]byte{nil, nil}

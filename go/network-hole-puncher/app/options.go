@@ -14,6 +14,13 @@ func newConfig(options ...Option) *Config {
 	return cfg
 }
 
+func (c *Config) wrapConnection(conn Connenction) Connenction {
+	for _, mw := range c.connMW {
+		conn = mw(conn)
+	}
+	return conn
+}
+
 func ConnOption(mw ...MW) Option {
 	return func(cfg *Config) {
 		cfg.connMW = append(cfg.connMW, mw...)

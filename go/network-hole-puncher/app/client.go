@@ -96,23 +96,24 @@ func serveForever(conn Connenction, tq chan task, res chan result) {
 	buff := make([]byte, 1024)
 	for {
 		n, addr, err := conn.ReadFromUDP(buff)
-		if err != nil {
+		if err != nil { // TODO consider is fatal error? maybe skip?
 			res <- result{addr: nil, err: err}
+			close(tq) // avoid goroutine leaking
 			break
 		}
-		ff := bytes.Split(buff[:n], []byte{labelsSeporator}) // TODO we don't need it here
-		if len(ff) == 0 {
+		if n == 0 {
 			continue
 		}
-		if len(ff[0]) == 0 {
-			continue
-		}
-		switch ff[0][0] {
+		switch buff[0] {
 		case labelPeerInfo:
-			peerAddr, err := net.ResolveUDPAddr("udp", string(ff[2]))
+			flds := bytes.Split(buff[:n], []byte{labelsSeporator})
+			if len(flds) != 3 {
+				break
+			}
+			peerAddr, err := net.ResolveUDPAddr("udp", string(flds[2]))
 			if err != nil {
 				// TODO log? stop?
-				continue
+				break
 			}
 			tq <- taskPing(peerAddr)
 		case labelPing:
@@ -139,20 +140,17 @@ func Client(slot, address, remoteAddress string, opt ...Option) (*net.UDPAddr, *
 	if err != nil {
 		return nil, nil, err
 	}
-	udpConn, err := net.ListenUDP("udp", laddr)
-	if err != nil {
-		return nil, nil, err
-	}
-	conn := Connenction(udpConn)
-	for _, mw := range config.connMW {
-		conn = mw(conn)
-	}
-	defer conn.Close()
-
 	addr, err := net.ResolveUDPAddr("udp", remoteAddress)
 	if err != nil {
 		return nil, nil, err
 	}
+
+	udpConn, err := net.ListenUDP("udp", laddr)
+	if err != nil {
+		return nil, nil, err
+	}
+	conn := config.wrapConnection(udpConn)
+	defer conn.Close()
 
 	taskQueue := make(chan task, 8)
 	resultChan := make(chan result, 1)

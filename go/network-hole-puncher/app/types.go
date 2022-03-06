@@ -1,7 +1,7 @@
 package app
 
 const (
-	labelPeerInfo   = 'I'
+	labelPeerInfo   = 'i'
 	labelPing       = 'x'
 	labelPong       = 'y'
 	labelClose      = 'z'
