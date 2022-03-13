@@ -14,7 +14,7 @@ func newConfig(options ...Option) *Config {
 	return cfg
 }
 
-func (c *Config) wrapConnection(conn Connenction) Connenction {
+func (c *Config) wrapConnection(conn Connenction) Connenction { //nolint:ireturn
 	for _, mw := range c.connMW {
 		conn = mw(conn)
 	}

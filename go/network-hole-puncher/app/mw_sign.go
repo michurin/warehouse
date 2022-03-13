@@ -26,7 +26,7 @@ func (w *signWrapper) Close() error {
 	return w.next.Close()
 }
 
-var signLen = ascii85.MaxEncodedLen(sha256.Size224)
+var signLen = ascii85.MaxEncodedLen(sha256.Size224) //nolint:gochecknoglobals
 
 func (w *signWrapper) ReadFromUDP(b []byte) (int, *net.UDPAddr, error) {
 	buff := make([]byte, len(b)+signLen+1)
@@ -35,11 +35,11 @@ func (w *signWrapper) ReadFromUDP(b []byte) (int, *net.UDPAddr, error) {
 		return n, addr, err
 	}
 	if n < signLen+2 {
-		return 0, addr, errors.New("Message too short")
+		return 0, addr, errors.New("message too short")
 	}
 	sum := w.sum(buff[signLen+1 : n])
 	if !bytes.Equal(sum, buff[:signLen]) {
-		return 0, addr, errors.New("Invalid signature")
+		return 0, addr, errors.New("invalid signature")
 	}
 	copy(b, buff[signLen+1:n])
 	return n - signLen - 1, addr, nil

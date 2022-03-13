@@ -11,9 +11,9 @@ import (
 )
 
 const (
-	role_control = "c"
-	role_node_a  = "a"
-	role_node_b  = "b"
+	roleControl = "c"
+	roleNodeA   = "a"
+	roleNodeB   = "b"
 )
 
 func help() {
@@ -90,13 +90,13 @@ func main() {
 	opts := app.ConnOption(app.SignMW(secret), app.LogMW(logger))
 
 	switch role {
-	case role_control:
+	case roleControl:
 		helpAndExitIfError(checkArgs(4, "You have to specify 3 arguments in control (`c`) mode"))
 		logger.Print("[INFO] Server started on " + laddr)
 		err := app.Server(laddr, opts)
 		helpAndExitIfError(err)
 		return
-	case role_node_a, role_node_b:
+	case roleNodeA, roleNodeB:
 		helpAndExitIfError(checkArgs(5, "You have to specify 4 arguments in node (`a` and `b`) mode"))
 		raddr := os.Args[4]
 		logger.Print("[INFO] Client started on " + laddr + " to server at " + raddr)

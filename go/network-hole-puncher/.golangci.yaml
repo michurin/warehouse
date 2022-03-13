@@ -1,0 +1,20 @@
+linters:
+  enable-all: true
+  disable:
+    - wrapcheck
+    - varnamelen
+    - paralleltest
+    - gomnd
+    - wsl
+    - nlreturn
+    - goerr113
+
+linters-settings:
+  cyclop:
+    max-complexity: 12
+
+issues:
+  exclude-rules:
+    - path: cmd/network_hole_puncher/main.go
+      linters:
+        - forbidigo
