@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"log"
 	"net"
-	"os"
 )
 
 type logWrapper struct {
@@ -57,8 +56,4 @@ func (w *logWrapper) WriteToUDP(b []byte, addr *net.UDPAddr) (int, error) {
 	}
 	w.info("write", fmt.Sprintf("%q -> %s", b[:n], addr))
 	return n, err
-}
-
-func Logger() *log.Logger { // TODO remove it from here
-	return log.New(os.Stderr, "", log.Ldate|log.Ltime|log.Lmicroseconds)
 }
