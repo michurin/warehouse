@@ -77,12 +77,12 @@ require('telescope').setup{
       preview_cutoff = 3,
     },
     mappings = {
-      n = {
-        ["<C-t>"] = action_layout.toggle_preview,
-      },
-      i = {
-        ["<C-t>"] = action_layout.toggle_preview,
-      },
+--      n = {
+--        ["<C-t>"] = action_layout.toggle_preview,
+--      },
+--      i = {
+--        ["<C-t>"] = action_layout.toggle_preview,
+--      },
     },
   },
 }
@@ -288,6 +288,7 @@ set softtabstop=4
 set expandtab
 set autoindent
 set list lcs=trail:+,tab:▹·
+set fillchars=fold:\ " (space)
 set foldmethod=syntax
 set foldlevelstart=99
 set foldlevel=99
@@ -319,6 +320,19 @@ highlight SpellBad term=none cterm=underline ctermfg=none gui=bold guifg=none ct
 highlight SpellCap term=none cterm=underline ctermfg=none gui=bold guifg=none ctermbg=none
 highlight SpellRare term=none cterm=underline ctermfg=none gui=bold guifg=none ctermbg=none
 highlight SpellLocal term=none cterm=underline ctermfg=none gui=bold guifg=none ctermbg=none
+
+" FOLDING
+
+function! XFoldText()
+    let line = getline(v:foldstart)
+    let folded_line_num = v:foldend - v:foldstart
+    let line_text = substitute(line, '^{\+[0-9]\+\s\+', '', 'g') " hackish way to remove default marker
+    let fillcharcount = winwidth(0) - len(line_text) - len(folded_line_num) - 11
+    return '⟫ ' . line_text . ' ' . repeat('╶', fillcharcount) . ' (' . folded_line_num . ')'
+endfunction
+set foldtext=XFoldText()
+highlight Folded ctermfg=155 ctermbg=235
+" it is useful modeline: vi:fdm=marker:foldlevel=0
 
 " GO STUFF
 
