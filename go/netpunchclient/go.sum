@@ -1,0 +1,7 @@
+github.com/davecgh/go-spew v1.1.0 h1:ZDRjVQ15GmhC3fiQ8ni8+OwkZQO4DARzQgrnXU1Liz8=
+github.com/golang/mock v1.6.0 h1:ErTB+efbowRARo13NNdxyJji2egdxLGQhRaY+DUumQc=
+github.com/michurin/netpunch v0.0.0-20220501052903-41521dd580d7 h1:SW1ZdAm8gyoH7TilJkwN4jcn/SEFPRNVgqRY1kLBJbE=
+github.com/michurin/netpunch v0.0.0-20220501052903-41521dd580d7/go.mod h1:sHEyfVuUcUezbcBVpgbaWvz2juKOWcznIUMuOUukw/I=
+github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZbAQM=
+github.com/stretchr/testify v1.7.1 h1:5TQK59W5E3v0r2duFAb7P95B6hEeOyEnHRa8MjYSMTY=
+gopkg.in/yaml.v3 v3.0.0-20200313102051-9f266ea9e77c h1:dUUwHk2QECo/6vqA44rthZ8ie2QXMNeKRTHCNY2nXvo=
