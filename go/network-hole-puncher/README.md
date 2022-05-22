@@ -1,4 +1,8 @@
-# Network hole punching tool
+# Network hole punching tool [project is moved!]
+
+| :warning: Project is moved to its own repository. All updates are there. |
+| --- |
+| https://github.com/michurin/netpunch |
 
 ## Quick start with OpenVPN
 
