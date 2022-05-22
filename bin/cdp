@@ -1,0 +1,9 @@
+#!/bin/bash
+
+# as cd works inside script only, you may use it that ways:
+# . cdp # in command line
+# alias cdp=~/bin/cdp
+# cdp() { . ~/bin/cdp; }
+
+p=$(find $HOME/p \( \( -type f -name 'go.mod' \) -o \( -type d -name .git \) \) -printf '%h\n' | sort | uniq | fzf)
+test -z "$p" || cd "$p"
