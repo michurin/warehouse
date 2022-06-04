@@ -1,7 +1,7 @@
 # graphic-effects
 
 ```
-go run main.go example.jpg
+go run . example.jpg
 ```
 
 ## Source

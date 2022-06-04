@@ -30,31 +30,25 @@ func main() {
 	xerr(err)
 	source, _, err := image.Decode(reader)
 	xerr(err)
-	sourceBounds := source.Bounds()
-	fmt.Printf("Image: [%d-%d]x[%d-%d]\n", sourceBounds.Min.X, sourceBounds.Max.X, sourceBounds.Min.Y, sourceBounds.Max.Y)
-	target := image.NewRGBA(image.Rect(sourceBounds.Min.X, sourceBounds.Min.Y, sourceBounds.Max.X-8, sourceBounds.Max.Y-8))
+
+	l := New(source)
+	fmt.Printf("Image: %dx%d\n", l.R.Width(), l.R.Height())
+	target := image.NewRGBA(image.Rect(0, 0, l.R.Width()-8, l.R.Height()-8))
 	w := [8]float64{-0.0625, -0.0625, -0.125, -0.25, 0.25, 0.125, 0.0625, 0.0625}
-	for y := sourceBounds.Min.Y; y < sourceBounds.Max.Y-8; y++ {
-		for x := sourceBounds.Min.X; x < sourceBounds.Max.X-8; x++ {
+	for y := 0; y < l.R.Height()-8; y++ {
+		for x := 0; x < l.R.Width()-8; x++ {
 			sx := float64(0)
 			sy := float64(0)
 			for t := 0; t < 8; t++ {
-				r, g, b, _ := source.At(x+t, y+3).RGBA()
-				cy, _, _ := color.RGBToYCbCr(uint8(r>>8), uint8(g>>8), uint8(b>>8))
-				sx += float64(cy) * w[t]
-				r, g, b, _ = source.At(x+3, y+t).RGBA()
-				cy, _, _ = color.RGBToYCbCr(uint8(r>>8), uint8(g>>8), uint8(b>>8))
-				sy += float64(cy) * w[t]
+				sx += l.Y.At(x+t, y+3) * w[t]
+				sy += l.Y.At(x+3, y+t) * w[t]
 			}
 			s := math.Hypot(sx, sy)
-			s *= 2
-			if s > 255 {
-				s = 255
-			}
+			s = .1 + .9*s
 			target.Set(x, y, color.RGBA{
-				R: 0,
-				G: uint8(s),
-				B: 0,
+				R: uint8(s * l.R.At(x+3, y+3) * 256),
+				G: uint8(s * 256),
+				B: uint8(s * l.B.At(x+3, y+3) * 256),
 				A: 0xff,
 			})
 		}
