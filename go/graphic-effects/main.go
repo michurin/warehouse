@@ -8,8 +8,13 @@ import (
 	_ "image/jpeg"
 	"image/png"
 	"math"
+	"math/rand"
 	"os"
+	"sort"
+	"time"
 )
+
+// low level util
 
 func xerr(e error) {
 	if e != nil {
@@ -25,6 +30,127 @@ func filename() string {
 	return os.Args[1]
 }
 
+func black(img *image.RGBA) {
+	b := img.Bounds()
+	for y := b.Min.Y; y < b.Max.Y; y++ {
+		for x := b.Min.X; x < b.Max.X; x++ {
+			img.Set(x, y, color.RGBA{
+				R: 0,
+				G: 0,
+				B: 0,
+				A: 255,
+			})
+		}
+	}
+}
+
+func saveImage(img image.Image, filename string) {
+	fh, err := os.Create(filename)
+	xerr(err)
+	err = png.Encode(fh, img)
+	xerr(err)
+}
+
+// sobel (sort of, lightweight)
+
+func sobel(v [][]float64, ow, oh int) ([][]float64, int, int) {
+	wgh := [8]float64{-0.0625, -0.0625, -0.125, -0.25, 0.25, 0.125, 0.0625, 0.0625}
+	cs := len(wgh)
+	w := ow - cs
+	h := oh - cs
+	d := cs / 2
+	r := make([][]float64, h)
+	for y := 0; y < h; y++ {
+		r[y] = make([]float64, w)
+		for x := 0; x < w; x++ {
+			sx := float64(0)
+			sy := float64(0)
+			for t := 0; t < cs; t++ { // yes it is not full convolution, we consider just cross
+				sx += v[y+d][x+t] * wgh[t]
+				sy += v[y+t][x+d] * wgh[t]
+			}
+			r[y][x] = math.Hypot(sx, sy)
+		}
+	}
+	return r, w, h
+}
+
+// random points
+
+type Point struct{ X, Y float64 }
+
+func randPoints(n int, v [][]float64, w, h int) []Point {
+	type u struct {
+		v float64
+		p Point
+	}
+	a := make([]u, w*h)
+	c := 0
+	for y := 0; y < h; y++ {
+		for x := 0; x < w; x++ {
+			a[c] = u{v: math.Pow(v[y][x], .7), p: Point{X: float64(x), Y: float64(y)}}
+			c++
+		}
+	}
+	sort.Slice(a, func(i, j int) bool { return a[i].v < a[j].v })
+	base := a[0].v
+	mag := a[len(a)-1].v
+	fmt.Printf("Magnitude: %f - %f\n", base, mag)
+	p := make([]Point, n)
+	for i := 0; i < n; i++ {
+		rnd := rand.Float64()*(mag-base) + base
+		idx := sort.Search(len(a), func(i int) bool { return rnd < a[i].v })
+		// fmt.Println(rnd, idx, a[idx])
+		p[i] = a[idx].p
+		p[i].X += rand.Float64() - .5 // randomization
+		p[i].Y += rand.Float64() - .5
+	}
+	return p
+}
+
+// demo images
+
+func sobelImage(l Layers) {
+	sl, sw, sh := sobel(l.Y, l.W, l.H)
+	fmt.Printf("Image: %dx%d -> %dx%d\n", l.W, l.H, sw, sh)
+	shift := (l.W - sw) / 2
+	target := image.NewRGBA(image.Rect(0, 0, sw, sh))
+	for y := 0; y < sh; y++ {
+		for x := 0; x < sw; x++ {
+			s := sl[y][x]
+			m := .2 + .2*s
+			v := s * 4
+			if v > 1 {
+				v = .999
+			}
+			target.Set(x, y, color.RGBA{
+				R: uint8(m * l.R[y+shift][x+shift] * 256),
+				G: uint8(v * 256),
+				B: uint8(m * l.B[y+shift][x+shift] * 256),
+				A: 0xff,
+			})
+		}
+	}
+	saveImage(target, "outimage-a-sobel.png")
+}
+
+func randPointsImage(l Layers) {
+	const factor = 2
+	sl, w, h := sobel(l.Y, l.W, l.H)
+	target := image.NewRGBA(image.Rect(0, 0, w*factor, h*factor))
+	black(target)
+	pp := randPoints(10000, sl, w, h)
+	for _, p := range pp {
+		target.Set(int(p.X*factor), int(p.Y*factor), color.RGBA{
+			R: 0,
+			G: 255,
+			B: 0,
+			A: 255,
+		})
+	}
+	saveImage(target, "outimage-b-random.png")
+}
+
 func main() {
 	reader, err := os.Open(filename())
 	xerr(err)
@@ -32,29 +158,9 @@ func main() {
 	xerr(err)
 
 	l := New(source)
-	fmt.Printf("Image: %dx%d\n", l.R.Width(), l.R.Height())
-	target := image.NewRGBA(image.Rect(0, 0, l.R.Width()-8, l.R.Height()-8))
-	w := [8]float64{-0.0625, -0.0625, -0.125, -0.25, 0.25, 0.125, 0.0625, 0.0625}
-	for y := 0; y < l.R.Height()-8; y++ {
-		for x := 0; x < l.R.Width()-8; x++ {
-			sx := float64(0)
-			sy := float64(0)
-			for t := 0; t < 8; t++ {
-				sx += l.Y.At(x+t, y+3) * w[t]
-				sy += l.Y.At(x+3, y+t) * w[t]
-			}
-			s := math.Hypot(sx, sy)
-			s = .1 + .9*s
-			target.Set(x, y, color.RGBA{
-				R: uint8(s * l.R.At(x+3, y+3) * 256),
-				G: uint8(s * 256),
-				B: uint8(s * l.B.At(x+3, y+3) * 256),
-				A: 0xff,
-			})
-		}
-	}
-	fh, err := os.Create("outimage-a-sobel.png")
-	xerr(err)
-	err = png.Encode(fh, target)
-	xerr(err)
+
+	sobelImage(l)
+
+	rand.Seed(time.Now().UnixNano())
+	randPointsImage(l)
 }

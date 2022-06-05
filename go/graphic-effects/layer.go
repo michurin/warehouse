@@ -9,27 +9,15 @@ import (
 // no bound checking
 // no integrity checking
 
-type Layer [][]float64
-
-func (l Layer) Width() int {
-	return len(l[0])
-}
-
-func (l Layer) Height() int {
-	return len(l)
-}
-
-func (l Layer) At(x, y int) float64 {
-	return l[y][x]
-}
-
 type Layers struct {
-	R  Layer
-	G  Layer
-	B  Layer
-	Y  Layer
-	Cb Layer
-	Cr Layer
+	W  int
+	H  int
+	R  [][]float64
+	G  [][]float64
+	B  [][]float64
+	Y  [][]float64
+	Cb [][]float64
+	Cr [][]float64
 }
 
 func New(s image.Image) Layers {
@@ -54,7 +42,7 @@ func New(s image.Image) Layers {
 		cb[y] = make([]float64, xm)
 		cr[y] = make([]float64, xm)
 		for x := 0; x < xm; x++ {
-			r, g, b, _ := s.At(x, y).RGBA() // [0..0xffff]
+			r, g, b, _ := s.At(x0+x, y0+y).RGBA() // [0..0xffff]
 			vr[y][x] = float64(r) / 65536
 			vg[y][x] = float64(g) / 65536
 			vb[y][x] = float64(b) / 65536
@@ -65,6 +53,8 @@ func New(s image.Image) Layers {
 		}
 	}
 	return Layers{
+		W:  xm,
+		H:  ym,
 		R:  vr,
 		G:  vg,
 		B:  vb,

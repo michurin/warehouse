@@ -13,3 +13,7 @@ go run . example.jpg
 Sobel-like edge detection
 
 ![Sobel like edge detection](outimage-a-sobel.png)
+
+## Pivot points
+
+![Points](outimage-b-random.png)
