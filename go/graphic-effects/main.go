@@ -151,6 +151,44 @@ func randPointsImage(l Layers) {
 	saveImage(target, "outimage-b-random.png")
 }
 
+func voronoiImage(l Layers) {
+	// very naive implementation; O(number of pivot points)
+	const factor = 3
+	const power = 4
+	sl, w, h := sobel(l.Y, l.W, l.H)
+	wt := w * factor
+	ht := h * factor
+	target := image.NewRGBA(image.Rect(0, 0, wt, ht))
+	black(target)
+	pp := randPoints(7000, sl, w, h)
+	for y := 0; y < ht; y++ {
+		fmt.Printf("Progress: %d/%d", y, ht)
+		for x := 0; x < wt; x++ {
+			nd := 1_000_000_000.0
+			nx := 0
+			ny := 0
+			for _, p := range pp {
+				dx := float64(x) - p.X*factor
+				dy := float64(y) - p.Y*factor
+				d := math.Pow((math.Pow(math.Abs(dx), power) + math.Pow(math.Abs(dy), power)), 1./power)
+				if d < nd {
+					nd = d
+					nx = int(p.X)
+					ny = int(p.Y)
+				}
+			}
+			target.Set(x, y, color.RGBA{
+				R: uint8(256 * l.R[ny][nx]),
+				G: uint8(256 * l.G[ny][nx]),
+				B: uint8(256 * l.B[ny][nx]),
+				A: 255,
+			})
+		}
+		fmt.Print("\x1b[0G\x1b[0K")
+	}
+	saveImage(target, "outimage-c-voronoi.png")
+}
+
 func main() {
 	reader, err := os.Open(filename())
 	xerr(err)
@@ -163,4 +201,6 @@ func main() {
 
 	rand.Seed(time.Now().UnixNano())
 	randPointsImage(l)
+
+	voronoiImage(l)
 }
