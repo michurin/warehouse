@@ -22,9 +22,9 @@ systemctl daemon-reload
 ```
 
 ```sh
-systemctl -l status netpunchclinet
-systemctl start netpunchclinet
-systemctl -l status netpunchclinet
-systemctl enable netpunchclinet
-systemctl -l status netpunchclinet
+systemctl -l status netpunchclient
+systemctl start netpunchclient
+systemctl -l status netpunchclient
+systemctl enable netpunchclient
+systemctl -l status netpunchclient
 ```
