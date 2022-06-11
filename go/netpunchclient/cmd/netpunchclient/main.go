@@ -7,6 +7,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"runtime/debug"
 	"strconv"
 	"strings"
 	"syscall"
@@ -24,6 +25,14 @@ func checkErr(err error) {
 
 func main() {
 	if len(os.Args) != 8 {
+		bi, ok := debug.ReadBuildInfo()
+		if !ok {
+			logger.Fatalf("Failed to read build info")
+		}
+		logger.Printf("Main: %s %s\n", bi.Main.Path, bi.Main.Version)
+		for _, dep := range bi.Deps {
+			logger.Printf("Dep:  %s %s\n", dep.Path, dep.Version)
+		}
 		logger.Fatalf("Usage: %s a public-control-node.com:9999 secret openvpn 192.168.2.1 192.168.2.2 /etc/secret.key", filepath.Base(os.Args[0]))
 	}
 
