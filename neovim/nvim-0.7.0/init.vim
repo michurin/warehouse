@@ -12,6 +12,7 @@ call plug#begin() " https://github.com/junegunn/vim-plug +PlugInstall
   Plug 'nvim-treesitter/nvim-treesitter' ", {'do': ':TSUpdate'} " TSInstall lang
   Plug 'nvim-treesitter/nvim-treesitter-textobjects'
   Plug 'nvim-treesitter/nvim-treesitter-context'
+  Plug 'nvim-treesitter/nvim-treesitter-refactor'
 call plug#end()
 
 lua <<TELESCOPE_HELPERS
@@ -275,6 +276,23 @@ require'nvim-treesitter.configs'.setup {
       goto_previous_end = {
         ["[M"] = "@function.outer",
         ["[]"] = "@class.outer",
+      },
+    },
+  },
+  refactor = {
+    highlight_definitions = {
+      enable = false,
+      -- Set to false if you have an `updatetime` of ~100.
+      clear_on_cursor_move = false,
+    },
+    highlight_current_scope = {
+      -- Works wired for me, even with custom TSCurrentScope
+      enable = false,
+    },
+    smart_rename = {
+      enable = true,
+      keymaps = {
+        smart_rename = "grr",
       },
     },
   },
