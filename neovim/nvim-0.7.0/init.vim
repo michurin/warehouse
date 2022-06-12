@@ -11,6 +11,7 @@ call plug#begin() " https://github.com/junegunn/vim-plug +PlugInstall
   Plug 'hrsh7th/vim-vsnip'
   Plug 'nvim-treesitter/nvim-treesitter' ", {'do': ':TSUpdate'} " TSInstall lang
   Plug 'nvim-treesitter/nvim-treesitter-textobjects'
+  Plug 'nvim-treesitter/nvim-treesitter-context'
 call plug#end()
 
 lua <<TELESCOPE_HELPERS
@@ -217,6 +218,18 @@ highlight LspDiagnosticsDefaultHint ctermfg=64 ctermbg=234
 highlight LspDiagnosticsDefaultInformation ctermfg=31 ctermbg=234
 highlight LspDiagnosticsDefaultWarning ctermfg=137 ctermbg=234
 highlight LspDiagnosticsDefaultError ctermfg=124 ctermbg=234
+
+lua <<TREESITTER_CONTEXT
+require'treesitter-context'.setup{
+  enable = true, -- autocmd VimEnter * TSContextEnable
+  throttle = true, -- may improve performance
+  max_lines = 0, -- no limit
+  default = {'class', 'function', 'method', 'for', 'while', 'if', 'switch', 'case'}
+}
+TREESITTER_CONTEXT
+" autocmd VimEnter * TSContextEnable
+highlight TreesitterContext ctermbg=242
+highlight TreesitterContextLineNumber ctermbg=242 ctermfg=200
 
 lua <<TREESITTER_SETTINGS
 require'nvim-treesitter.configs'.setup {
