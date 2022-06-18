@@ -262,20 +262,20 @@ require'nvim-treesitter.configs'.setup {
       enable = true,
       set_jumps = true, -- whether to set jumps in the jumplist
       goto_next_start = {
-        ["]m"] = "@function.outer",
-        ["]]"] = "@class.outer",
+        ["]m"] = "@class.outer",
+        ["]]"] = "@function.outer",
       },
       goto_next_end = {
-        ["]M"] = "@function.outer",
-        ["]["] = "@class.outer",
+        ["]M"] = "@class.outer",
+        ["]["] = "@function.outer",
       },
       goto_previous_start = {
-        ["[m"] = "@function.outer",
-        ["[["] = "@class.outer",
+        ["[m"] = "@class.outer",
+        ["[["] = "@function.outer",
       },
       goto_previous_end = {
-        ["[M"] = "@function.outer",
-        ["[]"] = "@class.outer",
+        ["[M"] = "@class.outer",
+        ["[]"] = "@function.outer",
       },
     },
   },
@@ -292,7 +292,17 @@ require'nvim-treesitter.configs'.setup {
     smart_rename = {
       enable = true,
       keymaps = {
-        smart_rename = "grr",
+        smart_rename = "gR",
+      },
+    },
+    navigation = {
+      enable = true,
+      keymaps = {
+        -- goto_definition = "gnd",
+        -- list_definitions = "gnD",
+        -- list_definitions_toc = "gO",
+        goto_next_usage = "]u",
+        goto_previous_usage = "[u",
       },
     },
   },
