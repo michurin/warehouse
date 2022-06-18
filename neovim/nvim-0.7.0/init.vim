@@ -67,6 +67,10 @@ nnoremap gr <cmd>lua require('telescope.builtin').lsp_references()<cr>
 nnoremap gi <cmd>lua require('telescope.builtin').lsp_implementations()<cr>
 nnoremap gd <cmd>lua require('telescope.builtin').lsp_definitions()<cr>
 nnoremap gy <cmd>lua require('telescope.builtin').lsp_type_definitions()<cr>
+" treesitter
+nnoremap <space>fs <cmd>lua require('telescope.builtin').treesitter()<cr>
+" all
+nnoremap <space>fa <cmd>lua require('telescope.builtin').builtin()<cr>
 
 lua <<TELESCOPE_SETTINGS
 local action_layout = require("telescope.actions.layout")
@@ -355,7 +359,7 @@ autocmd FileType qf setlocal nobuflisted
 
 " SPELLING
 
-setlocal spell spelllang=en_us,ru_yo spelloptions=camel spellcapcheck=
+set spell spelllang=en_us,ru_yo spelloptions=camel spellcapcheck=
 
 syntax match UrlNoSpell 'https\?:\/\/[^[:space:]]\+' contains=@NoSpell
 
