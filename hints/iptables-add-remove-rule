@@ -1,0 +1,12 @@
+# list
+iptables -t filter -L INPUT --line-numbers -n
+
+# add rule
+iptables -I INPUT 8 -p tcp --dport 9000 -j ACCEPT
+
+# delete rule
+iptables -D INPUT 8
+
+
+# check
+echo -e "HTTP/1.1 200 OK\n\n$(date)" | nc -l -p 9000
