@@ -3,27 +3,27 @@ const chatAdapter = (pubUrl, subUrl) => {
     method: 'POST',
     cache: 'no-cache',
     body: JSON.stringify(data),
-  })
-  const sleep = (delay) => new Promise((resolve) => { setTimeout(resolve, delay) })
+  });
+  const sleep = (delay) => new Promise((resolve) => { setTimeout(resolve, delay); });
   return {
     send(message) {
-      call(pubUrl, message)
+      call(pubUrl, message);
     },
     async loop(f) {
-      let bound = -1
+      let bound = -1;
       while (true) {
         try {
-          const response = await call(subUrl, { bound })
+          const response = await call(subUrl, { bound });
           if (response.status !== 200) {
-            throw response.status
+            throw response.status;
           }
-          const data = await response.json()
-          bound = data.bound
-          f(data.messages)
+          const data = await response.json();
+          bound = data.bound;
+          f(data.messages);
         } catch (e) {
-          await sleep(2000)
+          await sleep(2000);
         }
       }
     },
-  }
-}
+  };
+};
