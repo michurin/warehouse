@@ -19,44 +19,38 @@ type logger interface {
 	Printf(format string, v ...interface{})
 }
 
-var errNotAllowed = errors.New("Method not allowed")
+var errorMethodNotAllowed = errors.New("Method not allowed")
 
 func handler(log logger, f func(context.Context, []byte) ([]byte, error)) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		status := http.StatusOK // default
 		var resp []byte
 		var body []byte
 		var err error
 		defer func() {
 			if err == nil {
-				log.Printf("%s %s %d %s -> %s", r.Method, r.URL.String(), status, string(body), string(resp))
+				log.Printf("%s %s: %s -> %s", r.Method, r.URL.String(), string(body), string(resp))
 			} else {
-				log.Printf("%s %s %d %s: %s", r.Method, r.URL.String(), status, string(body), err)
+				log.Printf("%s %s: Error: %s", r.Method, r.URL.String(), err)
 			}
 		}()
 		if r.Method != http.MethodPost {
-			err = errNotAllowed
-			goto fin
+			err = errorMethodNotAllowed // for logging in defer
+			http.Error(w, err.Error(), http.StatusMethodNotAllowed)
+			return
 		}
 		body, err = io.ReadAll(r.Body)
 		if err != nil {
-			goto fin
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
 		}
 		resp, err = f(r.Context(), body)
 		if err != nil {
-			goto fin
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
 		}
-	fin:
-		if err == errNotAllowed {
-			status = http.StatusMethodNotAllowed
-			resp = []byte("Method not allowed")
-		} else if err != nil {
-			status = http.StatusInternalServerError
-			resp = []byte("Internal server error")
-		}
-		w.WriteHeader(status)
+		w.WriteHeader(http.StatusOK)
 		w.Write(resp)
-		w.Write([]byte{13, 10})
+		w.Write([]byte{13, 10}) // just to be curl and command line friendly
 	}
 }
 
