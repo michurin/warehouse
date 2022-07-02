@@ -12,7 +12,7 @@ import (
 
 type stream interface {
 	Put(x []byte)
-	Get(ctx context.Context, bound int) ([][]byte, int)
+	Get(ctx context.Context, bound uint64) ([][]byte, uint64, bool)
 }
 
 type logger interface {
@@ -83,13 +83,13 @@ func Sub(log logger, strm stream, timeout time.Duration) http.HandlerFunc {
 		}
 		ctx, cancel := context.WithTimeout(ctx, timeout)
 		defer cancel()
-		a, b := strm.Get(ctx, req.Bound)
+		a, b, _ := strm.Get(ctx, uint64(req.Bound)) // We just ignore continuity flag
 		m := make([]json.RawMessage, len(a))
 		for i, v := range a {
 			m[i] = json.RawMessage(v)
 		}
 		bodyRes, err := json.Marshal(subResponseDTO{
-			Bound:    b,
+			Bound:    int(b), // In fact JS has limit Number.MAX_SAFE_INTEGER=2*53-1
 			Messages: m,
 		})
 		if err != nil {

@@ -1,18 +1,27 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <title>Xat</title>
+  <title>Simple chat</title>
   <script src="kit.js"></script>
   <script
   src="https://code.jquery.com/jquery-3.6.0.slim.min.js"
   integrity="sha256-u7e5khyithlIdTpu22PHhENmPcRdFiHRjhAuHcs05RI="
   crossorigin="anonymous"></script>
   <script src="main.js"></script>
+  <style>
+  input {
+    box-sizing     : border-box;
+    vertical-align : top;
+    font-size      : 14px;
+    height         : 24px;
+  }
+  </style>
 </head>
 <body>
-  <h1>Xat</h1>
+  <h1>Simple chat</h1>
   <div id="board"></div>
-  <input id="name">
-  <input id="text">
+  <input id="color" type="color" value="#000000">
+  <input id="name" type="text" value="noname" width="10">
+  <input id="text" type="text" width="30">
 </body>
 </html>

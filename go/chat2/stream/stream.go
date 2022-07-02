@@ -8,60 +8,74 @@ import (
 type Stream struct {
 	notifier chan (struct{})
 	mx       *sync.RWMutex
-	capacity int
-	head     int // increasing infinitely; (head % capacity) points to newest element
+	capacity uint64
+	head     uint64 // increasing infinitely; (head % capacity) points to next slot to write
 	messages [][]byte
 }
 
-func New(capacity int) *Stream {
+func New(capacity uint64) *Stream {
 	return &Stream{
 		notifier: make(chan struct{}),
 		mx:       new(sync.RWMutex),
 		capacity: capacity,
-		head:     -1, // 0-1
+		head:     0,
 		messages: make([][]byte, capacity),
 	}
 }
 
+// Put puts data to storage and unlock all waiting Get calls.
 func (s *Stream) Put(x []byte) {
 	s.mx.Lock()
-	s.head++
 	s.messages[s.head%s.capacity] = x
+	s.head++
 	n := s.notifier
 	s.notifier = make(chan struct{})
 	s.mx.Unlock()
 	close(n)
 }
 
-func (s *Stream) Get(ctx context.Context, bound int) ([][]byte, int) {
-	w, t, h := s.take(bound)
+// Get obtains bound and returns data, new bound and continuity flag
+// If there is no new data the method is waiting for for it or for context.
+// The bound is uint64, however keep in mind that JavaScript
+// Number.MAX_SAFE_INTEGER = 2**53-1
+// Continuity flag is false if
+// - server restart detected
+// - buffer of messages was exhausted before bound was reached
+// The only exception: continuity flag is always true for new clients.
+func (s *Stream) Get(ctx context.Context, bound uint64) ([][]byte, uint64, bool) {
+	w, t, h, c := s.take(bound)
 	if len(t) > 0 {
-		return t, h
+		return t, h, c
 	}
 	select {
 	case <-ctx.Done():
-		return nil, h // len=0, h=bound?
+		return nil, h, true
 	case <-w:
-		_, t, h = s.take(bound)
-		return t, h
+		_, t, h, c = s.take(bound)
+		return t, h, c
 	}
 }
 
-func (s *Stream) take(bound int) (chan struct{}, [][]byte, int) {
+func (s *Stream) take(bound uint64) (chan struct{}, [][]byte, uint64, bool) {
+	fromFuture := false
+	cropped := false
+	newSession := bound == 0
 	s.mx.RLock()
 	h := s.head
-	b := h - s.capacity
-	if b < 0 {
-		b = -1
+	if h < bound { // bound from previous run; server was restarted
+		bound = 0
+		fromFuture = true
 	}
-	if bound <= s.head && b < bound { // consider bound if it is valid only
-		b = bound
+	l := h - bound
+	if l > s.capacity {
+		l = s.capacity
+		cropped = true
 	}
-	r := [][]byte(nil)
-	for i := s.head; i > b; i-- {
-		r = append(r, s.messages[i%s.capacity])
+	r := make([][]byte, l)
+	for i := uint64(0); i < l; i++ {
+		r[i] = s.messages[(s.head-l+i)%s.capacity]
 	}
 	n := s.notifier
 	s.mx.RUnlock()
-	return n, r, h
+	return n, r, h, newSession || !(cropped || fromFuture)
 }

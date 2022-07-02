@@ -10,7 +10,7 @@ const chatAdapter = (pubUrl, subUrl) => {
       call(pubUrl, message);
     },
     async loop(f) {
-      let bound = -1;
+      let bound = 0;
       while (true) {
         try {
           const response = await call(subUrl, { bound });

@@ -2,9 +2,11 @@ package main
 
 import (
 	"encoding/json"
+	"errors"
 	"log"
 	"net/http"
 	"os"
+	"regexp"
 	"time"
 
 	"github.com/michurin/warehouse/go/chat2/handler"
@@ -12,15 +14,22 @@ import (
 	"github.com/michurin/warehouse/go/chat2/text"
 )
 
+var reColorStr = regexp.MustCompile(`^#[0-9A-Fa-f]{6}$`)
+
 func validator(raw []byte) ([]byte, error) { // slightly oversimplified approach
 	in := map[string]string{}
 	err := json.Unmarshal(raw, &in)
 	if err != nil {
 		return nil, err
 	}
+	color := in["color"]
+	if !reColorStr.MatchString(color) {
+		return nil, errors.New("invalid color")
+	}
 	return json.Marshal(map[string]string{
-		"name": text.SanitizeText(in["name"], 10, "[noname]"),
-		"text": text.SanitizeText(in["text"], 1000, "[nomessage]"),
+		"name":  text.SanitizeText(in["name"], 10, "[noname]"),
+		"text":  text.SanitizeText(in["text"], 1000, "[nomessage]"),
+		"color": color,
 	})
 }
 
