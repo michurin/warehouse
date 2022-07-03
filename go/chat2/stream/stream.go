@@ -34,42 +34,33 @@ func (s *Stream) Put(x []byte) {
 	close(n)
 }
 
-// Get obtains bound and returns data, new bound and continuity flag
+// Get obtains bound and returns data and new bound.
 // If there is no new data the method is waiting for for it or for context.
 // The bound is uint64, however keep in mind that JavaScript
 // Number.MAX_SAFE_INTEGER = 2**53-1
-// Continuity flag is false if
-// - server restart detected
-// - buffer of messages was exhausted before bound was reached
-// The only exception: continuity flag is always true for new clients.
-func (s *Stream) Get(ctx context.Context, bound uint64) ([][]byte, uint64, bool) {
-	w, t, h, c := s.take(bound)
+func (s *Stream) Get(ctx context.Context, bound uint64) ([][]byte, uint64) {
+	w, t, h := s.take(bound)
 	if len(t) > 0 {
-		return t, h, c
+		return t, h
 	}
 	select {
 	case <-ctx.Done():
-		return nil, h, true
+		return nil, h
 	case <-w:
-		_, t, h, c = s.take(bound)
-		return t, h, c
+		_, t, h = s.take(bound)
+		return t, h
 	}
 }
 
-func (s *Stream) take(bound uint64) (chan struct{}, [][]byte, uint64, bool) {
-	fromFuture := false
-	cropped := false
-	newSession := bound == 0
+func (s *Stream) take(bound uint64) (chan struct{}, [][]byte, uint64) {
 	s.mx.RLock()
 	h := s.head
 	if h < bound { // bound from previous run; server was restarted
 		bound = 0
-		fromFuture = true
 	}
 	l := h - bound
 	if l > s.capacity {
 		l = s.capacity
-		cropped = true
 	}
 	r := make([][]byte, l)
 	for i := uint64(0); i < l; i++ {
@@ -77,5 +68,5 @@ func (s *Stream) take(bound uint64) (chan struct{}, [][]byte, uint64, bool) {
 	}
 	n := s.notifier
 	s.mx.RUnlock()
-	return n, r, h, newSession || !(cropped || fromFuture)
+	return n, r, h
 }

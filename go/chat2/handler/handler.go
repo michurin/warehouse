@@ -12,7 +12,7 @@ import (
 
 type stream interface {
 	Put(x []byte)
-	Get(ctx context.Context, bound uint64) ([][]byte, uint64, bool)
+	Get(ctx context.Context, bound uint64) ([][]byte, uint64)
 }
 
 type logger interface {
@@ -83,7 +83,7 @@ func Sub(log logger, strm stream, timeout time.Duration) http.HandlerFunc {
 		}
 		ctx, cancel := context.WithTimeout(ctx, timeout)
 		defer cancel()
-		a, b, _ := strm.Get(ctx, uint64(req.Bound)) // We just ignore continuity flag
+		a, b := strm.Get(ctx, uint64(req.Bound)) // We just ignore continuity flag
 		m := make([]json.RawMessage, len(a))
 		for i, v := range a {
 			m[i] = json.RawMessage(v)

@@ -114,9 +114,7 @@ func TestStreamWithouWaiting(t *testing.T) {
 				s.Put([]byte(m))
 			}
 			ctx := context.Background()
-			a, b, c := s.Get(ctx, tt.bound)
-			t.Log(tt.name, c)
-			assertTrue(t, tt.expContinuity == c)
+			a, b := s.Get(ctx, tt.bound)
 			assertStrSlice(t, tt.expMsg, byteToString(a))
 			assertInt(t, uint64(len(tt.init)), b)
 		})
@@ -145,7 +143,7 @@ func TestWithTimeout(t *testing.T) {
 			close(doneRes)
 			ctx := &fakeContext{t: t, done: done, doneRes: doneRes}
 			go func() {
-				a, b, _ := s.Get(ctx, uint64(len(tt.init)))
+				a, b := s.Get(ctx, uint64(len(tt.init)))
 				assertTrue(t, a == nil)
 				assertInt(t, uint64(len(tt.init)), b)
 				close(fin)
@@ -159,14 +157,14 @@ func TestWithTimeout(t *testing.T) {
 func TestWithWaiting(t *testing.T) {
 	s := stream.New(3)
 	s.Put([]byte("one"))
-	a, b, _ := s.Get(context.Background(), 0)
+	a, b := s.Get(context.Background(), 0)
 	assertStrSlice(t, []string{"one"}, byteToString(a))
 	assertInt(t, 1, b)
 	fin := make(chan struct{})
 	done := make(chan struct{})
 	ctx := &fakeContext{t: t, done: done}
 	go func() {
-		a, b, _ := s.Get(ctx, b)
+		a, b := s.Get(ctx, b)
 		assertStrSlice(t, []string{"two"}, byteToString(a))
 		assertInt(t, 2, b)
 		close(fin)
