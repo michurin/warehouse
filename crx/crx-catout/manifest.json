@@ -1,7 +1,7 @@
 {
   "name": "XCutOut",
-  "version": "1.23",
-  "description": "Cut out annoying unwanted elements",
+  "version": "1.24",
+  "description": "Cut out annoying unwanted elements, highlight useful elements",
   "manifest_version": 3,
   "content_scripts": [
     {"matches": ["https://mail.yandex.ru/*"], "js": ["m.js"]},
@@ -12,6 +12,8 @@
     {"matches": ["https://www.radarbox.com/*"], "js": ["rb.js"]},
     {"matches": ["https://*.zoom.us/j/*"], "js": ["z.js"]},
     {"matches": ["https://*.zoom.us/saml/*"], "js": ["z.js"]},
-    {"matches": ["https://*.slack.com/archives/*"], "js": ["z.js"]}
+    {"matches": ["https://*.slack.com/archives/*"], "js": ["z.js"]},
+
+    {"matches": ["https://jr.avito.ru/*"], "js": ["av.js"]}
   ]
 }
