@@ -32,5 +32,6 @@
     // remove annoying and useless garbage
     document.querySelectorAll('.PSHeaderLogo360').forEach(e => e.remove());
     document.querySelectorAll('.PSHeader-Center').forEach(e => e.style.opacity = 0);
+    document.querySelectorAll('.mail-DirectLineContainer').forEach(x=>x.remove());
   }, 2000);
 })();
