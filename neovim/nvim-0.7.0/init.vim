@@ -387,6 +387,8 @@ highlight Folded ctermfg=155 ctermbg=235
 
 " GO STUFF
 
+autocmd bufenter *.go syntax keyword goTodo contained TODO FIXME XXX BUG todo fixme xxx bug
+
 lua <<EOF
 -- https://github.com/golang/tools/blob/master/gopls/doc/vim.md#imports
 function OrgImports(wait_ms)
