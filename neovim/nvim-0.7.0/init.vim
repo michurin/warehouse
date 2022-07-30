@@ -13,7 +13,28 @@ call plug#begin() " https://github.com/junegunn/vim-plug +PlugInstall
   Plug 'nvim-treesitter/nvim-treesitter-textobjects'
   Plug 'nvim-treesitter/nvim-treesitter-context'
   Plug 'nvim-treesitter/nvim-treesitter-refactor'
+
+  Plug 'mfussenegger/nvim-dap'
+  Plug 'leoluz/nvim-dap-go' " go install github.com/go-delve/delve/cmd/dlv@lates
+  Plug 'nvim-telescope/telescope-dap.nvim' " require('telescope').load_extension('dap') after require('telescope').setup()
 call plug#end()
+
+lua <<DAP
+require('dap-go').setup()
+DAP
+nnoremap <silent> <space>dp <Cmd>lua require'dap'.toggle_breakpoint()<CR>
+nnoremap <silent> <space>dP <Cmd>lua require'dap'.set_breakpoint(vim.fn.input('Breakpoint condition: '))<CR>
+nnoremap <silent> <space>dt <Cmd>lua require('dap-go').debug_test()<CR>
+nnoremap <silent> <space>dc <Cmd>lua require'dap'.continue()<CR>
+nnoremap <silent> <space>dn <Cmd>lua require'dap'.step_over()<CR>
+nnoremap <silent> <space>di <Cmd>lua require'dap'.step_into()<CR>
+nnoremap <silent> <space>do <Cmd>lua require'dap'.step_out()<CR>
+nnoremap <silent> <space>sc <Cmd>lua require'telescope'.extensions.dap.commands{}<CR>
+nnoremap <silent> <space>sC <Cmd>lua require'telescope'.extensions.dap.configurations{}<CR>
+nnoremap <silent> <space>sp <Cmd>lua require'telescope'.extensions.dap.list_breakpoints{}<CR>
+nnoremap <silent> <space>sv <Cmd>lua require'telescope'.extensions.dap.variables{}<CR>
+nnoremap <silent> <space>sf <Cmd>lua require'telescope'.extensions.dap.frames{}<CR>
+
 
 lua <<TELESCOPE_HELPERS
 function ft_args()
@@ -92,6 +113,7 @@ require('telescope').setup{
     },
   },
 }
+require('telescope').load_extension('dap')
 TELESCOPE_SETTINGS
 
 if filereadable(getcwd() . "/.nogofumpt") " Oh, too hackish. vim.lsp.buf.list_workspace_folders() or util.root_pattern?
