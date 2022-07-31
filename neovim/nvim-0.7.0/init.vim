@@ -488,3 +488,7 @@ function! EchoWarning(msg)
 endfunction
 nnoremap Ж :call EchoWarning('RU')<CR>
 set langmap=ФИСВУАПРШОЛДЬТЩЗЙКЫЕГМЦЧНЯ;ABCDEFGHIJKLMNOPQRSTUVWXYZ,фисвуапршолдьтщзйкыегмцчня;abcdefghijklmnopqrstuvwxyz
+
+" Execute shell commands
+
+lua require'runsh'
