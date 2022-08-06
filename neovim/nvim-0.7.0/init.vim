@@ -33,11 +33,11 @@ nnoremap <silent> <space>di <Cmd>lua require'dap'.step_into()<CR>
 nnoremap <silent> <space>do <Cmd>lua require'dap'.step_out()<CR>
 nnoremap <silent> <space>dv <Cmd>lua require'dapui'.float_element('scopes', {enter=1})<CR>
 nnoremap <silent> <space>dr <Cmd>lua require'dapui'.float_element('repl', {enter=1})<CR>
-nnoremap <silent> <space>sc <Cmd>lua require'telescope'.extensions.dap.commands{}<CR>
-nnoremap <silent> <space>sC <Cmd>lua require'telescope'.extensions.dap.configurations{}<CR>
-nnoremap <silent> <space>sp <Cmd>lua require'telescope'.extensions.dap.list_breakpoints{}<CR>
-nnoremap <silent> <space>sv <Cmd>lua require'telescope'.extensions.dap.variables{}<CR>
-nnoremap <silent> <space>sf <Cmd>lua require'telescope'.extensions.dap.frames{}<CR>
+nnoremap <silent> <space>sc <Cmd>lua require'telescope'.extensions.dap.commands()<CR>
+nnoremap <silent> <space>sC <Cmd>lua require'telescope'.extensions.dap.configurations()<CR>
+nnoremap <silent> <space>sp <Cmd>lua require'telescope'.extensions.dap.list_breakpoints({show_line=false})<CR>
+nnoremap <silent> <space>sv <Cmd>lua require'telescope'.extensions.dap.variables()<CR>
+nnoremap <silent> <space>sf <Cmd>lua require'telescope'.extensions.dap.frames()<CR>
 
 
 lua <<TELESCOPE_HELPERS
@@ -88,10 +88,10 @@ nnoremap <space>ft <cmd>lua require('telescope.builtin').live_grep({additional_a
 " resume
 nnoremap <space>fr <cmd>lua require('telescope.builtin').resume()<cr>
 " std LSP
-nnoremap gr <cmd>lua require('telescope.builtin').lsp_references()<cr>
-nnoremap gi <cmd>lua require('telescope.builtin').lsp_implementations()<cr>
-nnoremap gd <cmd>lua require('telescope.builtin').lsp_definitions()<cr>
-nnoremap gy <cmd>lua require('telescope.builtin').lsp_type_definitions()<cr>
+nnoremap gr <cmd>lua require('telescope.builtin').lsp_references({show_line=false})<cr>
+nnoremap gi <cmd>lua require('telescope.builtin').lsp_implementations({show_line=false})<cr>
+nnoremap gd <cmd>lua require('telescope.builtin').lsp_definitions({show_line=false})<cr>
+nnoremap gy <cmd>lua require('telescope.builtin').lsp_type_definitions({show_line=false})<cr>
 " treesitter
 nnoremap <space>fs <cmd>lua require('telescope.builtin').treesitter()<cr>
 " all
