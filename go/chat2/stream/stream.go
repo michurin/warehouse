@@ -5,6 +5,14 @@ import (
 	"sync"
 )
 
+// reusable closed channel
+var closedChan = make(chan struct{})
+
+func init() { close(closedChan) }
+
+// The head (and therefore bound too) is uint64,
+// however keep in mind that JavaScript
+// Number.MAX_SAFE_INTEGER = 2**53-1
 type Stream struct {
 	notifier chan (struct{})
 	mx       *sync.RWMutex
@@ -24,6 +32,7 @@ func New(capacity uint64) *Stream {
 }
 
 // Put puts data to storage and unlock all waiting Get calls.
+// You MUST NOT to mutate input slice after putting it.
 func (s *Stream) Put(x []byte) {
 	s.mx.Lock()
 	s.messages[s.head%s.capacity] = x
@@ -35,24 +44,34 @@ func (s *Stream) Put(x []byte) {
 }
 
 // Get obtains bound and returns data and new bound.
-// If there is no new data the method is waiting for for it or for context.
-// The bound is uint64, however keep in mind that JavaScript
-// Number.MAX_SAFE_INTEGER = 2**53-1
+// It is literally Waiter+Updates.
+// You man want to use Waiter and Updates separately if
+// you have several streams.
 func (s *Stream) Get(ctx context.Context, bound uint64) ([][]byte, uint64) {
-	w, t, h := s.take(bound)
-	if len(t) > 0 {
-		return t, h
-	}
 	select {
 	case <-ctx.Done():
-		return nil, h
-	case <-w:
-		_, t, h = s.take(bound)
-		return t, h
+		return nil, bound
+	case <-s.Waiter(bound):
+		return s.Updates(bound)
 	}
 }
 
-func (s *Stream) take(bound uint64) (chan struct{}, [][]byte, uint64) {
+// Waiter returns channel that is getting closed when new
+// messages appears. Method Updates returns nonempty result
+// after waiter channel gets closes.
+func (s *Stream) Waiter(bound uint64) (c chan struct{}) {
+	s.mx.RLock()
+	if s.head == bound {
+		c = s.notifier
+	} else {
+		c = closedChan
+	}
+	s.mx.RUnlock()
+	return
+}
+
+// Updates returns all messages older then bound and new bound.
+func (s *Stream) Updates(bound uint64) ([][]byte, uint64) {
 	s.mx.RLock()
 	h := s.head
 	if h < bound { // bound from previous run; server was restarted
@@ -66,7 +85,6 @@ func (s *Stream) take(bound uint64) (chan struct{}, [][]byte, uint64) {
 	for i := uint64(0); i < l; i++ {
 		r[i] = s.messages[(s.head-l+i)%s.capacity]
 	}
-	n := s.notifier
 	s.mx.RUnlock()
-	return n, r, h
+	return r, h
 }
