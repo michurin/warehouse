@@ -1,6 +1,7 @@
 package stream_test
 
 import (
+	"bytes"
 	"context"
 	"testing"
 	"time"
@@ -8,30 +9,34 @@ import (
 	"github.com/michurin/warehouse/go/chat2/stream"
 )
 
-func assertInt(t *testing.T, exp, act uint64) {
+func assertGet(t *testing.T, expBytes [][]byte, expBound uint64, actBytes [][]byte, actBound uint64) {
 	t.Helper()
-	if exp != act {
-		t.Errorf("Exp: %d, but got: %d", exp, act)
+	if expBound != actBound {
+		t.Errorf("Bound: exp: %d, but got: %d", expBound, actBound)
 	}
-}
-
-func assertStrSlice(t *testing.T, exp, act []string) {
-	t.Helper()
-	if len(exp) != len(act) {
-		t.Errorf("Exp: %v, but got: %v", exp, act)
+	if (expBytes == nil && actBytes != nil) || (expBytes != nil && actBytes == nil) {
+		t.Errorf("Bytes: exp: %v, but got: %v", expBytes, actBytes)
 	}
-	for i, v := range exp {
-		if act[i] != v {
-			t.Errorf("Exp: %v, but got: %v (i=%d)", exp, act, i)
+	if len(expBytes) != len(actBytes) {
+		t.Errorf("Bytes: len: exp: %v, but got: %v", expBytes, actBytes)
+	}
+	for i, v := range expBytes {
+		if !bytes.Equal(actBytes[i], v) {
+			t.Errorf("Exp: %v, but got: %v (i=%d)", expBytes, actBytes, i)
 		}
 	}
 }
 
-func assertTrue(t *testing.T, b bool) {
-	t.Helper()
-	if !b {
-		t.Error("True expected")
+func bt(s string) []byte {
+	return []byte(s)
+}
+
+func st(s ...string) [][]byte {
+	r := make([][]byte, len(s))
+	for i, v := range s {
+		r[i] = []byte(v)
 	}
+	return r
 }
 
 type fakeContext struct {
@@ -60,63 +65,54 @@ func (fc *fakeContext) Value(key interface{}) interface{} {
 	return nil
 }
 
-func byteToString(a [][]byte) []string {
-	b := make([]string, len(a))
-	for i, v := range a {
-		b[i] = string(v)
-	}
-	return b
-}
-
-func TestStreamWithouWaiting(t *testing.T) {
+func TestWithouWaiting(t *testing.T) {
 	for _, tt := range []struct {
 		name          string
-		init          []string
+		init          [][]byte
 		bound         uint64
-		expMsg        []string
+		expMsg        [][]byte
 		expContinuity bool
 	}{
 		{
 			name:          "newReader",
-			init:          []string{"one", "two"},
+			init:          st("one", "two"),
 			bound:         0,
-			expMsg:        []string{"one", "two"},
+			expMsg:        st("one", "two"),
 			expContinuity: true,
 		}, {
 			name:          "readerFromFuture", // after service restart
-			init:          []string{"one", "two"},
+			init:          st("one", "two"),
 			bound:         9,
-			expMsg:        []string{"one", "two"},
+			expMsg:        st("one", "two"),
 			expContinuity: false,
 		}, {
 			name:          "readTail", // #0 has been already read
-			init:          []string{"one", "two"},
+			init:          st("one", "two"),
 			bound:         1,
-			expMsg:        []string{"two"},
+			expMsg:        st("two"),
 			expContinuity: true,
 		}, {
 			name:          "newReaderAll",
-			init:          []string{"one", "two", "three", "four"},
+			init:          st("one", "two", "three", "four"),
 			bound:         0,
-			expMsg:        []string{"two", "three", "four"},
+			expMsg:        st("two", "three", "four"),
 			expContinuity: true,
 		}, {
 			name:          "readTailAll",
-			init:          []string{"one", "two", "three", "four"},
+			init:          st("one", "two", "three", "four"),
 			bound:         1,
-			expMsg:        []string{"two", "three", "four"},
+			expMsg:        st("two", "three", "four"),
 			expContinuity: true,
 		},
 	} {
 		t.Run(tt.name, func(t *testing.T) {
 			s := stream.New(3)
 			for _, m := range tt.init {
-				s.Put([]byte(m))
+				s.Put(m)
 			}
 			ctx := context.Background()
 			a, b := s.Get(ctx, tt.bound)
-			assertStrSlice(t, tt.expMsg, byteToString(a))
-			assertInt(t, uint64(len(tt.init)), b)
+			assertGet(t, tt.expMsg, uint64(len(tt.init)), a, b)
 		})
 	}
 }
@@ -124,18 +120,18 @@ func TestStreamWithouWaiting(t *testing.T) {
 func TestWithTimeout(t *testing.T) {
 	for _, tt := range []struct {
 		name string
-		init []string
+		init [][]byte
 	}{{
 		name: "newServeNewClient",
 		init: nil,
 	}, {
 		name: "justWait",
-		init: []string{"one"},
+		init: st("one"),
 	}} {
 		t.Run(tt.name, func(t *testing.T) {
 			s := stream.New(3)
 			for _, m := range tt.init {
-				s.Put([]byte(m))
+				s.Put(m)
 			}
 			fin := make(chan struct{})
 			done := make(chan struct{})
@@ -144,8 +140,7 @@ func TestWithTimeout(t *testing.T) {
 			ctx := &fakeContext{t: t, done: done, doneRes: doneRes}
 			go func() {
 				a, b := s.Get(ctx, uint64(len(tt.init)))
-				assertTrue(t, a == nil)
-				assertInt(t, uint64(len(tt.init)), b)
+				assertGet(t, nil, uint64(len(tt.init)), a, b)
 				close(fin)
 			}()
 			<-done // just to be sure, we are reach ctx.Done() call
@@ -156,20 +151,32 @@ func TestWithTimeout(t *testing.T) {
 
 func TestWithWaiting(t *testing.T) {
 	s := stream.New(3)
-	s.Put([]byte("one"))
+	s.Put(bt("one"))
 	a, b := s.Get(context.Background(), 0)
-	assertStrSlice(t, []string{"one"}, byteToString(a))
-	assertInt(t, 1, b)
+	assertGet(t, st("one"), 1, a, b)
 	fin := make(chan struct{})
 	done := make(chan struct{})
 	ctx := &fakeContext{t: t, done: done}
 	go func() {
 		a, b := s.Get(ctx, b)
-		assertStrSlice(t, []string{"two"}, byteToString(a))
-		assertInt(t, 2, b)
+		assertGet(t, st("two"), 2, a, b)
 		close(fin)
 	}()
 	<-done // make Put after Get stars waiting
-	s.Put([]byte("two"))
+	s.Put(bt("two"))
 	<-fin // waiting for all assertions will be complete
+}
+
+func TestDataCurruption(t *testing.T) {
+	ctx := context.Background()
+	s := stream.New(3)
+	s.Put(bt("one"))
+	s.Put(bt("two"))
+	a, b := s.Get(ctx, 0)
+	assertGet(t, st("one", "two"), 2, a, b)
+	s.Put(bt("3"))                          // running out ring buffer capacity
+	s.Put(bt("1"))                          // overwrite "one"
+	assertGet(t, st("one", "two"), 2, a, b) // a is not corrupted
+	a, b = s.Get(ctx, 0)
+	assertGet(t, st("two", "3", "1"), 4, a, b)
 }
