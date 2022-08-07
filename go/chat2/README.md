@@ -37,7 +37,11 @@ Validation. Drafts, ideas, examples.
 
 ### handler (go)
 
-Just http handlers. Examples.
+Just http handlers. Examples. Oversimplified as well as `js/kit.js`.
+
+### httppost
+
+Contract agnostic http handler.
 
 ### htdocs
 
