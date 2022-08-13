@@ -20,11 +20,11 @@ type logger interface {
 }
 
 type subRequestDTO struct {
-	Bound int `json:"bound"`
+	Bound uint64 `json:"bound"`
 }
 
 type subResponseDTO struct {
-	Bound    int               `json:"bound"`
+	Bound    uint64            `json:"bound"`
 	Messages []json.RawMessage `json:"messages"`
 }
 
@@ -48,13 +48,13 @@ func Sub(log logger, strm stream, timeout time.Duration) http.HandlerFunc {
 		}
 		ctx, cancel := context.WithTimeout(ctx, timeout)
 		defer cancel()
-		a, b := strm.Get(ctx, uint64(req.Bound))
+		a, b := strm.Get(ctx, req.Bound)
 		m := make([]json.RawMessage, len(a))
 		for i, v := range a {
 			m[i] = json.RawMessage(v)
 		}
 		bodyRes, err := json.Marshal(subResponseDTO{
-			Bound:    int(b), // In fact JS has limit Number.MAX_SAFE_INTEGER=2*53-1
+			Bound:    b, // In fact JS has limit Number.MAX_SAFE_INTEGER=2*53-1
 			Messages: m,
 		})
 		if err != nil {
