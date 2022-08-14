@@ -55,7 +55,7 @@ vim.keymap.set('n', '<space>www', function()
   vim.api.nvim_buf_set_option(buf, 'bufhidden', 'wipe')
 
   vim.fn.setreg('e', res)
-  vim.api.nvim_buf_set_text(buf, 0, 0, -1, 0, vim.split(res, '\n'))
+  vim.api.nvim_buf_set_text(buf, 0, 0, -1, 0, vim.split(command .. '\n\n' .. res, '\n'))
 
   local win = vim.api.nvim_open_win(buf, true, {
     relative='editor',
