@@ -145,22 +145,34 @@ $(() => {
 
 // ***** SAVE/RESTORE *****
 
+function setMessageColor(clr) {
+  $('#name').css({ color: clr });
+  $('#text').css({ color: clr });
+  localStorage.setItem('color', clr);
+}
+
 $(() => {
   var v;
   const clr = $('#color');
   clr.on('change', () => {
-    localStorage.setItem('color', clr.val());
+    setMessageColor(clr.val());
   });
-  v = localStorage.getItem('color')
-  if (/^#[0-9a-fA-F]{6}$/.test(v)) {
-    clr.val(v);
+  v = localStorage.getItem('color') || '';
+  if (!/^#[0-9a-fA-F]{6}$/.test(v)) {
+    v = '#';
+    for (var i = 0; i < 3; i++) {
+      v = v + Math.floor(320 + Math.random() * 192).toString(16).substring(1);
+    }
+    console.log('random color', v)
   }
+  clr.val(v);
+  setMessageColor(v);
   const name = $('#name');
   name.on('input', () => {
     // TODO validate!
     localStorage.setItem('name', name.val());
   });
-  v = localStorage.getItem('name')
+  v = localStorage.getItem('name') || 'noname';
   if (v) {
     name.val(v); // TODO validate?
   }
