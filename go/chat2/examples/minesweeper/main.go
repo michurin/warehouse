@@ -32,6 +32,12 @@ type UserInfoDTO struct {
 	Color string `json:"color"`
 }
 
+type OpenDTO struct {
+	Type       string      `json:"t"`
+	UsersTable UserInfoDTO `json:"u"`
+	Points     []PointDTO  `json:"a"`
+}
+
 type UserInfo struct {
 	score int
 	id    int // Immutable. Starting from 1. 0 means no user. Everywhere
@@ -131,14 +137,14 @@ func NewArena(w, h int) *Arena {
 // - points
 // - users table
 // - and error
-func (a *Arena) Open(x, y int, cid, name, color string) ([]byte, []byte, error) {
+func (a *Arena) Open(x, y int, cid, name, color string) ([]byte, error) {
 	a.mx.Lock()
 	defer a.mx.Unlock()
 	ui := a.users[cid]
 	if ui == nil {
 		n := len(a.users)
 		if n >= 20 {
-			return nil, nil, nil // TODO room is fool
+			return nil, nil // TODO room is fool
 		}
 		ui = &UserInfo{
 			score: 0,
@@ -152,11 +158,11 @@ func (a *Arena) Open(x, y int, cid, name, color string) ([]byte, []byte, error) 
 		ui.color = color
 	}
 	if a.arena[y][x] >= 10 {
-		return nil, nil, nil
+		return nil, nil
 	}
 	points := []PointDTO(nil)
 	arenaDelta := ui.id * 10
-	if a.arena[y][x] == 9 {
+	if a.arena[y][x] == 9 { // boom
 		ui.score = 0
 		a.arena[y][x] += arenaDelta
 		points = []PointDTO{{
@@ -164,7 +170,7 @@ func (a *Arena) Open(x, y int, cid, name, color string) ([]byte, []byte, error) 
 			Y: y,
 			V: a.arena[y][x],
 		}}
-	} else {
+	} else { // regular opening
 		stack := []int{x, y}
 		for n := 2; n > 0; {
 			x := stack[n-2]
@@ -188,20 +194,20 @@ func (a *Arena) Open(x, y int, cid, name, color string) ([]byte, []byte, error) 
 		}
 	}
 	// TODO if a.closed == 0
-	pointsDto, err := json.Marshal(points)
-	if err != nil {
-		return nil, nil, err
-	}
-	userDto, err := json.Marshal(UserInfoDTO{
-		Score: ui.score,
-		ID:    ui.id,
-		Name:  ui.name,
-		Color: ui.color,
+	openDto, err := json.Marshal(OpenDTO{
+		Type: "o",
+		UsersTable: UserInfoDTO{
+			Score: ui.score,
+			ID:    ui.id,
+			Name:  ui.name,
+			Color: ui.color,
+		},
+		Points: points,
 	})
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
-	return pointsDto, userDto, nil
+	return openDto, nil
 }
 
 // ----------------------------------------
@@ -290,14 +296,11 @@ func main() {
 		if err != nil {
 			return nil, err
 		}
-		pointsData, usersData, err := arena.Open(request.X, request.Y, request.CID, request.Name, request.Color)
+		openData, err := arena.Open(request.X, request.Y, request.CID, request.Name, request.Color)
 		if err != nil {
 			return nil, err
 		}
-		if pointsData == nil || usersData == nil {
-			return nil, nil
-		}
-		gameStream.Put([]byte(fmt.Sprintf(`{"a":%s,"u":%s}`, pointsData, usersData)))
+		gameStream.Put(openData)
 		return nil, nil
 	}))
 
