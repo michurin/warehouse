@@ -1,7 +1,7 @@
 // ***** CID *****
 
 var CID = '';
-var userTable = {}; // TODO has to be reseted as well as game area
+var userTable = {};
 
 $(() => {
   try {
@@ -42,17 +42,27 @@ kit.loop((data) => {
   if (data.game) {
     data.game.forEach((msg) => {
       console.log('GAME MSG', msg);
-      userTable[msg.u.id] = msg.u;
-      msg.a.forEach(e => {
-        const uid = Math.floor(e.v / 10);
-        const v = e.v % 10;
-        const u = userTable[uid]; // TODO what if not found?
-        $(`#c${e.x}x${e.y}`).text(v == 9 ? 'W' : v).css({
-          color: u.color,
-          'background-color': v == 9 ? '#800' : '#000', // TODO contrast!
-        }).prop('title', u.name);
-        console.log(e);
-      })
+      if (msg.u) {
+        if (msg.f) {
+          userTable = {};
+        }
+        msg.u.forEach(e => {
+          userTable[e.id] = e;
+        });
+      }
+      if (msg.a) {
+        msg.a.forEach(e => { setCell(e.x, e.y, e.v); });
+      }
+      if (msg.f) {
+        // TODO drop UI field
+        // TODO recreate UI field
+        for (var j = 0; j < msg.f.length; j++) {
+          var p = msg.f[j];
+          for (var i = 0; i < p.length; i++) {
+            setCell(i, j, p[i]);
+          }
+        }
+      }
     });
     const tp = $('#top');
     tp.empty();
@@ -97,6 +107,19 @@ $(() => {
 });
 
 // ***** GAME *****
+
+function setCell(x, y, e) {
+  const uid = Math.floor(e / 10);
+  const v = e % 10;
+  const u = userTable[uid]; // TODO what if not found?
+  if (!u) {
+    return; // it's a bug on backend?
+  }
+  $(`#c${x}x${y}`).text(v == 9 ? 'W' : v).css({
+    color: u.color,
+    'background-color': v == 9 ? '#800' : '#000', // TODO contrast!
+  }).prop('title', u.name);
+}
 
 function buildOnClick(i, j, e) {
   return async () => {

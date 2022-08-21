@@ -33,9 +33,9 @@ type UserInfoDTO struct {
 }
 
 type OpenDTO struct {
-	Type       string      `json:"t"`
-	UsersTable UserInfoDTO `json:"u"`
-	Points     []PointDTO  `json:"a"`
+	UsersTable []UserInfoDTO `json:"u,omitempty"`
+	Points     []PointDTO    `json:"a,omitempty"`
+	Field      [][]int       `json:"f,omitempty"`
 }
 
 type UserInfo struct {
@@ -193,21 +193,52 @@ func (a *Arena) Open(x, y int, cid, name, color string) ([]byte, error) {
 			}
 		}
 	}
-	// TODO if a.closed == 0
-	openDto, err := json.Marshal(OpenDTO{
-		Type: "o",
-		UsersTable: UserInfoDTO{
+	// TODO if a.closed == 0, here?
+	respDto, err := json.Marshal(OpenDTO{
+		UsersTable: []UserInfoDTO{{ // incremental update
 			Score: ui.score,
 			ID:    ui.id,
 			Name:  ui.name,
 			Color: ui.color,
-		},
+		}},
 		Points: points,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return openDto, nil
+	return respDto, nil
+}
+
+func (a *Arena) Dump() ([]byte, error) {
+	a.mx.Lock() // TODO RLock?
+	defer a.mx.Unlock()
+	usersDto := make([]UserInfoDTO, 0, len(a.users))
+	for _, ui := range a.users {
+		usersDto = append(usersDto, UserInfoDTO{
+			Score: ui.score,
+			ID:    ui.id,
+			Name:  ui.name,
+			Color: ui.color,
+		})
+	}
+	f := make([][]int, len(a.arena)) // filter out closed cells
+	for i, p := range a.arena {
+		g := make([]int, len(p))
+		for j, q := range p {
+			if q >= 10 {
+				g[j] = q
+			}
+		}
+		f[i] = g
+	}
+	respDto, err := json.Marshal(OpenDTO{
+		UsersTable: usersDto,
+		Field:      f,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return respDto, nil
 }
 
 // ----------------------------------------
@@ -266,7 +297,7 @@ func castToRawMessage(x [][]byte) []json.RawMessage {
 
 func main() {
 	const chatStreanCapacity = 100
-	const gameStreanCapacity = 100
+	const gameStreanCapacity = 3 // 100
 	const arenaWidth = 20
 	const arenaHeight = 20
 
@@ -310,31 +341,39 @@ func main() {
 		if err != nil {
 			return nil, fmt.Errorf("sub: cannot unmarshal: %w", err)
 		}
-		var boundChat, boundGame uint64
-		var streamData [][]byte
+		var reqBoundChat, reqBoundGame uint64
 		bounds := request.Bounds
 		if len(bounds) == 2 {
-			boundChat = bounds[0]
-			boundGame = bounds[1]
+			reqBoundChat = bounds[0]
+			reqBoundGame = bounds[1]
 		}
 		select {
-		case <-chatStream.Waiter(boundChat):
-			streamData, boundChat = chatStream.Updates(boundChat)
+		case <-chatStream.Waiter(reqBoundChat):
+			streamData, boundChat := chatStream.Updates(reqBoundChat)
 			bodyRes, err := json.Marshal(subResponseDTO{
-				Bounds: []uint64{boundChat, boundGame},
+				Bounds: []uint64{boundChat, reqBoundGame},
 				Chat:   castToRawMessage(streamData),
 			})
 			if err != nil {
 				return nil, fmt.Errorf("sub: chat: cannot marshal: %w", err)
 			}
 			return bodyRes, nil
-		case <-gameStream.Waiter(boundGame):
-			streamData, boundGame = gameStream.Updates(boundGame)
+		case <-gameStream.Waiter(reqBoundGame):
+			streamData, boundGame := gameStream.Updates(reqBoundGame)
 			// TODO detect game resets
-			// TODO detect stream gaps
+			var gameResp []json.RawMessage
+			if boundGame-reqBoundGame <= gameStreanCapacity { // negative is big positive
+				gameResp = castToRawMessage(streamData)
+			} else {
+				dump, err := arena.Dump()
+				if err != nil {
+					return nil, err
+				}
+				gameResp = []json.RawMessage{dump}
+			}
 			bodyRes, err := json.Marshal(subResponseDTO{
-				Bounds: []uint64{boundChat, boundGame},
-				Game:   castToRawMessage(streamData),
+				Bounds: []uint64{reqBoundChat, boundGame},
+				Game:   gameResp,
 			})
 			if err != nil {
 				return nil, fmt.Errorf("sub: game: cannot marshal: %w", err)
