@@ -32,10 +32,16 @@ type UserInfoDTO struct {
 	Color string `json:"color"`
 }
 
+type ResetDTO struct {
+	Width  int `json:"w"`
+	Height int `json:"h"`
+}
+
 type OpenDTO struct {
 	UsersTable []UserInfoDTO `json:"u,omitempty"`
 	Points     []PointDTO    `json:"a,omitempty"`
 	Field      [][]int       `json:"f,omitempty"`
+	Reset      *ResetDTO     `json:"r,omitempty"`
 }
 
 type UserInfo struct {
@@ -58,8 +64,16 @@ type Arena struct {
 	mx     *sync.Mutex
 }
 
-func NewArena(w, h int) *Arena {
-	a := [][]int(nil)
+func NewArena() *Arena {
+	return &Arena{
+		mx: new(sync.Mutex),
+	}
+}
+
+func (a *Arena) Setup(w, h int) ([]byte, error) {
+	a.mx.Lock()
+	defer a.mx.Unlock()
+	ar := [][]int(nil)
 	closed := w * h
 	for j := 0; j < h; j++ {
 		t := []int(nil)
@@ -71,7 +85,7 @@ func NewArena(w, h int) *Arena {
 			}
 			t = append(t, v)
 		}
-		a = append(a, t)
+		ar = append(ar, t)
 	}
 	for j := 0; j < h; j++ {
 		j1 := j - 1
@@ -83,7 +97,7 @@ func NewArena(w, h int) *Arena {
 			j2 = h
 		}
 		for i := 0; i < w; i++ {
-			if a[j][i] == 9 {
+			if ar[j][i] == 9 {
 				continue
 			}
 			i1 := i - 1
@@ -97,15 +111,15 @@ func NewArena(w, h int) *Arena {
 			s := 0
 			for q := j1; q < j2; q++ {
 				for p := i1; p < i2; p++ {
-					if a[q][p] == 9 {
+					if ar[q][p] == 9 {
 						s++
 					}
 				}
 			}
-			a[j][i] = s
+			ar[j][i] = s
 		}
 	}
-	for _, p := range a {
+	for _, p := range ar {
 		s := ""
 		for _, q := range p {
 			s += fmt.Sprintf("\x1b[%sm%2d\x1b[0m", map[int]string{
@@ -123,14 +137,20 @@ func NewArena(w, h int) *Arena {
 		}
 		fmt.Println(s)
 	}
-	return &Arena{
-		width:  w,
-		height: h,
-		closed: closed,
-		arena:  a,
-		users:  map[string]*UserInfo{},
-		mx:     new(sync.Mutex),
+	a.arena = ar
+	a.width = w
+	a.height = h
+	a.users = map[string]*UserInfo{}
+	respDto, err := json.Marshal(OpenDTO{
+		Reset: &ResetDTO{
+			Width:  w,
+			Height: h,
+		},
+	})
+	if err != nil {
+		return nil, err
 	}
+	return respDto, nil
 }
 
 // Open does one turn and returns marshaled
@@ -298,16 +318,22 @@ func castToRawMessage(x [][]byte) []json.RawMessage {
 func main() {
 	const chatStreanCapacity = 100
 	const gameStreanCapacity = 3 // 100
-	const arenaWidth = 20
-	const arenaHeight = 20
+	const arenaWidth = 10
+	const arenaHeight = 10
 
 	logger := log.Default()
 	addr := bindAddr()
 	http.Handle("/", http.FileServer(http.Dir("examples/minesweeper/htdocs")))
 
-	arena := NewArena(arenaWidth, arenaHeight)
 	chatStream := stream.New(chatStreanCapacity)
 	gameStream := stream.New(gameStreanCapacity)
+
+	arena := NewArena()
+	resDto, err := arena.Setup(arenaWidth, arenaHeight)
+	if err != nil {
+		panic(err)
+	}
+	gameStream.Put(resDto)
 
 	http.HandleFunc("/pub_chat", httppost.Handler(logger, func(ctx context.Context, requestBody []byte) ([]byte, error) {
 		data, err := validator(requestBody)
@@ -390,6 +416,6 @@ func main() {
 	}))
 
 	log.Printf("Listing on %s", addr)
-	err := http.ListenAndServe(addr, nil)
+	err = http.ListenAndServe(addr, nil)
 	log.Printf(err.Error())
 }

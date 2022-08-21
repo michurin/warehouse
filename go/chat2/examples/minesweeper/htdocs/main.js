@@ -43,7 +43,7 @@ kit.loop((data) => {
     data.game.forEach((msg) => {
       console.log('GAME MSG', msg);
       if (msg.u) {
-        if (msg.f) {
+        if (msg.f || msg.r) { // if full reset or init, drop all users
           userTable = {};
         }
         msg.u.forEach(e => {
@@ -54,14 +54,16 @@ kit.loop((data) => {
         msg.a.forEach(e => { setCell(e.x, e.y, e.v); });
       }
       if (msg.f) {
-        // TODO drop UI field
-        // TODO recreate UI field
+        initGameArena(msg.f[0].length, msg.f.length);
         for (var j = 0; j < msg.f.length; j++) {
           var p = msg.f[j];
           for (var i = 0; i < p.length; i++) {
             setCell(i, j, p[i]);
           }
         }
+      }
+      if (msg.r) {
+        initGameArena(msg.r.w, msg.r.h);
       }
     });
     const tp = $('#top');
@@ -149,22 +151,19 @@ function buildOnRightClick(i, j, e) {
   }
 }
 
-$(() => {
-  (() => {
-    const size = 20;
-    const tbl = $('<table>');
-    for (var j = 0; j < size; j++) {
-      var tr = $('<tr>');
-      for (var i = 0; i < size; i++) {
-        var id = 'c' + i + 'x' + j;
-        var e = $('<td>');
-        tr.append(e.attr('id', id).click(buildOnClick(i, j, e)).contextmenu(buildOnRightClick(i, j, e)));
-      }
-      tbl.append(tr);
+function initGameArena(w, h) {
+  const tbl = $('<table>');
+  for (var j = 0; j < h; j++) {
+    var tr = $('<tr>');
+    for (var i = 0; i < w; i++) {
+      var id = 'c' + i + 'x' + j;
+      var e = $('<td>');
+      tr.append(e.attr('id', id).click(buildOnClick(i, j, e)).contextmenu(buildOnRightClick(i, j, e)));
     }
-    $('#game').append(tbl);
-  })();
-});
+    tbl.append(tr);
+  }
+  $('#game').empty().append(tbl);
+}
 
 // ***** SAVE/RESTORE *****
 
