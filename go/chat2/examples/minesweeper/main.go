@@ -41,6 +41,7 @@ type OpenDTO struct {
 	UsersTable []UserInfoDTO `json:"u,omitempty"`
 	Points     []PointDTO    `json:"a,omitempty"`
 	Field      [][]int       `json:"f,omitempty"`
+	GameOver   bool          `json:"go,omitempty"`
 	Reset      *ResetDTO     `json:"r,omitempty"`
 }
 
@@ -79,7 +80,9 @@ func (a *Arena) Setup(w, h int) ([]byte, error) {
 		t := []int(nil)
 		for i := 0; i < w; i++ {
 			v := 0
-			if (i & j & 15) == 0 {
+			p := i % 7
+			q := j % 7
+			if /* (i & j & 15) == 0 */ p < 3 && q < 3 && !(p == 1 && q == 1) {
 				v = 9
 				closed--
 			}
@@ -140,6 +143,7 @@ func (a *Arena) Setup(w, h int) ([]byte, error) {
 	a.arena = ar
 	a.width = w
 	a.height = h
+	a.closed = closed
 	a.users = map[string]*UserInfo{}
 	respDto, err := json.Marshal(OpenDTO{
 		Reset: &ResetDTO{
@@ -213,7 +217,6 @@ func (a *Arena) Open(x, y int, cid, name, color string) ([]byte, error) {
 			}
 		}
 	}
-	// TODO if a.closed == 0, here?
 	respDto, err := json.Marshal(OpenDTO{
 		UsersTable: []UserInfoDTO{{ // incremental update
 			Score: ui.score,
@@ -221,7 +224,8 @@ func (a *Arena) Open(x, y int, cid, name, color string) ([]byte, error) {
 			Name:  ui.name,
 			Color: ui.color,
 		}},
-		Points: points,
+		Points:   points,
+		GameOver: a.closed == 0,
 	})
 	if err != nil {
 		return nil, err
@@ -254,6 +258,7 @@ func (a *Arena) Dump() ([]byte, error) {
 	respDto, err := json.Marshal(OpenDTO{
 		UsersTable: usersDto,
 		Field:      f,
+		GameOver:   a.closed == 0,
 	})
 	if err != nil {
 		return nil, err

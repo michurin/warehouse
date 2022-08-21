@@ -65,6 +65,9 @@ kit.loop((data) => {
       if (msg.r) {
         initGameArena(msg.r.w, msg.r.h);
       }
+      if (msg.go) {
+        alert("Game Over");
+      }
     });
     const tp = $('#top');
     tp.empty();
