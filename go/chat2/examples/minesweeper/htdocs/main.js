@@ -1,21 +1,21 @@
 // ***** CID *****
 
-var CID = '';
-var userTable = {};
+let CID = '';
+let userTable = {};
 
 $(() => {
   try {
-    CID = localStorage.getItem("cid");
+    CID = localStorage.getItem('cid');
   } catch (e) { }
   CID = CID || '';
-  if (CID.length != 24) {
-    CID = Date.now().toString(36) + '|';
+  if (CID.length !== 24) {
+    CID = `${Date.now().toString(36)}|`;
     while (CID.length < 24) {
       CID += String.fromCharCode(Math.floor(Math.random() * 94) + 33);
     }
   }
   try {
-    localStorage.setItem("cid", CID);
+    localStorage.setItem('cid', CID);
   } catch (e) { }
 });
 
@@ -24,7 +24,7 @@ $(() => {
 const kit = chatAdapter();
 
 kit.loop((data) => {
-  console.log('LOOP', data)
+  console.log('LOOP', data);
   if (data.chat) {
     data.chat.forEach((msg) => { // TODO check type is array
       $('#board').append($('<div>').append(
@@ -36,37 +36,36 @@ kit.loop((data) => {
       }));
     });
     const c = $('#jail');
-    c.scrollTop(c.prop("scrollHeight"));
-    setTimeout(() => c.scrollTop(c.prop("scrollHeight")), 20);
+    c.scrollTop(c.prop('scrollHeight'));
+    setTimeout(() => c.scrollTop(c.prop('scrollHeight')), 20);
   }
   if (data.game) {
     data.game.forEach((msg) => {
       console.log('GAME MSG', msg);
-      if (msg.u) {
-        if (msg.f || msg.r) { // if full reset or init, drop all users
-          userTable = {};
+      if (msg.r) {
+        initGameArena(msg.r.w, msg.r.h);
+        userTable = {};
+      }
+      if (msg.f) {
+        initGameArena(msg.f[0].length, msg.f.length);
+        for (let j = 0; j < msg.f.length; j++) {
+          const p = msg.f[j];
+          for (let i = 0; i < p.length; i++) {
+            setCell(i, j, p[i]);
+          }
         }
-        msg.u.forEach(e => {
+        userTable = {};
+      }
+      if (msg.u) {
+        msg.u.forEach((e) => {
           userTable[e.id] = e;
         });
       }
       if (msg.a) {
-        msg.a.forEach(e => { setCell(e.x, e.y, e.v); });
-      }
-      if (msg.f) {
-        initGameArena(msg.f[0].length, msg.f.length);
-        for (var j = 0; j < msg.f.length; j++) {
-          var p = msg.f[j];
-          for (var i = 0; i < p.length; i++) {
-            setCell(i, j, p[i]);
-          }
-        }
-      }
-      if (msg.r) {
-        initGameArena(msg.r.w, msg.r.h);
+        msg.a.forEach((e) => { setCell(e.x, e.y, e.v); });
       }
       if (msg.go) {
-        alert("Game Over");
+        setTimeout(() => alert('Game Over'), 10);
       }
     });
     const tp = $('#top');
@@ -77,7 +76,8 @@ kit.loop((data) => {
       const st = { color: u.color };
       tp.append(
         $('<div>').text(u.name).css(st),
-        $('<div>').text(u.score).css(st));
+        $('<div>').text(u.score).css(st),
+      );
     });
   }
 });
@@ -120,9 +120,9 @@ function setCell(x, y, e) {
   if (!u) {
     return; // it's a bug on backend?
   }
-  $(`#c${x}x${y}`).text(v == 9 ? 'W' : v).css({
+  $(`#c${x}x${y}`).text(v === 9 ? 'W' : v).css({
     color: u.color,
-    'background-color': v == 9 ? '#800' : '#000', // TODO contrast!
+    'background-color': v === 9 ? '#800' : '#000', // TODO contrast!
   }).prop('title', u.name);
 }
 
@@ -136,31 +136,33 @@ function buildOnClick(i, j, e) {
       cid: CID,
       name: $('#name').val(),
       color: $('#color').val(),
-    })
+    });
     // $('#game').css('cursor', 'default');
+    $('#text').focus();
     return false;
-  }
+  };
 }
 
 function buildOnRightClick(i, j, e) {
   return () => {
     console.log(i, j, e, e.text());
-    if (e.text() == '') {
+    if (e.text() === '') {
       e.text('F').css('color', '#f00');
-    } else if (e.text() == 'F') {
+    } else if (e.text() === 'F') {
       e.text('');
     }
+    $('#text').focus();
     return false;
-  }
+  };
 }
 
 function initGameArena(w, h) {
   const tbl = $('<table>');
-  for (var j = 0; j < h; j++) {
-    var tr = $('<tr>');
-    for (var i = 0; i < w; i++) {
-      var id = 'c' + i + 'x' + j;
-      var e = $('<td>');
+  for (let j = 0; j < h; j++) {
+    const tr = $('<tr>');
+    for (let i = 0; i < w; i++) {
+      const id = `c${i}x${j}`;
+      const e = $('<td>');
       tr.append(e.attr('id', id).click(buildOnClick(i, j, e)).contextmenu(buildOnRightClick(i, j, e)));
     }
     tbl.append(tr);
@@ -177,7 +179,7 @@ function setMessageColor(clr) {
 }
 
 $(() => {
-  var v;
+  let v;
   const clr = $('#color');
   clr.on('change', () => {
     setMessageColor(clr.val());
@@ -185,10 +187,10 @@ $(() => {
   v = localStorage.getItem('color') || '';
   if (!/^#[0-9a-fA-F]{6}$/.test(v)) {
     v = '#';
-    for (var i = 0; i < 3; i++) {
-      v = v + Math.floor(320 + Math.random() * 192).toString(16).substring(1);
+    for (let i = 0; i < 3; i++) {
+      v += Math.floor(320 + Math.random() * 192).toString(16).substring(1);
     }
-    console.log('random color', v)
+    console.log('random color', v);
   }
   clr.val(v);
   setMessageColor(v);
