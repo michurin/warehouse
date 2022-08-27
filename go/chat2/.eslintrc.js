@@ -6,9 +6,13 @@ module.exports = {
   extends: [
     'airbnb-base',
   ],
+  globals: {
+    '$': true
+  },
   parserOptions: {
     ecmaVersion: 'latest',
   },
   rules: {
+    'no-plusplus': 0
   },
 };
