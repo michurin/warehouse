@@ -71,9 +71,13 @@ func NewArena() *Arena {
 	}
 }
 
-func (a *Arena) Setup(w, h int) ([]byte, error) {
+func (a *Arena) Setup(w, h int) ([]byte, error) { // TODO it seems, we do not need this args
 	a.mx.Lock()
 	defer a.mx.Unlock()
+	return a.setup(w, h)
+}
+
+func (a *Arena) setup(w, h int) ([]byte, error) {
 	ar := [][]int(nil)
 	closed := w * h
 	for j := 0; j < h; j++ {
@@ -164,6 +168,9 @@ func (a *Arena) Setup(w, h int) ([]byte, error) {
 func (a *Arena) Open(x, y int, cid, name, color string) ([]byte, error) {
 	a.mx.Lock()
 	defer a.mx.Unlock()
+	if a.closed == 0 {
+		return a.setup(a.width, a.height)
+	}
 	ui := a.users[cid]
 	if ui == nil {
 		n := len(a.users)
