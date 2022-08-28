@@ -5,6 +5,7 @@ import (
 	"errors"
 	"io"
 	"net/http"
+	"runtime/debug"
 )
 
 type logger interface {
@@ -19,11 +20,15 @@ func Handler(log logger, f func(context.Context, []byte) ([]byte, error)) http.H
 		var body []byte
 		var err error
 		defer func() {
-			if err == nil {
-				log.Printf("%s %s: %s -> %s", r.Method, r.URL.String(), string(body), string(resp))
-			} else {
-				log.Printf("%s %s: Error: %s", r.Method, r.URL.String(), err)
+			if rec := recover(); rec != nil {
+				log.Printf("%s %s: Panic: %v\n%s\n", r.Method, r.URL.String(), rec, debug.Stack())
+				return
 			}
+			if err != nil {
+				log.Printf("%s %s: Error: %s", r.Method, r.URL.String(), err)
+				return
+			}
+			log.Printf("%s %s: %s -> %s", r.Method, r.URL.String(), string(body), string(resp))
 		}()
 		if r.Method != http.MethodPost {
 			err = errorMethodNotAllowed // for logging in defer
