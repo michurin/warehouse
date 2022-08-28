@@ -47,6 +47,15 @@ kit.loop((data) => {
         userTable = {};
       }
       if (msg.f) {
+        userTable = {};
+      }
+      if (msg.u) {
+        msg.u.forEach((e) => {
+          userTable[e.id] = e;
+        });
+      }
+      // userTable must be updated before call setCell
+      if (msg.f) {
         initGameArena(msg.f[0].length, msg.f.length);
         for (let j = 0; j < msg.f.length; j++) {
           const p = msg.f[j];
@@ -54,12 +63,6 @@ kit.loop((data) => {
             setCell(i, j, p[i]);
           }
         }
-        userTable = {};
-      }
-      if (msg.u) {
-        msg.u.forEach((e) => {
-          userTable[e.id] = e;
-        });
       }
       if (msg.a) {
         msg.a.forEach((e) => { setCell(e.x, e.y, e.v); });
