@@ -19,14 +19,14 @@ func Open(w, h, x, y int, cid, name, clr string) error {
 	if err := simple(cid, 33, 127, 24); err != nil {
 		m = append(m, fmt.Sprintf("invalid CID: %s", err.Error()))
 	}
-	if err := color(clr); err != nil {
+	if err := Color(clr); err != nil {
 		m = append(m, err.Error())
 	}
 	// TODO check name
 	return nil
 }
 
-func color(c string) error {
+func Color(c string) error {
 	t := []rune(c)
 	if len(t) != 7 {
 		return fmt.Errorf("invalid color: %s", c)

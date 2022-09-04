@@ -3,38 +3,17 @@ package main
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"log"
 	"net/http"
 	"os"
-	"regexp"
 	"time"
 
+	"github.com/michurin/warehouse/go/chat2/examples/minesweeper/chat"
 	"github.com/michurin/warehouse/go/chat2/examples/minesweeper/game"
 	"github.com/michurin/warehouse/go/chat2/httppost"
 	"github.com/michurin/warehouse/go/chat2/stream"
-	"github.com/michurin/warehouse/go/chat2/text"
 )
-
-var reColorStr = regexp.MustCompile(`^#[0-9A-Fa-f]{6}$`)
-
-func validator(raw []byte) ([]byte, error) { // TODO slightly oversimplified approach; rewrite using DTOs
-	in := map[string]string{}
-	err := json.Unmarshal(raw, &in)
-	if err != nil {
-		return nil, fmt.Errorf("%s: %w", string(raw), err)
-	}
-	color := in["color"]
-	if !reColorStr.MatchString(color) {
-		return nil, errors.New("invalid color")
-	}
-	return json.Marshal(map[string]string{
-		"name":  text.SanitizeText(in["name"], 10, "[noname]"),
-		"text":  text.SanitizeText(in["text"], 1000, "[nomessage]"),
-		"color": color,
-	})
-}
 
 func bindAddr() string {
 	if len(os.Args) == 2 {
@@ -90,7 +69,7 @@ func main() {
 	gameStream.Put(resDto)
 
 	http.HandleFunc("/pub_chat", httppost.Handler(logger, func(ctx context.Context, requestBody []byte) ([]byte, error) {
-		data, err := validator(requestBody)
+		data, err := chat.Validator(requestBody)
 		if err != nil {
 			return nil, err
 		}
@@ -137,7 +116,6 @@ func main() {
 			return bodyRes, nil
 		case <-gameStream.Waiter(reqBoundGame):
 			streamData, boundGame := gameStream.Updates(reqBoundGame)
-			// TODO detect game resets
 			var gameResp []json.RawMessage
 			if boundGame-reqBoundGame <= gameStreanCapacity { // negative is big positive
 				gameResp = castToRawMessage(streamData)
