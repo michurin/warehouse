@@ -1,9 +1,14 @@
 const chatAdapter = () => {
-  const call = (url, data) => fetch(url, {
-    method: 'POST',
-    cache: 'no-cache',
-    body: JSON.stringify(data),
-  });
+  const call = (url, data) => {
+    if (!data) {
+      return undefined;
+    }
+    return fetch(url, {
+      method: 'POST',
+      cache: 'no-cache',
+      body: JSON.stringify(data),
+    });
+  };
   const sleep = (delay) => new Promise((resolve) => { setTimeout(resolve, delay); });
   const adapter = {};
   adapter.loop = async (f) => {
