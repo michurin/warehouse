@@ -256,7 +256,12 @@ require'treesitter-context'.setup{
   enable = true, -- autocmd VimEnter * TSContextEnable
   throttle = true, -- may improve performance
   max_lines = 0, -- no limit
-  default = {'class', 'function', 'method', 'for', 'while', 'if', 'switch', 'case'}
+  patterns = { -- lua print(vim.inspect(require'nvim-treesitter.ts_utils'.get_node_at_cursor():type()))
+    default = {'class', 'function', 'method', 'for', 'while', 'if', 'switch', 'case'},
+    yaml = {'block_mapping_pair'},
+    json = {'pair'},
+    markdown = {'section'},
+  },
 }
 TREESITTER_CONTEXT
 " autocmd VimEnter * TSContextEnable
