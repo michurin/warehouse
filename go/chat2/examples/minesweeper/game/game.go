@@ -200,20 +200,26 @@ func (a *Arena) Open(x, y int, cid, name, color string) ([]byte, error) {
 			y := stack[n-1]
 			n -= 2
 			stack = stack[:n]
-			if x >= 0 && x < a.width && y >= 0 && y < a.height && a.arena[y][x] <= 8 {
-				if a.arena[y][x] == 0 {
-					stack = append(stack, x-1, y-1, x-1, y, x-1, y+1, x, y-1, x, y+1, x+1, y-1, x+1, y, x+1, y+1)
-					n += 16
-				}
-				a.arena[y][x] += arenaDelta
-				a.closed--
-				ui.score++
-				points = append(points, PointDTO{
-					X: x,
-					Y: y,
-					V: a.arena[y][x],
-				})
+			if x < 0 || x >= a.width || y < 0 || y >= a.height {
+				continue
 			}
+			e := a.arena[y][x]
+			if e > 8 {
+				continue
+			}
+			if e == 0 {
+				stack = append(stack, x-1, y-1, x-1, y, x-1, y+1, x, y-1, x, y+1, x+1, y-1, x+1, y, x+1, y+1)
+				n += 16
+			}
+			a.closed--
+			ui.score += e * e
+			e += arenaDelta
+			a.arena[y][x] = e
+			points = append(points, PointDTO{
+				X: x,
+				Y: y,
+				V: e,
+			})
 		}
 	}
 	respDto, err := json.Marshal(OpenDTO{
