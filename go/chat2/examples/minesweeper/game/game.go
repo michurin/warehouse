@@ -3,6 +3,7 @@ package game
 import (
 	"encoding/json"
 	"fmt"
+	"math/rand"
 	"sync"
 
 	"github.com/michurin/warehouse/go/chat2/examples/minesweeper/valid"
@@ -73,9 +74,7 @@ func (a *Arena) setup(w, h int) ([]byte, error) {
 		t := []int(nil)
 		for i := 0; i < w; i++ {
 			v := 0
-			p := i % 7
-			q := j % 7
-			if /* (i & j & 15) == 0 */ p < 3 && q < 3 && !(p == 1 && q == 1) {
+			if /* (i & j & 15) == 0 */ /* p, q := i%7, j%7; p < 3 && q < 3 && !(p == 1 && q == 1) */ rand.Float32() < .27 {
 				v = 9
 				closed--
 			}
@@ -166,7 +165,7 @@ func (a *Arena) Open(x, y int, cid, name, color string) ([]byte, error) {
 	ui := a.users[cid]
 	if ui == nil {
 		n := len(a.users)
-		if n >= 20 {
+		if n >= 20 { // TODO const
 			return nil, nil // TODO room is fool
 		}
 		ui = &UserInfo{
@@ -180,7 +179,7 @@ func (a *Arena) Open(x, y int, cid, name, color string) ([]byte, error) {
 		ui.name = name
 		ui.color = color
 	}
-	if a.arena[y][x] >= 10 {
+	if a.arena[y][x] >= 10 { // already opened, no updates
 		return nil, nil
 	}
 	points := []PointDTO(nil)
