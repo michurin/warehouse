@@ -1,8 +1,6 @@
 // avito jira
 (() => {
   const F = () => {
-    console.log("here");
-    console.log(document.getElementsByClassName('ghx-extra-field'))
     const ee = document.getElementsByClassName('ghx-extra-field');
     [...ee].forEach(x => {
       const ttip = x.getAttribute('data-tooltip');
