@@ -1,6 +1,11 @@
 package valid
 
-import "fmt"
+import (
+	"fmt"
+	"strings"
+
+	"github.com/michurin/warehouse/go/chat2/text"
+)
 
 func Open(w, h, x, y int, cid, name, clr string) error {
 	m := []string(nil)
@@ -22,7 +27,12 @@ func Open(w, h, x, y int, cid, name, clr string) error {
 	if err := Color(clr); err != nil {
 		m = append(m, err.Error())
 	}
-	// TODO check name
+	if text.SanitizeText(name, 10, "") == "" { // TODO 10 — constant
+		m = append(m, fmt.Sprintf("invalid name"))
+	}
+	if m != nil {
+		return fmt.Errorf(strings.Join(m, ", "))
+	}
 	return nil
 }
 
