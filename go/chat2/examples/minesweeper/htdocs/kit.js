@@ -23,6 +23,7 @@ const chatAdapter = () => {
         bound = data.b || bound; // fallback to previous value if no updates
         f(data); // TODO multiply calls
       } catch (e) {
+        console.log(e);
         await sleep(2000);
       }
     }
