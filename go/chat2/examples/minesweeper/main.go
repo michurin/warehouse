@@ -50,7 +50,7 @@ func castToRawMessage(x [][]byte) []json.RawMessage {
 
 func main() {
 	const chatStreanCapacity = 100
-	const gameStreanCapacity = 3 // 100
+	const gameStreanCapacity = 100
 	const arenaWidth = 10
 	const arenaHeight = 10
 
@@ -87,7 +87,9 @@ func main() {
 		if err != nil {
 			return nil, err
 		}
-		gameStream.Put(openData)
+		if openData != nil { // only if we have updates
+			gameStream.Put(openData)
+		}
 		return nil, nil
 	}))
 
