@@ -27,6 +27,19 @@ body {
   }
 }
 
+#note {
+  position: absolute;
+  left: 5px;
+  top: 5px;
+  font-family: Arial, Helvetica, sans-serif;
+  padding: 1em;
+  background-color: #ff0;
+  border-radius: 2px;
+  max-width: 60%;
+  min-width: 5em;
+  white-space: pre-line;
+}
+
 #game {
   overflow: auto;
   cursor: default;
@@ -53,26 +66,50 @@ body {
   font-family: Arial, Helvetica, sans-serif;
 }
 
+#board {
+  padding: 7px;
+}
+
 #top {
   display: grid;
-  grid-template-columns: auto min-content;
-  grid-template-rows: none;
-  font-size: 10px;
+  box-shadow: 0px 0px 4px 4px #fff;
+  padding: 5px;
+  margin: 8px;
+  border: 2px solid #ccc;
+  font-size: 70%;
   font-family: Arial, Helvetica, sans-serif;
   font-weight: bold;
 }
 
-#top div:nth-child(2n) {
+#top-title {
+  color: #ccc;
+  text-align: center;
+  border-style: solid;
+  border-color: #ccc;
+  border-width: 0 0 2px 0;
+  padding: 0 0 2px 0;
+  margin: 0 0 2px 0;
+}
+
+#top-content {
+  display: grid;
+  grid-template-columns: auto min-content;
+  grid-template-rows: none;
+}
+
+#top-content div:nth-child(2n) {
   padding: 0 0 0 5px;
   text-align: right;
 }
 
-#top div:nth-child(2n+1) {
+#top-content div:nth-child(2n+1) {
   overflow: hidden;
 }
 
 #typing {
   display: grid;
+  padding: 5px;
+  border: 2px solid #000;
   grid-template-columns: none;
   grid-template-rows: auto;
 }
@@ -83,9 +120,7 @@ body {
   grid-template-rows: none;
 }
 
-div {
-  border: 1px solid #000;
-}
+/* DEBUG div { border: 1px solid #000; } */
 
 #game td {
   border: 1px solid #000;
@@ -108,10 +143,11 @@ div {
 }
 
 #text {
+  font-size: 100%;
   float: left;
   box-sizing: border-box;
   width: 100%;
-  background-color: #000;
+  background-color: #222;
   color: #fff;
   border: none;
   outline: none;
@@ -120,10 +156,12 @@ div {
 }
 
 #name {
+  font-size: 70%;
+  font-weight: bold;
   float: left;
   box-sizing: border-box;
   width: 100%;
-  background-color: #000;
+  background-color: #222;
   color: #fff;
   border: none;
   outline: none;
@@ -132,14 +170,15 @@ div {
 }
 
 #color {
+  opacity: 0%;
   float: left;
   -webkit-appearance: none;
   border: none;
   outline: none;
   padding: 0;
   margin: 0;
-  width: 10px;
-  height: 10px;
+  width: 2.7em;
+  height: 0.7em;
 }
 #color::-webkit-color-swatch-wrapper {
   padding: 0;
