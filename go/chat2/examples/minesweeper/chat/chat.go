@@ -8,6 +8,10 @@ import (
 	"github.com/michurin/warehouse/go/chat2/text"
 )
 
+// dirty oversimplification: we user the same DTO to
+// - parse request
+// - keep message in storage
+// - send response
 type dto struct {
 	Name  string `json:"name"`
 	Color string `json:"color"`
@@ -23,9 +27,10 @@ func Validator(raw []byte) ([]byte, error) {
 	if err := valid.Color(in.Color); err != nil {
 		return nil, err
 	}
+	// TODO split check_text and sanitize_text routines
 	return json.Marshal(&dto{
-		Name:  text.SanitizeText(in.Name, 10, "[noname]"),
-		Text:  text.SanitizeText(in.Text, 1000, "[nomessage]"),
+		Name:  text.SanitizeText(in.Name, 10, "[noname]"),      // TODO const!
+		Text:  text.SanitizeText(in.Text, 1000, "[nomessage]"), // TODO const!
 		Color: in.Color,
 	})
 }
