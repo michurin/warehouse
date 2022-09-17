@@ -125,7 +125,7 @@ kit.loop((data) => {
 const nameLenLimit = 20;
 const messageLenLimit = 200;
 
-function filnalName() {
+function finalName() {
   const n = $('#name');
   const v = n.val()
     .substring(0, nameLenLimit)
@@ -146,12 +146,12 @@ function fixName() {
       .substring(0, nameLenLimit)
       .replace(/[^\p{L}\p{M}\p{N}\p{P}\p{S}\p{Zs}]+/ug, '')
       .replace(/[^\p{L}\p{M}\p{N}\p{P}\p{S}]+/ug, ' '));
-    localStorage.setItem('name', filnalName());
+    localStorage.setItem('name', finalName());
   }, 200);
 }
 
 function getName() {
-  const t = filnalName();
+  const t = finalName();
   $('#name').val(t);
   return t;
 }
@@ -222,21 +222,28 @@ function setCell(x, y, e) {
   $(`#c${x}x${y}`).text(v === 9 ? 'W' : v).css({
     color: u.color,
     'background-color': v === 9 ? '#800' : '#000', // TODO contrast!
-  }).prop('title', u.name);
+  }).prop('title', u.name); // prop title also marks cell as opened
 }
 
-function buildOnClick(i, j) {
+function buildOnClick(e, x, y) {
   return async () => {
+    $('#text').focus();
+    if (e.prop('title') || e.text() != '') { // skip opened and flagged
+      return; // skip already opened
+    }
+    // TODO somewhere in kit.game?
     // $('#game').css('cursor', 'wait');
+    // $('#game').css('cursor', 'default');
+    // we have to lock game also
+    // it ruins kit-abstraction
+    // however callback looks like overkill
     kit.game(checkRequest({
-      x: i,
-      y: j,
+      x: x,
+      y: y,
       cid: CID,
       name: getName(),
       color: getColor(),
     }));
-    // $('#game').css('cursor', 'default');
-    $('#text').focus();
     return false;
   };
 }
@@ -260,7 +267,7 @@ function initGameArena(w, h) {
     for (let i = 0; i < w; i++) {
       const id = `c${i}x${j}`;
       const e = $('<td>');
-      tr.append(e.attr('id', id).click(buildOnClick(i, j)).contextmenu(buildOnRightClick(e)));
+      tr.append(e.attr('id', id).click(buildOnClick(e, i, j)).contextmenu(buildOnRightClick(e)));
     }
     tbl.append(tr);
   }
@@ -314,8 +321,8 @@ $(() => {
   }
   clr.val(v);
   setMessageColor(v);
-  v = fixName(localStorage.getItem('name')) || 'noname';
-  $('#name').val(v);
+  $('#name').val(localStorage.getItem('name') || 'noname'); // ugly; we set, check and reset
+  $('#name').val(finalName());
 });
 
 // ***** MISC *****
