@@ -85,6 +85,9 @@ func main() {
 		}
 		openData, err := arena.Open(request.X, request.Y, request.CID, request.Name, request.Color)
 		if err != nil {
+			if err == game.ErrorNoRoom {
+				return []byte(`{"nr": true}`), nil
+			}
 			return nil, err
 		}
 		if openData != nil { // only if we have updates

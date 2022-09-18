@@ -237,13 +237,16 @@ function buildOnClick(e, x, y) {
     // we have to lock game also
     // it ruins kit-abstraction
     // however callback looks like overkill
-    kit.game(checkRequest({
+    const resp = await kit.game(checkRequest({
       x: x,
       y: y,
       cid: CID,
       name: getName(),
       color: getColor(),
     }));
+    if (resp.nr) {
+      displayNotification('There is no place in the room yet.\n\nPleas wait for next round.', 2000);
+    }
     return false;
   };
 }

@@ -2,6 +2,7 @@ package game
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"math/rand"
 	"sync"
@@ -149,6 +150,8 @@ func (a *Arena) setup(w, h int) ([]byte, error) {
 	return respDto, nil
 }
 
+var ErrorNoRoom = errors.New("no room")
+
 // Open does one turn and returns marshaled
 // - points
 // - users table
@@ -166,7 +169,7 @@ func (a *Arena) Open(x, y int, cid, name, color string) ([]byte, error) {
 	if ui == nil {
 		n := len(a.users)
 		if n >= 20 { // TODO const
-			return nil, nil // TODO room is fool
+			return nil, ErrorNoRoom
 		}
 		ui = &UserInfo{
 			score: 0,
