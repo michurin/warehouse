@@ -49,6 +49,9 @@ func Handler(log logger, f func(context.Context, []byte) ([]byte, error)) http.H
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
+		if resp == nil {
+			resp = []byte(`{}`) // force valid JSON, hackish, in perfect world we wouldn't change data here
+		}
 		w.WriteHeader(http.StatusOK)
 		w.Write(resp)
 		w.Write([]byte{13, 10}) // just to be curl and command line friendly
