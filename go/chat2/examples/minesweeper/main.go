@@ -51,8 +51,8 @@ func castToRawMessage(x [][]byte) []json.RawMessage {
 func main() {
 	const chatStreanCapacity = 100
 	const gameStreanCapacity = 100
-	const arenaWidth = 10
-	const arenaHeight = 10
+	const arenaWidth = 12  // TODO const
+	const arenaHeight = 12 // TODO const
 
 	logger := log.Default()
 	addr := bindAddr()
