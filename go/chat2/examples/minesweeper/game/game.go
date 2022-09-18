@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"math/rand"
 	"sync"
+	"time"
 
 	"github.com/michurin/warehouse/go/chat2/examples/minesweeper/valid"
 )
@@ -53,6 +54,7 @@ type Arena struct {
 	closed int
 	arena  [][]int
 	users  map[string]*UserInfo
+	last   time.Time
 	mx     *sync.Mutex
 }
 
@@ -169,6 +171,9 @@ func (a *Arena) Open(x, y int, cid, name, color string) ([]byte, error) {
 	if ui == nil {
 		n := len(a.users)
 		if n >= 20 { // TODO const
+			if time.Now().Sub(a.last) > time.Minute { // TODO const
+				return a.setup(a.width, a.height) // slightly hackish; it's ugly that Game operate with time directly
+			}
 			return nil, ErrorNoRoom
 		}
 		ui = &UserInfo{
@@ -185,6 +190,7 @@ func (a *Arena) Open(x, y int, cid, name, color string) ([]byte, error) {
 	if a.arena[y][x] >= 10 { // already opened, no updates
 		return nil, nil
 	}
+	a.last = time.Now()
 	points := []PointDTO(nil)
 	arenaDelta := ui.id * 10
 	if a.arena[y][x] == 9 { // boom
