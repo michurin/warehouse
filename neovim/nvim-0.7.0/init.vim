@@ -39,7 +39,6 @@ nnoremap <silent> <space>sp <Cmd>lua require'telescope'.extensions.dap.list_brea
 nnoremap <silent> <space>sv <Cmd>lua require'telescope'.extensions.dap.variables()<CR>
 nnoremap <silent> <space>sf <Cmd>lua require'telescope'.extensions.dap.frames()<CR>
 
-
 lua <<TELESCOPE_HELPERS
 function ft_args()
   local bufnr = vim.api.nvim_get_current_buf()
@@ -91,6 +90,7 @@ nnoremap <space>fr <cmd>lua require('telescope.builtin').resume()<cr>
 nnoremap gr <cmd>lua require('telescope.builtin').lsp_references({show_line=false})<cr>
 nnoremap gi <cmd>lua require('telescope.builtin').lsp_implementations({show_line=false})<cr>
 nnoremap gd <cmd>lua require('telescope.builtin').lsp_definitions({show_line=false})<cr>
+nnoremap gf <cmd>vsplit \| lua vim.lsp.buf.definition()<cr>
 nnoremap gy <cmd>lua require('telescope.builtin').lsp_type_definitions({show_line=false})<cr>
 " treesitter
 nnoremap <space>fs <cmd>lua require('telescope.builtin').treesitter()<cr>
@@ -375,6 +375,8 @@ set synmaxcol=10000
 
 set foldmethod=expr
 set foldexpr=nvim_treesitter#foldexpr()
+
+set splitright
 
 highlight Whitespace term=none cterm=none ctermfg=DarkGray gui=none guifg=DarkGray ctermbg=none
 highlight EndOfBuffer term=none cterm=none ctermfg=DarkGray gui=none guifg=DarkGray ctermbg=none
