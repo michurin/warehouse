@@ -9,8 +9,14 @@ clr2="`tput setab 1`$clrB"
 clr3="`tput setaf 3`$clrB"
 clr2a="`tput setaf 1`$clrB"
 
-go test -coverprofile=coverage.out "$@" |
-    sed -u "s/FAIL/${clr2}FAIL$clr0/" |
+# add --coverpkg=./... ?
+go test -coverprofile=coverage.out "$@" 2>&1 |
+    sed -u "s/^\(FAIL\)/$clr2\1$clr0/" |
+    sed -u "s/^\([[:space:]-]*FAIL:.*\)$/$clr2\1$clr0/" |
+    sed -u "s/^\([[:space:]]\{1,\}[[:alpha:]]\{1,\}\.go\)\(:\)\([[:digit:]]*\)\(:.*\)/$clr3\1$clr0\2$clr3\3$clr0\4/" |
+    sed -u "s/^\([[:alpha:]/-_]\{1,\}.go\):\([[:digit:]]*\):\(.*\)$/$clr3\1$clr0:$clr1\2$clr0:\3/" |
+    sed -u "s/^\([[:alpha:]/-_]\{1,\}.go\):\([[:digit:]]*\):\([[:digit:]]\):\(.*\)$/$clr3\1$clr0:\2:\3\4/" |
+    sed -u "s/^\(\?\)\(.*\)/$clrB\1$clr0\2/" |
     sed -u "s/^\([[:space:]]\/.*\)\$/$clrB\1$clr0/" &&
 go tool cover -func=coverage.out |
     sed "s-\(100.0%\)\$-$clr1\1$clr0-" |
