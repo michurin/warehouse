@@ -32,6 +32,12 @@
     // remove annoying and useless garbage
     document.querySelectorAll('.PSHeaderLogo360').forEach(e => e.remove());
     document.querySelectorAll('.PSHeader-Center').forEach(e => e.style.opacity = 0);
-    document.querySelectorAll('.mail-DirectLineContainer').forEach(x=>x.remove());
+    // annoying banner YA360
+    document.querySelectorAll('.WithSlidingSearch').forEach((e, n) => { if (n == 0) { e.style.opacity = 0; } });
+    // the ad line right below search and above controls like reply etc
+    document.querySelectorAll('.mail-DirectLineContainer').forEach(e => {
+      e.style.position = 'absolute';
+      e.offsetTop = '-1000px';
+    });
   }, 2000);
 })();
