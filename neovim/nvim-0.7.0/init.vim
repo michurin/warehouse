@@ -477,8 +477,13 @@ function! s:GoAlt(cmd)
   endif
 endfunction
 
+function! s:GoLint()
+  cexpr system('golangci-lint run')
+endfunction
+
 command! GA call s:GoAlt('e')
 command! GAA call s:GoAlt('bo vs')
+command! GL call s:GoLint()
 
 " https://github.com/nvim-treesitter/nvim-treesitter-textobjects
 " map <silent> [[ :noh<CR>?^func\><CR>:let @/=''<CR>:set hls<CR>
