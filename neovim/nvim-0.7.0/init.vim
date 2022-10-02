@@ -390,6 +390,14 @@ highlight VertSplit cterm=none ctermbg=none ctermfg=238
 highlight TabLine cterm=none ctermbg=238 ctermfg=0
 highlight TabLineSel cterm=bold ctermbg=238 ctermfg=15
 highlight TabLineFill cterm=none ctermbg=238
+highlight CursorLine cterm=none ctermbg=242
+highlight CursorLineNr cterm=none ctermbg=242
+highlight CursorColumn cterm=none ctermbg=242
+
+let g:netrw_winsize = 30
+let g:netrw_banner = 0
+
+nnoremap <space>dd :Lexplore %:p:h<CR>
 
 autocmd TextYankPost * lua vim.highlight.on_yank {higroup="hlTextYankPost", timeout=400}
 highlight link hlTextYankPost Visual
