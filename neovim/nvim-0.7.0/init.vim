@@ -120,6 +120,8 @@ require('telescope').setup{
 require('telescope').load_extension('dap')
 TELESCOPE_SETTINGS
 
+highlight TelescopeNormal ctermfg=7
+
 if filereadable(getcwd() . "/.nogofumpt") " Oh, too hackish. vim.lsp.buf.list_workspace_folders() or util.root_pattern?
   let g:nogofumpt_tweak = 1
 endif
@@ -356,6 +358,7 @@ TREESITTER_SETTINGS
 
 " VERY COMMON SETTINGS
 
+set statusline=%<%f\ %h%m%r%=%-10.(%l,%v%)\ %8.(%B%)
 set nofixendofline
 set scrolloff=4
 set number " relativenumber " /, C-G, C-T instead
@@ -381,6 +384,12 @@ set splitright
 highlight Whitespace term=none cterm=none ctermfg=DarkGray gui=none guifg=DarkGray ctermbg=none
 highlight EndOfBuffer term=none cterm=none ctermfg=DarkGray gui=none guifg=DarkGray ctermbg=none
 highlight LineNr ctermfg=grey
+highlight StatusLineNC cterm=none ctermbg=238 ctermfg=0
+highlight StatusLine cterm=none ctermbg=238 ctermfg=15
+highlight VertSplit cterm=none ctermbg=none ctermfg=238
+highlight TabLine cterm=none ctermbg=238 ctermfg=0
+highlight TabLineSel cterm=bold ctermbg=238 ctermfg=15
+highlight TabLineFill cterm=none ctermbg=238
 
 autocmd TextYankPost * lua vim.highlight.on_yank {higroup="hlTextYankPost", timeout=400}
 highlight link hlTextYankPost Visual
@@ -422,6 +431,7 @@ highlight Folded ctermfg=155 ctermbg=235
 
 autocmd bufenter *.go syntax keyword goTodo contained TODO FIXME XXX BUG todo fixme xxx bug
 
+" TODO consider vim.lsp.buf.format (0.8.0)
 lua <<EOF
 -- https://github.com/golang/tools/blob/master/gopls/doc/vim.md#imports
 function OrgImports(wait_ms)
