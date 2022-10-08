@@ -263,12 +263,12 @@ require'treesitter-context'.setup{
     yaml = {'block_mapping_pair'},
     json = {'pair'},
     markdown = {'section'},
+    go = {'import_declaration', 'assignment_statement', 'short_var_declaration', 'defer_statement', 'func_literal'}, -- func_literal for anonymous functions
   },
 }
 TREESITTER_CONTEXT
-" autocmd VimEnter * TSContextEnable
-highlight TreesitterContext ctermbg=242
-highlight TreesitterContextLineNumber ctermbg=242 ctermfg=200
+highlight TreesitterContext ctermbg=238
+highlight TreesitterContextLineNumber ctermbg=238 ctermfg=200
 
 lua <<TREESITTER_SETTINGS
 require'nvim-treesitter.configs'.setup {
@@ -518,6 +518,13 @@ function! EchoWarning(msg)
 endfunction
 nnoremap Ж :call EchoWarning('RU')<CR>
 set langmap=ФИСВУАПРШОЛДЬТЩЗЙКЫЕГМЦЧНЯ;ABCDEFGHIJKLMNOPQRSTUVWXYZ,фисвуапршолдьтщзйкыегмцчня;abcdefghijklmnopqrstuvwxyz
+
+" Hacks
+
+"function SyntaxItemHack()
+"  return synIDattr(synID(line("."),col("."),1),"name")
+"endfunction
+"set statusline=%<%f\ %h%m%r\ %{&filetype}%=%{SyntaxItemHack()}\ %-10.(%l,%v%)\ %8.(%B%)
 
 " Execute shell commands
 
