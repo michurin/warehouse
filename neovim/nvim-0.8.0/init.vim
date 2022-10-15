@@ -262,6 +262,7 @@ require'treesitter-context'.setup{
     default = {'class', 'function', 'method', 'for', 'while', 'if', 'switch', 'case'},
     yaml = {'block_mapping_pair'},
     json = {'pair'},
+    toml = {'table', 'bare_key'},
     markdown = {'section'},
     go = {'import_declaration', 'assignment_statement', 'short_var_declaration', 'defer_statement', 'func_literal'}, -- func_literal for anonymous functions
   },
