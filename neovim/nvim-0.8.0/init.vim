@@ -210,7 +210,7 @@ local on_attach = function(client, bufnr)
   buf_set_keymap('n', '[d', '<cmd>lua vim.diagnostic.goto_prev()<CR>', opts)
   buf_set_keymap('n', ']d', '<cmd>lua vim.diagnostic.goto_next()<CR>', opts)
   buf_set_keymap('n', '<space>q', '<cmd>lua vim.lsp.diagnostic.set_loclist()<CR>', opts)
-  buf_set_keymap('n', '<space>f', '<cmd>lua vim.lsp.buf.formatting()<CR>', opts)
+  buf_set_keymap('n', '<space>f', '<cmd>lua vim.lsp.buf.format()<CR>', opts)
 -- deprecated vim.lsp.diagnostic.show_line_diagnostics()
   buf_set_keymap('n', '<space>e', '<cmd>lua vim.diagnostic.open_float({source="if_many"})<CR>', opts)
 end
@@ -439,26 +439,6 @@ highlight Folded ctermfg=155 ctermbg=235
 
 autocmd bufenter *.go syntax keyword goTodo contained TODO FIXME XXX BUG todo fixme xxx bug
 
-" TODO consider vim.lsp.buf.format (0.8.0)
-lua <<EOF
--- https://github.com/golang/tools/blob/master/gopls/doc/vim.md#imports
-function OrgImports(wait_ms)
-  vim.lsp.buf.formatting_sync(nil, 3000) -- one line added by me
-  local params = vim.lsp.util.make_range_params()
-  params.context = {only = {"source.organizeImports"}}
-  local result = vim.lsp.buf_request_sync(0, "textDocument/codeAction", params, wait_ms)
-  for _, res in pairs(result or {}) do
-    for _, r in pairs(res.result or {}) do
-      if r.edit then
-        vim.lsp.util.apply_workspace_edit(r.edit, "UTF-8")
-      else
-        vim.lsp.buf.execute_command(r.command)
-      end
-    end
-  end
-end
-EOF
-
 function! s:GoAlt(cmd)
   let l:cf = expand('%:p')
   if l:cf[-8:] == '_test.go'
@@ -489,13 +469,13 @@ command! GL call s:GoLint()
 " map <silent> [[ :noh<CR>?^func\><CR>:let @/=''<CR>:set hls<CR>
 " map <silent> ]] :noh<CR>/^func\><CR>:let @/=''<CR>:set hls<CR>
 
-autocmd FileType go autocmd BufWritePre *.go lua OrgImports(1000)
+autocmd FileType go autocmd BufWritePre *.go lua vim.lsp.buf.format()
 
 " NON-GO
 
 autocmd BufRead * let &l:modifiable = !&readonly " Blocking changes to read only files
 
-autocmd FileType javascript autocmd BufWritePre *.js lua vim.lsp.buf.formatting_sync(nil, 500)
+autocmd FileType javascript autocmd BufWritePre *.js lua vim.lsp.buf.format()
 
 autocmd FileType go     setlocal noexpandtab
 autocmd FileType vim    setlocal shiftwidth=2 tabstop=2 softtabstop=2
