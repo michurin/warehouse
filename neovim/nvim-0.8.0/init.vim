@@ -479,6 +479,7 @@ autocmd FileType javascript autocmd BufWritePre *.js lua vim.lsp.buf.format()
 
 autocmd FileType go     setlocal noexpandtab
 autocmd FileType vim    setlocal shiftwidth=2 tabstop=2 softtabstop=2
+autocmd FileType markdown setlocal shiftwidth=2 tabstop=2 softtabstop=2
 autocmd FileType lua    setlocal shiftwidth=2 tabstop=2 softtabstop=2
 autocmd FileType css    setlocal shiftwidth=2 tabstop=8 softtabstop=2
 autocmd FileType html   setlocal shiftwidth=2 tabstop=8 softtabstop=2
