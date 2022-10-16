@@ -22,7 +22,20 @@ call plug#end()
 
 lua <<DAP
 require('dap-go').setup()
-require('dapui').setup()
+require('dapui').setup({
+  layouts = {
+    {
+      elements = {'repl', 'scopes'},
+      size = 0.25,
+      position = 'bottom',
+    }
+  },
+  controls = {
+    element = "repl",
+    enabled = false,
+    icons = {pause="Pause",play="Play",step_into="Info",step_over="Over",step_out="Out",step_back="Back",run_last="Run",terminate="Kill"},
+  }
+})
 DAP
 nnoremap <silent> <space>dp <Cmd>lua require'dap'.toggle_breakpoint()<CR>
 nnoremap <silent> <space>dP <Cmd>lua require'dap'.set_breakpoint(vim.fn.input('Breakpoint condition: '))<CR>
@@ -31,8 +44,7 @@ nnoremap <silent> <space>dc <Cmd>lua require'dap'.continue()<CR>
 nnoremap <silent> <space>dn <Cmd>lua require'dap'.step_over()<CR>
 nnoremap <silent> <space>di <Cmd>lua require'dap'.step_into()<CR>
 nnoremap <silent> <space>do <Cmd>lua require'dap'.step_out()<CR>
-nnoremap <silent> <space>dv <Cmd>lua require'dapui'.float_element('scopes', {enter=1})<CR>
-nnoremap <silent> <space>dr <Cmd>lua require'dapui'.float_element('repl', {enter=1})<CR>
+nnoremap <silent> <space>du <Cmd>lua require'dapui'.toggle()<CR>
 nnoremap <silent> <space>sc <Cmd>lua require'telescope'.extensions.dap.commands()<CR>
 nnoremap <silent> <space>sC <Cmd>lua require'telescope'.extensions.dap.configurations()<CR>
 nnoremap <silent> <space>sp <Cmd>lua require'telescope'.extensions.dap.list_breakpoints({show_line=false})<CR>
