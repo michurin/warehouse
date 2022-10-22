@@ -411,7 +411,23 @@ highlight CursorColumn cterm=none ctermbg=242
 let g:netrw_winsize = 30
 let g:netrw_banner = 0
 
-nnoremap <space>dd :Lexplore %:p:h<CR>
+function! ToggleNetrw()
+  let f = 1
+  let i = bufnr("$")
+  while (i >= 1)
+    if (getbufvar(i, "&filetype") == "netrw")
+      silent exe "bwipeout " . i
+      let f = 0
+    endif
+    let i-=1
+  endwhile
+  if f
+    let g:NetrwIsOpen=1
+    silent Lexplore %:p:h
+  endif
+endfunction
+
+nnoremap <space>dd :call ToggleNetrw()<CR>
 
 autocmd TextYankPost * lua vim.highlight.on_yank {higroup="hlTextYankPost", timeout=400}
 highlight link hlTextYankPost Visual
