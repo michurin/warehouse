@@ -483,6 +483,31 @@ command! GL call s:GoLint()
 " map <silent> [[ :noh<CR>?^func\><CR>:let @/=''<CR>:set hls<CR>
 " map <silent> ]] :noh<CR>/^func\><CR>:let @/=''<CR>:set hls<CR>
 
+" https://github.com/neovim/nvim-lspconfig/issues/115#issuecomment-1128949874
+lua <<EOF
+function org_imports(wait_ms)
+  local clients = vim.lsp.buf_get_clients()
+  for _, client in pairs(clients) do
+    local params = vim.lsp.util.make_range_params(nil, client.offset_encoding)
+    params.context = {only = {"source.organizeImports"}}
+    local result = vim.lsp.buf_request_sync(0, "textDocument/codeAction", params, 5000)
+    for _, res in pairs(result or {}) do
+      for _, r in pairs(res.result or {}) do
+        if r.edit then
+          vim.lsp.util.apply_workspace_edit(r.edit, client.offset_encoding)
+        else
+          vim.lsp.buf.execute_command(r.command)
+        end
+      end
+    end
+  end
+end
+EOF
+
+autocmd FileType go autocmd BufWritePre *.go lua org_imports(5000)
+" looking nice alternative, however won't work in some cases
+" autocmd FileType go autocmd BufWritePre *.go lua vim.lsp.buf.code_action({ context = { only = { "source.organizeImports" } }, apply = true })
+
 autocmd FileType go autocmd BufWritePre *.go lua vim.lsp.buf.format()
 
 " NON-GO
