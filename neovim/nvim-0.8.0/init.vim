@@ -102,7 +102,7 @@ nnoremap <space>fr <cmd>lua require('telescope.builtin').resume()<cr>
 nnoremap gr <cmd>lua require('telescope.builtin').lsp_references({show_line=false})<cr>
 nnoremap gi <cmd>lua require('telescope.builtin').lsp_implementations({show_line=false})<cr>
 nnoremap gd <cmd>lua require('telescope.builtin').lsp_definitions({show_line=false})<cr>
-nnoremap gf <cmd>vsplit \| lua vim.lsp.buf.definition()<cr>
+nnoremap gs <cmd>lua require('telescope.builtin').lsp_definitions({show_line=false, jump_type='vsplit'})<cr> " nnoremap gs <cmd>vsplit \| lua vim.lsp.buf.definition()<cr>
 nnoremap gy <cmd>lua require('telescope.builtin').lsp_type_definitions({show_line=false})<cr>
 " treesitter
 nnoremap <space>fs <cmd>lua require('telescope.builtin').treesitter()<cr>
@@ -228,7 +228,7 @@ local on_attach = function(client, bufnr)
 end
 
 local servers = {'gopls', 'intelephense', 'pyright', 'tsserver'}
-local capabilities = require('cmp_nvim_lsp').update_capabilities(vim.lsp.protocol.make_client_capabilities())
+local capabilities = require('cmp_nvim_lsp').default_capabilities(vim.lsp.protocol.make_client_capabilities())
 for _, lsp in pairs(servers) do
   require('lspconfig')[lsp].setup {
     on_attach = on_attach,
