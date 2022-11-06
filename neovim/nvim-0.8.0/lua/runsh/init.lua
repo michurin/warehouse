@@ -63,8 +63,8 @@ vim.keymap.set('n', '<space>www', function()
     height=vim.api.nvim_get_option('lines')-2,
     col=1,
     row=1,
-    --style='minimal',
-    --border='single',
+    style='minimal',
+    border='single',
     noautocmd=1,
   })
 
