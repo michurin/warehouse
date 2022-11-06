@@ -407,6 +407,9 @@ highlight TabLineFill cterm=none ctermbg=238
 highlight CursorLine cterm=none ctermbg=242
 highlight CursorLineNr cterm=none ctermbg=242
 highlight CursorColumn cterm=none ctermbg=242
+highlight Normal cterm=none ctermfg=none ctermbg=none
+highlight NormalFloat cterm=none ctermfg=none ctermbg=none
+highlight FloatBorder cterm=none ctermfg=DarkGray ctermbg=none
 
 let g:netrw_winsize = 30
 let g:netrw_banner = 0
