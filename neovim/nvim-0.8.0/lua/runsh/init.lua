@@ -25,6 +25,11 @@ bindings
 affected registers
 - e
 
+# ideas
+
+set fde=getline(v:lnum)=~'^\\s*$'&&getline(v:lnum+1)=~'\\S'?'<1':1
+set fdm=expr
+
 --]]
 
 function check_stop_line(r)
@@ -56,6 +61,7 @@ vim.keymap.set('n', '<space>www', function()
 
   vim.fn.setreg('e', res)
   vim.api.nvim_buf_set_text(buf, 0, 0, -1, 0, vim.split(command .. '\n\n' .. res, '\n'))
+  vim.api.nvim_buf_set_option(buf, 'modifiable', false) -- race here?
 
   local win = vim.api.nvim_open_win(buf, true, {
     relative='editor',
@@ -70,16 +76,10 @@ vim.keymap.set('n', '<space>www', function()
 
   local opts = {buffer=buf}
 
-  vim.keymap.set('n', 'q', function()
-    vim.api.nvim_win_hide(win)
-  end, opts)
-  vim.keymap.set('n', '<esc><esc>', function()
-    vim.api.nvim_win_hide(win)
-  end, opts)
+  vim.keymap.set('n', '<space>www', function() vim.api.nvim_win_hide(win) end, opts) -- reset www
+  vim.keymap.set('n', 'q', function() vim.api.nvim_win_hide(win) end, opts)
+  vim.keymap.set('n', '<esc><esc>', function() vim.api.nvim_win_hide(win) end, opts)
 
-  vim.keymap.set('n', 'w', function()
-    vim.api.nvim_win_set_option(0, "wrap",
-      not vim.api.nvim_win_get_option(0, 'wrap'))
-  end, opts)
+  vim.keymap.set('n', 'w', function() vim.api.nvim_win_set_option(0, "wrap", not vim.api.nvim_win_get_option(0, 'wrap')) end, opts)
 
 end)
