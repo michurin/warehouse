@@ -384,6 +384,7 @@ set softtabstop=4
 set expandtab
 set autoindent
 set list lcs=trail:+,tab:▹·
+set whichwrap+=<,>,[,]
 set fillchars=fold:\ " (space)
 " set foldmethod=syntax
 set foldlevelstart=99
