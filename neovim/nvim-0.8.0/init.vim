@@ -128,6 +128,19 @@ require('telescope').setup{
 --      },
     },
   },
+  pickers = {
+    buffers = {
+      show_all_buffers = true,
+      sort_lastused = true,
+--      theme = "dropdown",
+--      previewer = false,
+      mappings = {
+        i = {
+          ["<c-e>"] = "delete_buffer",
+        }
+      }
+    },
+  },
 }
 require('telescope').load_extension('dap')
 TELESCOPE_SETTINGS
