@@ -1,0 +1,14 @@
+[Unit]
+Description=MICHURIN: Reverse tunnel from michurin.net
+After=network.target
+
+[Service]
+Type=simple
+User=t
+Group=users
+ExecStart=/usr/bin/ssh -N tunn
+Restart=always
+RestartSec=60
+
+[Install]
+WantedBy=multi-user.target
