@@ -1,0 +1,9 @@
+[Unit]
+# https://sleeplessbeastie.eu/2015/11/09/how-to-set-cpu-governor-at-boot/
+# /etc/systemd/system/michurin-cpupower.service
+Description=CPU powersave
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/cpupower -c all frequency-set -d 800MHz -u 800MHz
+[Install]
+WantedBy=multi-user.target
