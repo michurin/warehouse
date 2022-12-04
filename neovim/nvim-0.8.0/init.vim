@@ -408,6 +408,7 @@ set foldmethod=expr
 set foldexpr=nvim_treesitter#foldexpr()
 
 set splitright
+set isfname-=# " TODO: do it for YAML only?
 
 highlight Whitespace term=none cterm=none ctermfg=DarkGray gui=none guifg=DarkGray ctermbg=none
 highlight EndOfBuffer term=none cterm=none ctermfg=DarkGray gui=none guifg=DarkGray ctermbg=none
