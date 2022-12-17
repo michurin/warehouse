@@ -5,14 +5,27 @@
 [user]
 	email = a.michurin@gmail.com
 	name = Alexey Michurin
-[color]
-	diff = auto
-	status = auto
-	branch = auto
-	interactive = auto
 [url "git@github.com:"]
 	insteadOf = https://github.com/
 [commit]
 	template = ~/.gitmessage
 [diff]
 	noprefix = true
+[pager]
+	log = diff-highlight | less
+	show = diff-highlight | less
+	diff = diff-highlight | less
+[color]
+	diff = auto
+	status = auto
+	branch = auto
+	interactive = auto
+[color "diff"]
+	meta = "bold cyan"
+	old = red
+	new = green
+[color "diff-highlight"]
+	oldNormal = red
+	newNormal = green
+	oldHighlight = "bold red #555555"
+	newHighlight = "bold green #555555"
