@@ -44,6 +44,8 @@ nnoremap <silent> <space>dc <Cmd>lua require'dap'.continue()<CR>
 nnoremap <silent> <space>dn <Cmd>lua require'dap'.step_over()<CR>
 nnoremap <silent> <space>di <Cmd>lua require'dap'.step_into()<CR>
 nnoremap <silent> <space>do <Cmd>lua require'dap'.step_out()<CR>
+nnoremap <silent> <space>dv <Cmd>lua require'dapui'.float_element('scopes', {enter=1})<CR>
+nnoremap <silent> <space>dr <Cmd>lua require'dapui'.float_element('repl', {enter=1})<CR>
 nnoremap <silent> <space>du <Cmd>lua require'dapui'.toggle()<CR>
 nnoremap <silent> <space>sc <Cmd>lua require'telescope'.extensions.dap.commands()<CR>
 nnoremap <silent> <space>sC <Cmd>lua require'telescope'.extensions.dap.configurations()<CR>
@@ -512,6 +514,11 @@ endfunction
 command! GA call s:GoAlt('e')
 command! GAA call s:GoAlt('bo vs')
 command! GL call s:GoLint()
+" alias pbcopy='xclip -selection clipboard'
+" alias pbpaste='xclip -selection clipboard -o'
+" alias pbcopy='xsel --clipboard --input'
+" alias pbpaste='xsel --clipboard --output'
+command! GP :lgetexpr system("pbpaste | sed -n '/^[[:space:]]/ {s/^[[:space:]]*//; s/\\(:[0-9][0-9]*\\)/\\1:>/; p;}'") | lopen " Uh. Ugly
 
 " https://github.com/nvim-treesitter/nvim-treesitter-textobjects
 " map <silent> [[ :noh<CR>?^func\><CR>:let @/=''<CR>:set hls<CR>
