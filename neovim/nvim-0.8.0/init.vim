@@ -477,7 +477,7 @@ highlight SpellLocal term=none cterm=underline ctermfg=none gui=bold guifg=none 
 function! XFoldText()
     let line = getline(v:foldstart)
     let folded_line_num = v:foldend - v:foldstart
-    let line_text = substitute(line, '^{\+[0-9]\+\s\+', '', 'g') " hackish way to remove default marker
+    let line_text = substitute(substitute(line, '^{\+[0-9]\+\s\+', '', 'g'), '^  ', '', 'g') " hackish way to remove two spaces and default marker
     let fillcharcount = winwidth(0) - len(line_text) - len(folded_line_num) - 11
     return '⟫ ' . line_text . ' ' . repeat('╶', fillcharcount) . ' (' . folded_line_num . ')'
 endfunction
@@ -568,6 +568,9 @@ autocmd FileType json   setlocal shiftwidth=2 tabstop=8 softtabstop=2
 autocmd FileType yaml   setlocal shiftwidth=2 tabstop=2 softtabstop=2 foldmethod=indent
 autocmd FileType make   setlocal tabstop=8
 autocmd FileType tcl    setlocal shiftwidth=2 tabstop=8 softtabstop=2 foldmethod=indent
+
+" force json. Slightly ugly
+command! JSON :setlocal syntax=json foldmethod=syntax buftype=nofile | :echo ''
 
 " Language related hacks
 
