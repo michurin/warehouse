@@ -1,0 +1,12 @@
+#!/usr/bin/perl
+
+while (<>) {
+    s{^\s*(ca|cert|dh|extra-certs|key|pkcs12|secret|crl-verify|http-proxy-user-pass|tls-auth|tls-crypt)\s+(\S+)}{
+        local $/ = undef;
+        my $tag = $1;
+        open my $fh, "<", $2 or die "could not open $2: $!";
+        my $doc = <$fh>;
+        "<$tag>\n$doc\n</$tag>"
+    }e;
+    print;
+}
