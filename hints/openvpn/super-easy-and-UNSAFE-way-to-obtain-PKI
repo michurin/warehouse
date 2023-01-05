@@ -1,0 +1,29 @@
+#!/bin/sh
+
+#############################################
+# FIRST:
+# DO NOT GENERATE ALL KEYS ON THE SAME HOST
+#############################################
+
+# git clone https://github.com/OpenVPN/easy-rsa.git
+
+set -x
+set -e
+
+export EASYRSA_RAND_SN=no
+export EASYRSA_NO_PASS=1
+export EASYRSA_KEY_SIZE=4096
+
+export EASYRSA_REQ_COUNTRY='US'
+export EASYRSA_REQ_PROVINCE='California'
+export EASYRSA_REQ_CITY='San Francisco'
+export EASYRSA_REQ_ORG='Copyleft Certificate Co'
+export EASYRSA_REQ_EMAIL='alexey@michurin.net'
+export EASYRSA_REQ_OU='MICHURIN NET'
+
+./easyrsa init-pki
+./easyrsa build-ca
+./easyrsa gen-req taurus
+./easyrsa sign-req server taurus
+./easyrsa gen-req mac
+./easyrsa sign-req client mac
