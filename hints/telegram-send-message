@@ -5,3 +5,11 @@ CHAT=123
 TEXT=text
 
 curl "https://api.telegram.org/bot${TOKEN}/sendMessage" -s -F chat_id="$CHAT" -F text="$TEXT"
+
+exit
+
+# how to figure out user and chat ids
+
+curl "https://api.telegram.org/bot${TOKEN}/getUpdates" -s | jq
+
+# more info: https://core.telegram.org/bots/api#getupdates
