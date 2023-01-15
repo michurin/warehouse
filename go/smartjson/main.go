@@ -52,7 +52,7 @@ func main() {
 	fmt.Println("====")
 	r := smartjson.Marshal(target, &smartjson.Opts{
 		Width:  30,
-		Indent: 4,
+		Indent: 2,
 	})
 	fmt.Println(r)
 	w, h, err := consoleSize()
