@@ -38,6 +38,7 @@ func consoleSize() (int, int, error) {
 
 // echo '{"1": [1, {"x":"xx"}, 4444]}' | go run main.go
 // echo '{"1": [[1, 2], {"x":{"znn":111111}}, true, null]}' | go run main.go
+// for x in `seq 3`; do perl -e "\$x=q{1}x$x;"'print(qq/{"x":[$x, "t", null, false, true]}/);' | go run ./main.go ; done
 func main() {
 	buff, err := io.ReadAll(os.Stdin)
 	if err != nil {
@@ -53,6 +54,7 @@ func main() {
 	r := smartjson.Marshal(target, &smartjson.Opts{
 		Width:  30,
 		Indent: 2,
+		Theme:  smartjson.ThemeOne,
 	})
 	fmt.Println(r)
 	w, h, err := consoleSize()
