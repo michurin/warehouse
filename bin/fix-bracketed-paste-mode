@@ -1,0 +1,5 @@
+#!/bin/sh
+
+# https://github.com/ChrisJohnsen/tmux-MacOSX-pasteboard/issues/31
+
+printf '\e[?2004l'
