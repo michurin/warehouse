@@ -578,6 +578,18 @@ autocmd FileType tcl    setlocal shiftwidth=2 tabstop=8 softtabstop=2 foldmethod
 " force json. Slightly ugly
 command! JSON :setlocal syntax=json foldmethod=syntax buftype=nofile | :echo ''
 
+" Git related hacks
+
+" ugly, however it make you free to search over raw git blame output
+function! GitBlame()
+  let l:l = line('.')
+  execute 'new | 0read ! git blame ' expand('%')
+  set buftype=nofile
+  set bufhidden=wipe
+  execute l:l
+endfunction
+command! GitBlame :call GitBlame()
+
 " Language related hacks
 
 function! EchoWarning(msg)
