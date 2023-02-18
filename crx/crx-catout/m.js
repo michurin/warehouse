@@ -1,7 +1,7 @@
 (() => {
   setInterval(() => {
     // letter-like
-    var cc = document.querySelector('[data-key="box=toolbar-box"]');
+    let cc = document.querySelector('[data-key="box=toolbar-box"]');
     if (cc) {
       cc = cc.parentElement.children;
       if (cc.length === 5) {
@@ -16,7 +16,7 @@
     // left banners second and further generations
     cc = document.querySelectorAll('.mail-NestedList-Setup');
     if (cc.length === 3) {
-      var x = document.querySelectorAll('.mail-NestedList-Setup')[2].nextElementSibling
+      const x = document.querySelectorAll('.mail-NestedList-Setup')[2].nextElementSibling;
       if (x) {
         x.remove();
       }
@@ -33,7 +33,7 @@
     document.querySelectorAll('.PSHeaderLogo360').forEach(e => e.remove());
     document.querySelectorAll('.PSHeader-Center').forEach(e => e.style.opacity = 0);
     // annoying banner YA360
-    document.querySelectorAll('.WithSlidingSearch').forEach((e, n) => { if (n == 0) { e.style.opacity = 0; } });
+    document.querySelectorAll('.WithSlidingSearch').forEach((e, n) => { if (n === 0) { e.style.opacity = 0; } });
     // the ad line right below search and above controls like reply etc
     document.querySelectorAll('.mail-DirectLineContainer').forEach(e => {
       e.style.position = 'absolute';

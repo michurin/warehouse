@@ -1,6 +1,6 @@
 (() => {
   setInterval(() => {
-    ['blocked-results-banner', 'rca', 'lig_reverso_smartbox_article_tc'].forEach((x) => {
+    ['blocked-results-banner', 'rca', 'lig_reverso_smartbox_article_tc'].forEach(x => {
       const e = document.getElementById(x);
       if (e) {
         e.remove();

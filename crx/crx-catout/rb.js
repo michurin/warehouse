@@ -5,4 +5,3 @@
     document.querySelectorAll('.media-container').forEach(x => x.parentElement.remove());
   }, 2000);
 })();
-
