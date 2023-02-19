@@ -35,7 +35,6 @@ function main() {
     }
     const td = document.createElement('div'); // TODO function div builder
     td.innerText = mn;
-    td.classList.add('cell');
     table.appendChild(td);
   }
 }

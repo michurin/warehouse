@@ -4,21 +4,23 @@
   float: left;
 }
 
-div.cell {
+div {
   font-family: sans-serif;
   font-size: min(2.1vw, 21px);
   padding: min(1vw, 7px);
-  margin: 0;
-  border-width: 0;
-  background-color: #eee;
   text-align: center;
-  border-radius: 50%;
+  margin: 3px;
+  border-width: 0;
+}
+
+div.cell {
+  background-color: #eee;
+  border-radius: 20%;
 }
 
 div.today.cell {
-  padding: calc(min(1vw, 7px) + 4px);
-  margin: -6px;
-  border: 2px solid #000;
+  margin: 0px;
+  border: 3px dashed #000;
   z-index: 1;
 }
 
