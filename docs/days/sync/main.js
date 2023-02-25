@@ -8,7 +8,7 @@ function log(text, color) {
 }
 
 function safe(name, f) {
-  return async function () {
+  return async function() {
     log(name, '#080');
     try {
       await f();
@@ -44,10 +44,21 @@ document.getElementById('merge').onclick = safe('MERGE', async () => {
   log('not implemented');
 });
 
+document.getElementById('merge_soft').onclick = safe('SOFT MERGE', async () => {
+  log('not implemented');
+});
+
 document.getElementById('merge_dry').onclick = safe('MERGE DRY RUN', async () => {
   log('not implemented');
 });
 
 document.getElementById('undo').onclick = safe('UNDO', async () => {
   log('not implemented');
+});
+
+document.getElementById('select').onclick = safe('SELECT', async () => {
+  const range = document.createRange();
+  range.selectNode(document.getElementById('json'));
+  window.getSelection().removeAllRanges();
+  window.getSelection().addRange(range);
 });
