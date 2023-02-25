@@ -1,13 +1,26 @@
 <!DOCTYPE html>
 <html>
   <head>
+    <title>Days</title>
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=0">
     <link rel="stylesheet" href="style.css">
+    <link href="/favicon.ico" rel="shortcut icon" type="image/x-icon">
+    <link rel="apple-touch-icon" href="icon192.png" sizes="192x192">
+    <link rel="shortcut icon" href="icon32.png" sizes="32x32">
+    <link rel="shortcut icon" href="icon192.png" sizes="192x192">
   </head>
   <body>
     <div id="body"></div>
+    <div id="ctrl">
+      <form>
+      <input type="radio" name="rad" id="lock" checked="checked"><label for="lock">lock</label>
+      <input type="radio" name="rad" id="bg"><label for="bg">background</label>
+      <input type="radio" name="rad" id="kind"><label for="kind">kind</label>
+      <input type="radio" name="rad" id="reset"><label for="reset">reset</label>
+      </form>
+    </div>
     <script src="main.js"></script>
   </body>
 </html>

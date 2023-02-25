@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Sync</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=0">
+    <link href="/favicon.ico" rel="shortcut icon" type="image/x-icon">
+    <link rel="apple-touch-icon" href="../icon192.png" sizes="192x192">
+    <link rel="shortcut icon" href="../icon32.png" sizes="32x32">
+    <link rel="shortcut icon" href="../icon192.png" sizes="192x192">
+  </head>
+  <style>
+    body {
+      color: #000;
+      background-color: #fff;
+      font-family: sans-serif;
+    }
+    #log div {
+      border-width: 0 0 1px 0;
+      border-color: #888;
+      border-style: dashed;
+      word-break: break-all;
+      font-size: x-small;
+    }
+    #json {
+      border: 1px solid #000;
+      background-color: #eee;
+      padding: 2px;
+      margin: 2px 0;
+      word-break: break-all;
+      font-size: x-small;
+    }
+  </style>
+  <body>
+    <h3>Experimental ability to share calendar using clipboard</h3>
+    <div id="json" contenteditable="true" onclick="document.execCommand('selectAll',false,null)">[x]</div>
+    <button id="export">export</button>
+    <button id="import">import</button>
+    <button id="merge">merge</button>
+    <button id="merge_dry">merge dry run</button>
+    <button id="undo">undo</button>
+    <h3>Log</h3>
+    <div id="log"></div>
+    <script src="main.js"></script>
+  </body>
+</html>

@@ -1,29 +1,124 @@
-#body {
-  display: grid;
-  grid-template-columns: repeat(15, 1fr);
-  float: left;
+body {
+  background-color: #fff;
 }
 
 div {
+  user-select: none;
   font-family: sans-serif;
-  font-size: min(2.1vw, 21px);
-  padding: min(1vw, 7px);
-  text-align: center;
-  margin: 3px;
-  border-width: 0;
+  font-size: min(3vw, 30px);
+  padding: 0;
+  margin: 0;
 }
 
-div.cell {
-  background-color: #eee;
-  border-radius: 20%;
+#body {
+  display: grid;
+  grid-template-columns: repeat(15, 1fr);
+  margin: 0 auto;
+  width: min-content;
+  grid-gap: max(.8vw, 8px);
 }
 
-div.today.cell {
-  margin: 0px;
-  border: 3px dashed #000;
-  z-index: 1;
+#body div {
+  text-align: right;
 }
 
-div.dayoff {
+#body div div {
+  height: min(2vw, 7px);
+  padding: 0;
+  margin: 0;
+}
+
+#body div:nth-child(15n) {
+  text-align: left;
+}
+
+/* blinker */
+
+@keyframes blinker {
+  0%   {border-color: #000;}
+  50%  {border-color: #fff;}
+  100% {border-color: #000;}
+}
+
+/* input */
+
+#ctrl {
+  position: fixed;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: 0;
+  background: #fff;
+  border: 1px solid #000;
+  padding: min(1vw, 7px) min(4vw, 28px);
   color: #ccc;
 }
+
+input:checked + label {
+  color: #000;
+  text-decoration: none;
+}
+
+input {
+  display: none;
+}
+
+/* generated */
+
+#body div.holiday {color: #900;}
+#body div.holiday div {background-color: initial;}
+#body div.vacation {color: #090;}
+#body div.vacation div {background-color: initial;}
+#body div.special {color: #f0f;}
+#body div.special div {background-color: initial;}
+#body div.dayoff {color: #ccc;}
+#body div.dayoff div {background-color: initial;}
+#body div.blue {color: initial;}
+#body div.blue div {background-color: #A3D9FF;}
+#body div.holiday-blue {color: #900;}
+#body div.holiday-blue div {background-color: #A3D9FF;}
+#body div.vacation-blue {color: #090;}
+#body div.vacation-blue div {background-color: #A3D9FF;}
+#body div.special-blue {color: #f0f;}
+#body div.special-blue div {background-color: #A3D9FF;}
+#body div.dayoff-blue {color: #ccc;}
+#body div.dayoff-blue div {background-color: #A3D9FF;}
+#body div.gray {color: initial;}
+#body div.gray div {background-color: #7E6B8F;}
+#body div.holiday-gray {color: #900;}
+#body div.holiday-gray div {background-color: #7E6B8F;}
+#body div.vacation-gray {color: #090;}
+#body div.vacation-gray div {background-color: #7E6B8F;}
+#body div.special-gray {color: #f0f;}
+#body div.special-gray div {background-color: #7E6B8F;}
+#body div.dayoff-gray {color: #ccc;}
+#body div.dayoff-gray div {background-color: #7E6B8F;}
+#body div.green {color: initial;}
+#body div.green div {background-color: #96E6B3;}
+#body div.holiday-green {color: #900;}
+#body div.holiday-green div {background-color: #96E6B3;}
+#body div.vacation-green {color: #090;}
+#body div.vacation-green div {background-color: #96E6B3;}
+#body div.special-green {color: #f0f;}
+#body div.special-green div {background-color: #96E6B3;}
+#body div.dayoff-green {color: #ccc;}
+#body div.dayoff-green div {background-color: #96E6B3;}
+#body div.red {color: initial;}
+#body div.red div {background-color: #DA3E52;}
+#body div.holiday-red {color: #900;}
+#body div.holiday-red div {background-color: #DA3E52;}
+#body div.vacation-red {color: #090;}
+#body div.vacation-red div {background-color: #DA3E52;}
+#body div.special-red {color: #f0f;}
+#body div.special-red div {background-color: #DA3E52;}
+#body div.dayoff-red {color: #ccc;}
+#body div.dayoff-red div {background-color: #DA3E52;}
+#body div.yellow {color: initial;}
+#body div.yellow div {background-color: #F2E94E;}
+#body div.holiday-yellow {color: #900;}
+#body div.holiday-yellow div {background-color: #F2E94E;}
+#body div.vacation-yellow {color: #090;}
+#body div.vacation-yellow div {background-color: #F2E94E;}
+#body div.special-yellow {color: #f0f;}
+#body div.special-yellow div {background-color: #F2E94E;}
+#body div.dayoff-yellow {color: #ccc;}
+#body div.dayoff-yellow div {background-color: #F2E94E;}
