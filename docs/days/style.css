@@ -1,5 +1,6 @@
 body {
-  background-color: #fff;
+  background-color: #222;
+  color: #ccc;
 }
 
 div {
@@ -12,7 +13,7 @@ div {
 
 #body {
   display: grid;
-  grid-template-columns: repeat(15, 1fr);
+  grid-template-columns: repeat(16, 1fr);
   margin: 0 auto;
   width: min-content;
   grid-gap: max(.8vw, 8px);
@@ -28,16 +29,20 @@ div {
   margin: 0;
 }
 
-#body div:nth-child(15n) {
+#body div:nth-child(16n-15) {
+  color: #333;
+}
+
+#body div:nth-child(16n) {
   text-align: left;
 }
 
 /* blinker */
 
 @keyframes blinker {
-  0%   {border-color: #000;}
+  0%   {border-color: #222;}
   50%  {border-color: #fff;}
-  100% {border-color: #000;}
+  100% {border-color: #222;}
 }
 
 /* input */
@@ -47,14 +52,14 @@ div {
   left: 50%;
   transform: translateX(-50%);
   bottom: 0;
-  background: #fff;
+  background: #333;
   border: 1px solid #000;
   padding: min(1vw, 7px) min(4vw, 28px);
-  color: #ccc;
+  color: #555;
 }
 
 input:checked + label {
-  color: #000;
+  color: #ccc;
   text-decoration: none;
 }
 
@@ -65,14 +70,14 @@ input {
 /* generated */
 
 #body div.holiday {color: #900;}
-#body div.holiday div {background-color: initial;}
+#body div.holiday div {background-color: inherit;}
 #body div.vacation {color: #090;}
-#body div.vacation div {background-color: initial;}
+#body div.vacation div {background-color: inherit;}
 #body div.special {color: #f0f;}
-#body div.special div {background-color: initial;}
-#body div.dayoff {color: #ccc;}
-#body div.dayoff div {background-color: initial;}
-#body div.blue {color: initial;}
+#body div.special div {background-color: inherit;}
+#body div.dayoff {color: #555;}
+#body div.dayoff div {background-color: inherit;}
+#body div.blue {color: inherit;}
 #body div.blue div {background-color: #A3D9FF;}
 #body div.holiday-blue {color: #900;}
 #body div.holiday-blue div {background-color: #A3D9FF;}
@@ -80,9 +85,9 @@ input {
 #body div.vacation-blue div {background-color: #A3D9FF;}
 #body div.special-blue {color: #f0f;}
 #body div.special-blue div {background-color: #A3D9FF;}
-#body div.dayoff-blue {color: #ccc;}
+#body div.dayoff-blue {color: #555;}
 #body div.dayoff-blue div {background-color: #A3D9FF;}
-#body div.gray {color: initial;}
+#body div.gray {color: inherit;}
 #body div.gray div {background-color: #7E6B8F;}
 #body div.holiday-gray {color: #900;}
 #body div.holiday-gray div {background-color: #7E6B8F;}
@@ -90,9 +95,9 @@ input {
 #body div.vacation-gray div {background-color: #7E6B8F;}
 #body div.special-gray {color: #f0f;}
 #body div.special-gray div {background-color: #7E6B8F;}
-#body div.dayoff-gray {color: #ccc;}
+#body div.dayoff-gray {color: #555;}
 #body div.dayoff-gray div {background-color: #7E6B8F;}
-#body div.green {color: initial;}
+#body div.green {color: inherit;}
 #body div.green div {background-color: #96E6B3;}
 #body div.holiday-green {color: #900;}
 #body div.holiday-green div {background-color: #96E6B3;}
@@ -100,9 +105,9 @@ input {
 #body div.vacation-green div {background-color: #96E6B3;}
 #body div.special-green {color: #f0f;}
 #body div.special-green div {background-color: #96E6B3;}
-#body div.dayoff-green {color: #ccc;}
+#body div.dayoff-green {color: #555;}
 #body div.dayoff-green div {background-color: #96E6B3;}
-#body div.red {color: initial;}
+#body div.red {color: inherit;}
 #body div.red div {background-color: #DA3E52;}
 #body div.holiday-red {color: #900;}
 #body div.holiday-red div {background-color: #DA3E52;}
@@ -110,9 +115,9 @@ input {
 #body div.vacation-red div {background-color: #DA3E52;}
 #body div.special-red {color: #f0f;}
 #body div.special-red div {background-color: #DA3E52;}
-#body div.dayoff-red {color: #ccc;}
+#body div.dayoff-red {color: #555;}
 #body div.dayoff-red div {background-color: #DA3E52;}
-#body div.yellow {color: initial;}
+#body div.yellow {color: inherit;}
 #body div.yellow div {background-color: #F2E94E;}
 #body div.holiday-yellow {color: #900;}
 #body div.holiday-yellow div {background-color: #F2E94E;}
@@ -120,5 +125,5 @@ input {
 #body div.vacation-yellow div {background-color: #F2E94E;}
 #body div.special-yellow {color: #f0f;}
 #body div.special-yellow div {background-color: #F2E94E;}
-#body div.dayoff-yellow {color: #ccc;}
+#body div.dayoff-yellow {color: #555;}
 #body div.dayoff-yellow div {background-color: #F2E94E;}

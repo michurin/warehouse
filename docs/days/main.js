@@ -82,8 +82,13 @@ function main() {
   const baseday = today - (today + periodShift) % periodLength;
   const table = document.querySelector('#body');
   let prevMonthName = '';
-  for (let b = baseday - periodLength * 3; b < baseday + 350; b += periodLength) {
+  for (let b = baseday - periodLength * 7; b < baseday + 350; b += periodLength) {
     let ymd;
+    const arr = document.createElement('div'); // TODO function div builder
+    arr.innerText = '■';
+    arr.onclick = updater(b + '_');
+    arr.className = days[b + '_'] || ''; // TODO has to be a part of setUpdater
+    table.appendChild(arr);
     for (let d = 0; d < periodLength; d++) {
       const s = b + d;
       const td = document.createElement('div');
@@ -116,7 +121,7 @@ function main() {
 }
 
 function updater(s) {
-  return function (e) {
+  return function(e) {
     e.preventDefault();
     if (document.getElementById('lock').checked) {
       return;

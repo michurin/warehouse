@@ -5,15 +5,15 @@ Why this way: to have one style per day with clear semantic. And to be able to c
 '''
 
 FG=(
-    ('', 'initial'),
+    ('', 'inherit'),
     ('holiday', '#900'),
     ('vacation', '#090'),
     ('special', '#f0f'),
-    ('dayoff', '#ccc'),
+    ('dayoff', '#555'),
 )
 
 BG=(
-    ('', 'initial'),
+    ('', 'inherit'),
     ('blue', '#A3D9FF'),
     ('gray', '#7E6B8F'),
     ('green', '#96E6B3'),
