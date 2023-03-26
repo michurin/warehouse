@@ -391,6 +391,7 @@ TREESITTER_SETTINGS
 
 " VERY COMMON SETTINGS
 
+set wildmode=list:full,longest
 set statusline=%<%f\ %h%m%r%=%-10.(%l,%v%)\ %8.(%B%)
 set nofixendofline
 set scrolloff=4
@@ -402,7 +403,8 @@ set tabstop=4
 set softtabstop=4
 set expandtab
 set autoindent
-set list lcs=trail:+,tab:▹·
+set list
+set listchars=trail:+,tab:▹·,nbsp:␣,extends:▶,precedes:◀
 set whichwrap+=<,>,[,]
 set fillchars=fold:\ " (space)
 " set foldmethod=syntax
