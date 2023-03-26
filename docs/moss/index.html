@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Ants</title>
+  </head>
+  <body style="background-color: #000; color: #ccc;">
+
+<h3>Fig. 1. Inspirited by <a href="https://youtu.be/MJNy2mdCt20" target="_blank">this</a></h3>
+<canvas style="border: 1px solid #222"></canvas>
+
+<h3>Fig. 2. Based on naive semi-Fourier smooth semi-Perlin noise (<b><i>click</i></b> on it to update)</h3>
+<canvas style="border: 1px solid #222"></canvas>
+<pre>
+Basically, we calculate Fig. 1. as
+ang = cos((x, y)*(1, 0)+(x, y)*(0, 1))
+in terms of dot product or scalar product
+I.e. it bases on two unit vectors.
+
+Fig. 2. bases on similar approach, however
+it uses six random vectors and six terms in sum.
+</pre>
+
+<h3>Fig. 3, 4, 5. The same as 2 with different combinations</h3>
+<canvas style="border: 1px solid #222"></canvas>
+<canvas style="border: 1px solid #222"></canvas>
+<canvas style="border: 1px solid #222"></canvas>
+
+<h3>Further reading</h3>
+<ul>
+<li><a href="https://github.com/processing/p5.js/blob/v1.6.0/src/math/noise.js">Perlin noise impl in p5.js</a></li>
+<li><a href="https://weber.itn.liu.se/~stegu/">Stefan Gustavson</a>: Simplex noise (3D and higher were covered by U.S. <a href="https://patents.google.com/patent/US6867776">Patent 6,867,776</a>)</li>
+</ul>
+
+<script src="main.js"></script>
+<script src="main2.js"></script>
+<script src="main3.js"></script>
+<script src="main4.js"></script>
+<script src="main5.js"></script>
+
+  </body>
+</html>
