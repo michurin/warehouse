@@ -2,7 +2,10 @@ module github.com/michurin/warehouse/go/home_box_prometheus_exporter
 
 go 1.20
 
-require github.com/prometheus/client_golang v1.14.0
+require (
+	github.com/gosnmp/gosnmp v1.35.0
+	github.com/prometheus/client_golang v1.14.0
+)
 
 require (
 	github.com/beorn7/perks v1.0.1 // indirect
