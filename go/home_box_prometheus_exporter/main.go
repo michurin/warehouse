@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"net"
@@ -309,6 +310,80 @@ func updateRouterNetwork() {
 	}
 }
 
+func updateMikrotik() {
+	ourDevices := map[string]string{
+		"0a5777b0a4dc": "A31",
+		"0c9a3c57ded3": "Taurus",
+		"28e347e47687": "asus",
+		"3c22fbb9bae3": "Mac",
+		"60f67723da48": "Owl",
+		"7e4d3ea56879": "A31_2g",
+		"7e65b7dda61d": "A12",
+		"8c8590803920": "Mac",
+		"9a991b7f913e": "SamsungAvito",
+		"a44519790492": "8T",
+		"a44519e332bd": "8A",
+		"d86c02aeff48": "Ok",
+		"dc85ded80a77": "asusLaptop",
+		"e89309fe3a08": "J1",
+		"f21aa397a964": "A22",
+	}
+	mikrotik := readSnmp(".1.3.6.1.4.1.14988.1.1.1.2.1") // https://oidref.com/1.3.6.1.4.1.14988.1.1.1.2.1
+	data := map[string]map[string]any{}                  // x[head key][tail key] = value
+	for k, v := range mikrotik {
+		kht := strings.SplitN(k, ".", 2)
+		kh := kht[0]
+		kt := kht[1]
+		if data[kh] == nil {
+			data[kh] = map[string]any{}
+		}
+		data[kh][kt] = v
+	}
+	oidToDevice := map[string]string{}
+	for k, v := range data["1"] {
+		mac := hex.EncodeToString(v.([]byte))
+		dev, ok := ourDevices[mac]
+		if !ok {
+			log("UNKNOWN device", mac)
+			dev = "unknown"
+		}
+		oidToDevice[k] = dev
+	}
+	for _, d := range [][3]string{
+		{"4", "tx", "octets"},
+		{"5", "rx", "octets"},
+		{"6", "tx", "pkt"},
+		{"7", "rx", "pkt"},
+		{"8", "tx", "bit_per_sec"},
+		{"9", "rx", "bit_per_sec"},
+		{"11", "", "uptime"},
+		{"12", "", "signal_to_noise"},
+	} {
+		for k, v := range data[d[0]] {
+			dev, ok := oidToDevice[k]
+			if !ok {
+				log("SKIP unknown OID", d)
+				continue
+			}
+			f := float64(0)
+			switch x := v.(type) {
+			case uint:
+				f = float64(x)
+			case uint32:
+				f = float64(x)
+			case int:
+				f = float64(x)
+			default:
+				log("SKIP type", fmt.Sprintf("%T", v))
+			}
+			safeGaugeSet(prometheus.GaugeOpts{
+				Name:        "app_mikrotik_clients",
+				ConstLabels: safeLabels(map[string]string{"dir": d[1], "mx": d[2], "client": dev}),
+			}, f)
+		}
+	}
+}
+
 func checkTCP(addr string) float64 {
 	conn, err := net.DialTimeout("tcp", addr, 100*time.Millisecond)
 	if err != nil {
@@ -440,6 +515,7 @@ func main() {
 		updateInterrupts()
 		updateBlocks()
 		updateRouterNetwork()
+		updateMikrotik()
 		updateTCP()
 		metricHandler.ServeHTTP(w, r)
 	}))

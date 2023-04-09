@@ -192,6 +192,27 @@ app_interrupts{mx="TLB"} 1.322019e+06
 app_interrupts{mx="TRM"} 0
 ```
 
+### Mikrotik router connections information by client
+
+```
+app_mikrotik_clients{client="A31_2g",dir="null",mx="signal_to_noise"} 63
+app_mikrotik_clients{client="A31_2g",dir="null",mx="uptime"} 3.5947e+06
+app_mikrotik_clients{client="A31_2g",dir="rx",mx="bit_per_sec"} 6.5e+07
+app_mikrotik_clients{client="A31_2g",dir="rx",mx="octets"} 8.9289804e+07
+app_mikrotik_clients{client="A31_2g",dir="rx",mx="pkt"} 572956
+app_mikrotik_clients{client="A31_2g",dir="tx",mx="bit_per_sec"} 7.22e+07
+app_mikrotik_clients{client="A31_2g",dir="tx",mx="octets"} 2.713791687e+09
+app_mikrotik_clients{client="A31_2g",dir="tx",mx="pkt"} 2.112439e+06
+app_mikrotik_clients{client="Taurus",dir="null",mx="signal_to_noise"} 43
+app_mikrotik_clients{client="Taurus",dir="null",mx="uptime"} 6.7899e+06
+app_mikrotik_clients{client="Taurus",dir="rx",mx="bit_per_sec"} 4.333e+08
+app_mikrotik_clients{client="Taurus",dir="rx",mx="octets"} 3.06944188e+08
+app_mikrotik_clients{client="Taurus",dir="rx",mx="pkt"} 2.3371426e+07
+app_mikrotik_clients{client="Taurus",dir="tx",mx="bit_per_sec"} 3.25e+08
+app_mikrotik_clients{client="Taurus",dir="tx",mx="octets"} 2.540330108e+09
+app_mikrotik_clients{client="Taurus",dir="tx",mx="pkt"} 6.8735705e+07
+```
+
 ## Setup systemd
 
 ```
