@@ -52,6 +52,21 @@ func readLabel(f string) (string, error) {
 	return strings.TrimSpace(string(v)), nil
 }
 
+func readTable(f string) ([][]string, error) {
+	v, err := os.ReadFile(f)
+	if err != nil {
+		return nil, err
+	}
+	res := [][]string(nil)
+	for _, l := range strings.Split(string(v), "\n") {
+		f := strings.Fields(l)
+		if len(f) > 0 {
+			res = append(res, f)
+		}
+	}
+	return res, nil
+}
+
 func safeGaugeSet(opts prometheus.GaugeOpts, v float64) {
 	m := prometheus.NewGauge(opts)
 	err := prometheus.DefaultRegisterer.Register(m)
@@ -158,12 +173,12 @@ func updateSensors() {
 func updateBlocks() {
 	// https://docs.kernel.org/block/stat.html
 	for _, hw := range ls("/sys/block") {
-		c, err := readLabel(path.Join(hw[0], "stat"))
+		c, err := readTable(path.Join(hw[0], "stat"))
 		if err != nil {
 			log("SKIP block device", hw[0], err)
 			continue
 		}
-		f := strings.Fields(c)
+		f := c[0]
 		for i, g := range [][2]string{
 			{"read", "reqs"},            // number of read I/Os processed
 			{"read_merges", "reqs"},     // number of read I/Os merged with in-queue I/O
@@ -198,12 +213,11 @@ func updateBlocks() {
 
 func updateCPU() {
 	// https://docs.kernel.org/filesystems/proc.html#miscellaneous-kernel-statistics-in-proc-stat
-	c, err := readLabel("/proc/stat")
+	c, err := readTable("/proc/stat")
 	if err != nil {
 		log("cpu stat read error:", err)
 	}
-	for _, l := range strings.Split(c, "\n") {
-		f := strings.Fields(l)
+	for _, f := range c {
 		h := f[0]  // head
 		t := f[1:] // tail
 		switch {
@@ -236,11 +250,11 @@ func updateCPU() {
 }
 
 func updateLoadAvg() {
-	f, err := readLabel("/proc/loadavg")
+	f, err := readTable("/proc/loadavg")
 	if err != nil {
 		log("cpu stat read error:", err)
 	}
-	c := strings.Fields(f)
+	c := f[0]
 	for i, m := range []string{"1", "5", "10"} {
 		n, err := strconv.ParseFloat(c[i], 64)
 		if err != nil {
@@ -341,6 +355,60 @@ func updateTCP() {
 	}
 }
 
+func updateInterrupts() {
+	// Very my system specific code! Many checks are skipped
+	t, err := readTable("/proc/interrupts")
+	if err != nil {
+		log("Cannot read interrupts", err)
+		return
+	}
+	ncpu := len(t[0])
+	if ncpu != 16 {
+		log("Invalid CPU count", ncpu) // hardcoded my own system
+		return
+	}
+	vals := map[string][]string{}
+	for _, ee := range t[1:] {
+		if ee[0][0] < 'A' { // digit
+			label := ee[ncpu+1]
+			if strings.HasPrefix(label, "PCI-MSIX-") {
+				switch {
+				case strings.HasPrefix(ee[ncpu+3], "iw"):
+					label = "PCI-MSIX-" + strings.Split(ee[ncpu+3], ":")[0]
+				case strings.HasPrefix(ee[ncpu+3], "nvme"):
+					label = "PCI-MSIX-nvme"
+				}
+			} else {
+				label = "PCI-MSI-" + ee[len(ee)-1]
+				label = strings.Split(strings.Split(label, "[")[0], ":")[0] // oh. too specific
+			}
+			vals[label] = append(vals[label], ee[1:ncpu+1]...)
+		} else {
+			label := ee[0][:len(ee[0])-1]
+			if len(ee) > ncpu {
+				vals[label] = append(vals[label], ee[1:ncpu+1]...)
+			} else {
+				vals[label] = append(vals[label], ee[1:]...)
+			}
+		}
+	}
+	for k, v := range vals {
+		n := float64(0)
+		for i, x := range v {
+			f, err := strconv.ParseFloat(strings.TrimSpace(x), 64)
+			if err != nil {
+				log("SKIP cannot parse:", k, i, x, err)
+				continue
+			}
+			n += f
+		}
+		safeGaugeSet(prometheus.GaugeOpts{
+			Name:        "app_interrupts",
+			ConstLabels: safeLabels(map[string]string{"mx": k}),
+		}, n)
+	}
+}
+
 func bindAddrArg() string {
 	if len(os.Args) >= 2 {
 		return os.Args[1]
@@ -369,6 +437,7 @@ func main() {
 		updateSensors()
 		updateLoadAvg()
 		updateCPU()
+		updateInterrupts()
 		updateBlocks()
 		updateRouterNetwork()
 		updateTCP()

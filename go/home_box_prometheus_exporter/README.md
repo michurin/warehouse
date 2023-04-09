@@ -155,6 +155,43 @@ app_network_reachable{point="hop_2"} 1
 app_network_reachable{point="hop_3"} 1
 ```
 
+### Hardware interrupts (very custom)
+
+You can find legend in you `/proc/interrupts`
+
+```
+app_interrupts{mx="CAL"} 1.655089e+06
+app_interrupts{mx="DFR"} 0
+app_interrupts{mx="ERR"} 0
+app_interrupts{mx="IWI"} 337612
+app_interrupts{mx="LOC"} 3.62964e+06
+app_interrupts{mx="MCE"} 0
+app_interrupts{mx="MCP"} 383
+app_interrupts{mx="MIS"} 0
+app_interrupts{mx="NMI"} 73
+app_interrupts{mx="NPI"} 0
+app_interrupts{mx="PCI-MSI-acpi"} 79585
+app_interrupts{mx="PCI-MSI-ahci"} 0
+app_interrupts{mx="PCI-MSI-cascade"} 0
+app_interrupts{mx="PCI-MSI-i915"} 507751
+app_interrupts{mx="PCI-MSI-mei_me"} 62
+app_interrupts{mx="PCI-MSI-pcie-dpc"} 0
+app_interrupts{mx="PCI-MSI-rtc0"} 0
+app_interrupts{mx="PCI-MSI-snd_hda_intel"} 0
+app_interrupts{mx="PCI-MSI-xhci_hcd"} 109740
+app_interrupts{mx="PCI-MSIX-iwlwifi"} 79037
+app_interrupts{mx="PCI-MSIX-nvme"} 60572
+app_interrupts{mx="PIN"} 0
+app_interrupts{mx="PIW"} 0
+app_interrupts{mx="PMI"} 73
+app_interrupts{mx="RES"} 197993
+app_interrupts{mx="RTR"} 15
+app_interrupts{mx="SPU"} 0
+app_interrupts{mx="THR"} 0
+app_interrupts{mx="TLB"} 1.322019e+06
+app_interrupts{mx="TRM"} 0
+```
+
 ## Setup systemd
 
 ```
