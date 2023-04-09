@@ -215,14 +215,32 @@ app_mikrotik_clients{client="Taurus",dir="tx",mx="pkt"} 6.8735705e+07
 
 ## Setup systemd
 
+Minimal `/etc/systemd/system/home-box-prometheus-exporter.service`
+
+```ini
+[Unit]
+Description=Home box Prometheus exporter
+After=network.target
+
+[Service]
+Type=simple
+Restart=always
+RestartSec=1
+User=nobody
+ExecStart=/opt/home-box-prometheus-exporter/home-box-prometheus-exporter
+
+[Install]
+WantedBy=multi-user.target
 ```
+
+```sh
 sudo cp home-box-prometheus-exporter.service /etc/systemd/system
 systemctl daemon-reload
 sudo systemctl start home-box-prometheus-exporter
 sudo systemctl status home-box-prometheus-exporter
 ```
 
-```
+```sh
 sudo systemctl enable home-box-prometheus-exporter
 sudo systemctl enable prometheus
 ```
