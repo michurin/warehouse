@@ -350,6 +350,7 @@ func updateMikrotik() {
 		oidToDevice[k] = dev
 	}
 	for _, d := range [][3]string{
+		{"3", "", "strength"}, // dBm
 		{"4", "tx", "octets"},
 		{"5", "rx", "octets"},
 		{"6", "tx", "pkt"},
@@ -484,6 +485,35 @@ func updateInterrupts() {
 	}
 }
 
+func unregistre() {
+	// TODO hackish way to exclude disconnected clients; if has to be refactored
+	clean := map[string]struct{}{
+		"app_mikrotik_clients": {},
+	}
+	gg, err := prometheus.DefaultRegisterer.(*prometheus.Registry).Gather() // wild cast
+	if err != nil {
+		log("Unregister error:", err)
+		return
+	}
+	for _, g := range gg {
+		if g.Name == nil {
+			continue
+		}
+		if _, ok := clean[*g.Name]; ok {
+			for _, m := range g.Metric {
+				cl := map[string]string{}
+				for _, p := range m.Label {
+					cl[*p.Name] = *p.Value // dirty ptrs
+				}
+				prometheus.DefaultRegisterer.Unregister(prometheus.NewGauge(prometheus.GaugeOpts{
+					Name:        *g.Name,
+					ConstLabels: cl,
+				})) // hmm.. is it possible to unregistre without build brand new metric?
+			}
+		}
+	}
+}
+
 func bindAddrArg() string {
 	if len(os.Args) >= 2 {
 		return os.Args[1]
@@ -499,7 +529,7 @@ func bindAddr() string {
 
 func main() {
 	gosnmp.Default.Target = "192.168.199.1" // ugly, but recommended by author in docs; and good enough for such small project
-	err := gosnmp.Default.Connect()
+	err := gosnmp.Default.Connect()         // TODO will it reconnect automatically?
 	if err != nil {
 		panic(err)
 	}
@@ -518,6 +548,7 @@ func main() {
 		updateMikrotik()
 		updateTCP()
 		metricHandler.ServeHTTP(w, r)
+		unregistre()
 	}))
 
 	err = http.ListenAndServe(bindAddr(), nil)
