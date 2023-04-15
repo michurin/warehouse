@@ -57,6 +57,11 @@ function requestHandler(request, response) {
         console.log('Matched', c.urlRe);
         if (c.respFile) {
           resp = await readFile(c.respFile);
+        } else if (c.payload) {
+          resp = JSON.stringify(c.payload)
+        } else if (c.location) {
+          response.writeHead(302, { 'Location': c.location });
+          resp = '';
         } else if (c.proxyHost) {
           const h = { ...headers };
           h.host = c.proxyHost;
