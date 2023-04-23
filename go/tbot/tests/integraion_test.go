@@ -51,9 +51,32 @@ func TestAPI_justCall(t *testing.T) {
 func TestLoop_simpleMessage(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
-	testDone := make(chan struct{})
 
-	updateCount := 0 // we can use it without locks
+	tgURL, tgClose := botServer(t, cancel)
+	defer tgClose()
+
+	bot := &xbot.Bot{
+		APIOrigin: tgURL,
+		Token:     "MORN",
+		Client:    http.DefaultClient,
+	}
+
+	command := &xproc.Cmd{
+		InterruptDelay: time.Second,
+		KillDelay:      time.Second,
+		Command:        "scripts/just_ok.sh",
+		Cwd:            ".",
+	}
+
+	err := app.Loop(ctx, bot, command)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "context canceled") // like "api: client: Post \"http://127.0.0.1:34241/botMORN/getUpdates\": context canceled"
+}
+
+func botServer(t *testing.T, cancel context.CancelFunc) (string, func()) {
+	t.Helper()
+	testDone := make(chan struct{})
+	updateCount := 0 // it looks ugly, however we can use it without locks
 	tg := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		require.Equal(t, http.MethodPost, r.Method)
 		require.Equal(t, "application/json", r.Header.Get("content-type"))
@@ -77,30 +100,17 @@ func TestLoop_simpleMessage(t *testing.T) {
 			updateCount++
 		case "/botMORN/sendMessage":
 			require.JSONEq(t, fileStr(t, "data/send_message_request.json"), body)
+			respFile = "data/send_message_response.json"
 		default:
 			t.Fatal("unexpected api Method", r.URL.String())
 		}
 		_, err = w.Write(file(t, respFile))
 		require.NoError(t, err)
 	}))
-	defer tg.Close()
-
-	bot := &xbot.Bot{
-		APIOrigin: tg.URL,
-		Token:     "MORN",
-		Client:    http.DefaultClient,
+	return tg.URL, func() {
+		close(testDone)
+		tg.Close()
 	}
-
-	command := &xproc.Cmd{
-		InterruptDelay: time.Second,
-		KillDelay:      time.Second,
-		Command:        "scripts/just_ok.sh",
-		Cwd:            ".",
-	}
-
-	err := app.Loop(ctx, bot, command)
-	close(testDone)
-	require.Error(t, err) // TODO check "context canceled"
 }
 
 func file(t *testing.T, f string) []byte {
