@@ -65,8 +65,9 @@ type Client interface {
 }
 
 type Bot struct {
-	Token  string
-	Client Client
+	APIOrigin string // injection to be testable
+	Token     string
+	Client    Client // injection to be observable // TODO move all logging into client middleware?
 }
 
 func (b *Bot) API(ctx context.Context, request *Request) ([]byte, error) {
@@ -76,9 +77,9 @@ func (b *Bot) API(ctx context.Context, request *Request) ([]byte, error) {
 	resp := (*http.Response)(nil)
 	data := []byte(nil)
 	defer func() {
-		xlog.Log(ctx, string(request.Body), string(data), err)
+		xlog.Log(ctx, string(request.Body), string(data), err) // TODO formatting
 	}()
-	reqUrl := "https://api.telegram.org/bot" + b.Token + "/" + request.Method
+	reqUrl := b.APIOrigin + "/bot" + b.Token + "/" + request.Method
 	req, err = http.NewRequestWithContext(ctx, http.MethodPost, reqUrl, bytes.NewReader(request.Body))
 	if err != nil {
 		return nil, xlog.Errorf(ctx, "request constructor: %w", err)
@@ -88,12 +89,9 @@ func (b *Bot) API(ctx context.Context, request *Request) ([]byte, error) {
 	if err != nil {
 		return nil, xlog.Errorf(ctx, "client: %w", err)
 	}
-	data, err = io.ReadAll(resp.Body)
-	cerr := resp.Body.Close()
+	defer resp.Body.Close()           // we are skipping error here
+	data, err = io.ReadAll(resp.Body) // we have to read and close Body even for non-200 responses
 	if err != nil {
-		if cerr != nil {
-			return nil, xlog.Errorf(ctx, "reading: %w, and closing: %w", err, cerr)
-		}
 		return nil, xlog.Errorf(ctx, "reading: %w", err)
 	}
 	return data, nil
