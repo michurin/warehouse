@@ -48,63 +48,127 @@ func TestAPI_justCall(t *testing.T) {
 	assert.Equal(t, []byte("{response}"), body)
 }
 
-func TestLoop_simpleMessage(t *testing.T) {
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
-
-	tgURL, tgClose := botServer(t, cancel)
-	defer tgClose()
-
-	bot := &xbot.Bot{
-		APIOrigin: tgURL,
-		Token:     "MORN",
-		Client:    http.DefaultClient,
-	}
-
-	command := &xproc.Cmd{
-		InterruptDelay: time.Second,
-		KillDelay:      time.Second,
-		Command:        "scripts/just_ok.sh",
-		Cwd:            ".",
-	}
-
-	err := app.Loop(ctx, bot, command)
-	require.Error(t, err)
-	require.Contains(t, err.Error(), "context canceled") // like "api: client: Post \"http://127.0.0.1:34241/botMORN/getUpdates\": context canceled"
+type apiAct struct {
+	isJSON   bool
+	request  string
+	response []byte
 }
 
-func botServer(t *testing.T, cancel context.CancelFunc) (string, func()) {
+func TestLoop(t *testing.T) {
+	simpleUpdates := []apiAct{
+		{
+			true,
+			`{"offset":0,"timeout":30}`,
+			file(t, "data/get_update.json"),
+		},
+		{
+			true,
+			`{"offset":501,"timeout":30}`,
+			nil,
+		},
+	}
+	for _, cs := range []struct {
+		name   string
+		script string
+		api    map[string][]apiAct
+	}{
+		{
+			name:   "simple_text",
+			script: "scripts/just_ok.sh",
+			api: map[string][]apiAct{
+				"/botMORN/getUpdates": simpleUpdates,
+				"/botMORN/sendMessage": {
+					{
+						true,
+						fileStr(t, "data/send_message_request.json"),
+						file(t, "data/send_message_response.json"),
+					},
+				},
+			},
+		},
+		{
+			name:   "media_jpeg",
+			script: "scripts/media_jpeg.sh",
+			api: map[string][]apiAct{
+				"/botMORN/getUpdates": simpleUpdates,
+				"/botMORN/sendPhoto": {
+					{
+						false,
+						"TODO!", // TODO
+						file(t, "data/send_message_response.json"),
+					},
+				},
+			},
+		},
+		{
+			name:   "media_mp4",
+			script: "scripts/media_mp4.sh",
+			api: map[string][]apiAct{
+				"/botMORN/getUpdates": simpleUpdates,
+				"/botMORN/sendVideo": {
+					{
+						false,
+						"TODO!", // TODO
+						file(t, "data/send_message_response.json"),
+					},
+				},
+			},
+		},
+	} {
+		cs := cs
+		t.Run(cs.name, func(t *testing.T) {
+			ctx, cancel := context.WithCancel(context.Background())
+			defer cancel()
+
+			tgURL, tgClose := botServer(t, cancel, cs.api)
+			defer tgClose()
+
+			bot := &xbot.Bot{
+				APIOrigin: tgURL,
+				Token:     "MORN",
+				Client:    http.DefaultClient,
+			}
+
+			command := &xproc.Cmd{
+				InterruptDelay: time.Second,
+				KillDelay:      time.Second,
+				Command:        cs.script,
+				Cwd:            ".",
+			}
+
+			err := app.Loop(ctx, bot, command)
+			require.Error(t, err)
+			require.Contains(t, err.Error(), "context canceled") // like "api: client: Post \"http://127.0.0.1:34241/botMORN/getUpdates\": context canceled"
+		})
+	}
+}
+
+func botServer(t *testing.T, cancel context.CancelFunc, api map[string][]apiAct) (string, func()) {
 	t.Helper()
 	testDone := make(chan struct{})
-	updateCount := 0 // it looks ugly, however we can use it without locks
+	steps := map[string]int{} // it looks ugly, however we can use it without locks
 	tg := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		require.Equal(t, http.MethodPost, r.Method)
-		require.Equal(t, "application/json", r.Header.Get("content-type"))
 		bodyBytes, err := io.ReadAll(r.Body)
 		body := string(bodyBytes)
 		require.NoError(t, err)
-		respFile := ""
-		switch r.URL.String() {
-		case "/botMORN/getUpdates":
-			switch updateCount {
-			case 0:
-				require.JSONEq(t, `{"offset":0,"timeout":30}`, body)
-				respFile = "data/get_update.json"
-			case 1:
-				require.JSONEq(t, `{"offset":501,"timeout":30}`, body)
-				cancel()
-				<-testDone
-			default:
-				t.Fatal("unexpected getUpdates", updateCount)
-			}
-			updateCount++
-		case "/botMORN/sendMessage":
-			require.JSONEq(t, fileStr(t, "data/send_message_request.json"), body)
-			respFile = "data/send_message_response.json"
-		default:
-			t.Fatal("unexpected api Method", r.URL.String())
+
+		url := r.URL.String()
+		n := steps[url]
+		a := api[url][n]
+		steps[url] = n + 1
+		if a.isJSON {
+			require.Equal(t, "application/json", r.Header.Get("content-type"))
+			require.JSONEq(t, a.request, body)
+		} else {
+			require.Contains(t, r.Header.Get("content-type"), "multipart/form-data")
+			// TODO check body!
 		}
-		_, err = w.Write(file(t, respFile))
+		if a.response == nil {
+			cancel()
+			<-testDone
+		}
+		_, err = w.Write(a.response)
 		require.NoError(t, err)
 	}))
 	return tg.URL, func() {
