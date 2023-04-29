@@ -23,6 +23,12 @@ import (
 // TODO setup xlog
 
 func TestAPI_justCall(t *testing.T) {
+	/* case
+	tg        bot
+	|         |
+	|<--req---|
+	|---resp->|
+	*/
 	tg := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		require.Equal(t, http.MethodPost, r.Method)
 		require.Equal(t, "/botMORN/xMorn", r.URL.String())
@@ -55,6 +61,20 @@ func TestAPI_justCall(t *testing.T) {
 }
 
 func TestLoop(t *testing.T) {
+	/* cases
+	tg        bots loop
+	|         |
+	|<--req---| (call for update)
+	|---resp->|
+	|         |
+	|         |--exec-->| script
+	|         |<-stdout-|
+	|         |
+	|<--req---| (call for update)
+	|---resp->|
+	|<--req---| (and send response from script)
+	|---resp->| (the order of update and send doesn't metter)
+	*/
 	simpleUpdates := []apiAct{
 		{
 			true,
@@ -262,6 +282,14 @@ func fileStr(t *testing.T, f string) string {
 // ----
 
 func TestHttp(t *testing.T) { // curl -F works transparently as is
+	/* cases
+	tg        bots loop
+	|         |
+	|         |<-- someone external calls bot over http
+	|<--req---| (request to send)
+	|---resp->|
+	|         |--> reply to external client
+	*/
 	for _, cs := range []struct {
 		name string
 		curl []string
