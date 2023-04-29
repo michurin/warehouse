@@ -10,8 +10,8 @@ import (
 // TODO it has to be DefaultLogger and methods
 
 var (
-	Fields     = []string(nil)
-	LabelInfo  = "[info]"
+	Fields     = []string(nil) // TODO it has to be []struct{name string; formatter: func(string) string}?
+	LabelInfo  = "[info]"      // TODO move labels to fields, to be able to order them? caller etc to fields too?
 	LabelError = "[error]"
 )
 
@@ -31,6 +31,7 @@ func (e *ctxError) Unwrap() error {
 }
 
 func Errorf(ctx context.Context, format string, a ...any) error {
+	// TODO original caller
 	err := fmt.Errorf(format, a...)
 	kv := ctxKv(ctx)
 	ctxKvOverride(kv, err)
@@ -51,6 +52,7 @@ func Ctx(ctx context.Context, kv ...any) context.Context {
 }
 
 func Log(ctx context.Context, a ...any) {
+	// TODO caller
 	fkv := ctxKv(ctx)
 
 	errorLevel := false
@@ -77,6 +79,7 @@ func Log(ctx context.Context, a ...any) {
 		msg = append(msg, formatArg(m))
 	}
 
+	// TODO ------v--v-- remove this spaces if %s substitutions are empty strings
 	fmt.Printf("%s %s %s\n", label, strings.Join(fs, " "), strings.Join(msg, " "))
 }
 

@@ -44,6 +44,8 @@ func (c *Cmd) Run(
 	[]byte,
 	error,
 ) {
+	// TODO if (for example) timeouts are zero, subprocess has to
+	//      run without time lemits. And stdout wont be processed
 	// setup cmd
 	cmd := exec.Command(c.Command, args...) // we don't use CommandContext here because it kills only process, not group
 	cmd.SysProcAttr = &syscall.SysProcAttr{

@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"strconv"
 	"strings"
 
 	"github.com/michurin/warehouse/go/tbot/xbot"
@@ -17,6 +18,9 @@ import (
 func Handler(bot *xbot.Bot) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
+		// TODO mark ctx for logging?
+		// TODO put http method to ctx
+		// TODO put http content-type to ctx
 		body, err := io.ReadAll(r.Body)
 		if err != nil {
 			xlog.Log(ctx, "body reading:", err)
@@ -27,11 +31,30 @@ func Handler(bot *xbot.Bot) http.HandlerFunc {
 		case http.MethodGet:
 			data, err = bot.API(ctx, &xbot.Request{Method: method})
 		case http.MethodPost:
-			data, err = bot.API(ctx, &xbot.Request{
-				Method:      method,
-				ContentType: r.Header.Get("content-type"),
-				Body:        body,
-			})
+			ct := r.Header.Get("content-type")
+			xlog.Log(ctx, "content-type:", ct) // TODO remove
+			if ct == "application/json" || strings.Contains(ct, "multipart/form-data") {
+				data, err = bot.API(ctx, &xbot.Request{
+					Method:      method,
+					ContentType: ct,
+					Body:        body,
+				})
+			} else {
+				var to int64          // TODO refactor
+				var req *xbot.Request // TODO refactor
+				to, err = strconv.ParseInt(r.URL.Query().Get("to"), 10, 64)
+				if err != nil {
+					xlog.Log(ctx, err) // TODO response!
+					return
+				}
+				// TODO add `to` to log context
+				req, err = xbot.RequestFromBinary(body, to)
+				if err != nil {
+					xlog.Log(ctx, err) // TODO response!
+					return
+				}
+				data, err = bot.API(ctx, req)
+			}
 		default:
 			w.WriteHeader(http.StatusMethodNotAllowed)
 			return
@@ -41,6 +64,7 @@ func Handler(bot *xbot.Bot) http.HandlerFunc {
 			return
 		}
 		w.WriteHeader(http.StatusOK)
+		// TODO consider `silent=true` parameter and skip writing if present
 		w.Write(data) // TODO consider error
 	}
 }
@@ -75,7 +99,7 @@ func getUpdates(ctx context.Context, bot *xbot.Bot, offset int64) ([]any, error)
 
 func Loop(ctx context.Context, bot *xbot.Bot, command *xproc.Cmd) error {
 	offset := int64(0)
-	for { // TODO extract each iteration into dedicated function? make it function/object wrapable and observable?
+	for {
 		result, err := getUpdates(ctx, bot, offset)
 		if err != nil {
 			return err
@@ -150,6 +174,7 @@ func processMessage(ctx context.Context, m any, command *xproc.Cmd) (*xbot.Reque
 	text, err := xjson.String(m, "message", "text") // TODO consider callback_query.message.text, callback_query.message.data?
 	if err != nil {
 		xlog.Log(ctx, err)
+		// return nil, err // TODO callback_query...
 	}
 	args := strings.Fields(strings.ToLower(text))
 	data, err := command.Run(ctx, args, env)
@@ -157,22 +182,7 @@ func processMessage(ctx context.Context, m any, command *xproc.Cmd) (*xbot.Reque
 		xlog.Log(ctx, err)
 		return nil, err
 	}
-	req := (*xbot.Request)(nil)
-	contentType := http.DetectContentType(data)
-	xlog.Log(ctx, contentType) // TODO remove
-	switch {
-	case strings.HasPrefix(contentType, "text/"):
-		// TODO check length
-		req, err = xbot.RequestStruct("sendMessage", map[string]any{"chat_id": userID, "text": string(data)})
-	case strings.HasPrefix(contentType, "image/"):
-		req, err = xbot.RequestMultipart("sendPhoto", userID, "photo", data, "image."+contentType[6:]) // TODO naive way, it can be 'x-icon' for instance
-	case strings.HasPrefix(contentType, "video/"):
-		req, err = xbot.RequestMultipart("sendVideo", userID, "video", data, "video."+contentType[6:])
-	case strings.HasPrefix(contentType, "audio/"): // TODO +application/ogg? or consider ogg as voice?
-		req, err = xbot.RequestMultipart("sendAudio", userID, "audio", data, "audio."+contentType[6:])
-	default: // TODO hmm... application/* and font/*
-		req, err = xbot.RequestMultipart("sendDocument", userID, "document", data, "document") // TODO extension!?
-	}
+	req, err := xbot.RequestFromBinary(data, userID)
 	if err != nil {
 		xlog.Log(ctx, err)
 		return nil, err

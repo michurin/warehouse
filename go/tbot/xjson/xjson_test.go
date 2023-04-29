@@ -3,9 +3,10 @@ package xjson_test
 import (
 	"testing"
 
-	"github.com/michurin/warehouse/go/tbot/xjson"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/michurin/warehouse/go/tbot/xjson"
 )
 
 func TestJsonToEnv(t *testing.T) {

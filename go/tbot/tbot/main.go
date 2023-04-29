@@ -34,11 +34,11 @@ func main() {
 		Client:    http.DefaultClient,
 	}
 
-	command := &xproc.Cmd{ // TODO rename xcmd or xproc
-		InterruptDelay: time.Second,
-		KillDelay:      time.Second,
-		Command:        "./x.sh", // TODO config!
-		Cwd:            ".",      // TODO config?
+	command := &xproc.Cmd{
+		InterruptDelay: time.Second, // TODO config?
+		KillDelay:      time.Second, // TODO config??
+		Command:        "./x.sh",    // TODO config!
+		Cwd:            ".",         // TODO config?
 	}
 
 	eg, ctx := errgroup.WithContext(ctx)
