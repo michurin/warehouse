@@ -276,6 +276,7 @@ func file(t *testing.T, f string) []byte {
 }
 
 func fileStr(t *testing.T, f string) string {
+	t.Helper()
 	return string(file(t, f))
 }
 
@@ -352,27 +353,47 @@ func TestHttp(t *testing.T) { // curl -F works transparently as is
 
 func TestProc(t *testing.T) {
 	ctx := context.Background()
-	command := &xproc.Cmd{
-		InterruptDelay: 200 * time.Millisecond,
-		KillDelay:      200 * time.Millisecond,
-		Command:        "sh",
-		Cwd:            ".",
-	}
-	t.Run("finishNormally", func(t *testing.T) {
-		data, err := command.Run(ctx, []string{"-c", "echo OK"}, []string{})
-		assert.NoError(t, err)
-		assert.Equal(t, []byte("OK\n"), data)
+	t.Run("argsEnvs", func(t *testing.T) {
+		data, err := buildCommand("scripts/run_show_args.sh").Run(ctx, []string{"ARG1", "ARG2"}, []string{"test1=TEST1", "test2=TEST2"})
+		require.NoError(t, err, "data="+string(data))
+		assert.Equal(t, "arg1=ARG1 arg2=ARG2 test1=TEST1 test2=TEST2\n", string(data))
+	})
+	t.Run("exit", func(t *testing.T) {
+		data, err := buildCommand("scripts/run_exit.sh").Run(ctx, nil, nil)
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "wait: exit status 28")
+		assert.Nil(t, data)
 	})
 	t.Run("sigint", func(t *testing.T) {
-		data, err := command.Run(ctx, []string{"-c", "trap 'echo sigint_catched' SIGINT; sleep 1"}, []string{})
-		assert.Error(t, err)
-		assert.Contains(t, err.Error(), "sigint_catched") // we have to see our stdout in error text
-		assert.Nil(t, data)
+		data, err := buildCommand("scripts/run_slow.sh").Run(ctx, nil, nil)
+		require.NoError(t, err)
+		assert.Equal(t,
+			`start
+trap SIGINT
+trap ERR
+end
+trap EXIT
+`, string(data))
 	})
 	t.Run("sigkill", func(t *testing.T) {
-		data, err := command.Run(ctx, []string{"-c", "trap '' SIGINT; sleep 1"}, []string{})
+		data, err := buildCommand("scripts/run_immortal.sh").Run(ctx, nil, nil)
 		assert.Error(t, err)
-		assert.Contains(t, err.Error(), "-1") // exit code
+		assert.Contains(t, err.Error(), "wait: signal: killed")
 		assert.Nil(t, data)
 	})
+	t.Run("notfound", func(t *testing.T) {
+		data, err := buildCommand("scripts/NOTFOUND").Run(ctx, nil, nil)
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "start: fork/exec scripts/NOTFOUND: no such file or directory")
+		assert.Nil(t, data)
+	})
+}
+
+func buildCommand(cmd string) *xproc.Cmd {
+	return &xproc.Cmd{
+		InterruptDelay: 200 * time.Millisecond,
+		KillDelay:      200 * time.Millisecond,
+		Command:        cmd,
+		Cwd:            ".",
+	}
 }

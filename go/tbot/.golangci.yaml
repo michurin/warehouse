@@ -1,0 +1,42 @@
+linters:
+  enable-all: true
+  disable:
+      # deprecated
+    - exhaustivestruct
+    - maligned
+    - scopelint
+    - varcheck
+    - deadcode
+    - golint
+    - structcheck
+    - ifshort
+    - interfacer
+
+      # TODO turn on
+    - gosec
+    - forbidigo
+    - typecheck
+    - cyclop
+    - godot
+    - funlen
+    - exhaustruct
+    - forcetypeassert
+    - wrapcheck
+    - varnamelen
+    - godox
+    - paralleltest
+    - gomnd
+    - gochecknoglobals
+    - wsl
+    - lll
+    - nlreturn
+    - nosnakecase
+    - wastedassign
+    - goerr113
+linters-settings:
+  gci:
+    sections:
+      - standard
+      - default
+      - prefix(github.com/michurin/warehouse/go/tbot)
+

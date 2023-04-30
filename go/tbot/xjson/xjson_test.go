@@ -9,7 +9,7 @@ import (
 	"github.com/michurin/warehouse/go/tbot/xjson"
 )
 
-func TestJsonToEnv(t *testing.T) {
+func TestJSONToEnv(t *testing.T) {
 	t.Run("ok", func(t *testing.T) {
 		x := map[string]any{
 			"a": nil,
@@ -22,7 +22,7 @@ func TestJsonToEnv(t *testing.T) {
 				"h": "sub",
 			},
 		}
-		env, err := xjson.JsonToEnv(x)
+		env, err := xjson.JSONToEnv(x)
 		require.NoError(t, err)
 		assert.Equal(t, []string{
 			"tg_b=false",
@@ -35,19 +35,19 @@ func TestJsonToEnv(t *testing.T) {
 	})
 	t.Run("invalidType", func(t *testing.T) {
 		x := float32(1)
-		env, err := xjson.JsonToEnv(x)
+		env, err := xjson.JSONToEnv(x)
 		assert.Error(t, err)
 		require.Nil(t, env)
 	})
 	t.Run("invalidTypeInSlice", func(t *testing.T) {
 		x := []any{float32(1)}
-		env, err := xjson.JsonToEnv(x)
+		env, err := xjson.JSONToEnv(x)
 		assert.Error(t, err)
 		require.Nil(t, env)
 	})
 	t.Run("invalidTypeInMap", func(t *testing.T) {
 		x := map[string]any{"k": float32(1)}
-		env, err := xjson.JsonToEnv(x)
+		env, err := xjson.JSONToEnv(x)
 		assert.Error(t, err)
 		require.Nil(t, env)
 	})

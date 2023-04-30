@@ -89,7 +89,7 @@ func (c *Cmd) Run(
 		}
 	}()
 	err = cmd.Wait()
-	if err != err {
+	if err != nil {
 		return nil, xlog.Errorf(ctx, "wait: %w", err)
 	}
 

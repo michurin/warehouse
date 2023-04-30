@@ -65,7 +65,11 @@ func Handler(bot *xbot.Bot) http.HandlerFunc {
 		}
 		w.WriteHeader(http.StatusOK)
 		// TODO consider `silent=true` parameter and skip writing if present
-		w.Write(data) // TODO consider error
+		_, err = w.Write(data) // TODO consider error
+		if err != nil {
+			xlog.Log(ctx, err)
+			return
+		}
 	}
 }
 
@@ -166,7 +170,7 @@ func processMessage(ctx context.Context, m any, command *xproc.Cmd) (*xbot.Reque
 		return nil, fmt.Errorf("no user id")
 	}
 	ctx = xlog.Ctx(ctx, "user", userID)
-	env, err := xjson.JsonToEnv(m)
+	env, err := xjson.JSONToEnv(m)
 	if err != nil {
 		xlog.Log(ctx, err)
 		return nil, err // TODO wrap error

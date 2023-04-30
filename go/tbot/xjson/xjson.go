@@ -40,7 +40,7 @@ func jsonToEnv(pfx string, x any) ([]string, error) {
 	return nil, fmt.Errorf("invalid type [pfx=%s]: %T", pfx, x)
 }
 
-func JsonToEnv(x any) ([]string, error) {
+func JSONToEnv(x any) ([]string, error) {
 	a, err := jsonToEnv("tg", x)
 	if err != nil {
 		return nil, err

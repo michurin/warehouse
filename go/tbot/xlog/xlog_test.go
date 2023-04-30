@@ -8,12 +8,21 @@ import (
 	"github.com/michurin/warehouse/go/tbot/xlog"
 )
 
+// TODO cannot be run in parallel
+
 type customError struct{}
 
 func (customError) Error() string { return "custom" }
 
-func ExampleLog() {
-	xlog.Fields = []string{"a", "b", "c", "d"}
+func ExampleLog_message() {
+	xlog.Fields = []xlog.Field{
+		xlog.StdFieldLevel,
+		{Name: "a"},
+		{Name: "b"},
+		{Name: "c"},
+		{Name: "d"},
+		xlog.StdFieldMessage,
+	}
 	ctx := xlog.Ctx(context.Background(), "a", 0)
 	xlog.Log(ctx, "Just message")
 	err := error(customError{})
@@ -32,4 +41,40 @@ func ExampleLog() {
 	// [error] 7 9 Naked error with tweaked ctx custom
 	// [error] 1 2 3 4 Message f2: e2: f1: e1: custom
 	// true
+}
+
+func ExampleLog_caller() {
+	xlog.Fields = []xlog.Field{
+		xlog.StdFieldLevel,
+		xlog.StdFieldCaller,
+		xlog.StdFieldOCaller,
+		xlog.StdFieldMessage,
+	}
+	ctx := context.Background()
+	err := xlog.Errorf(ctx, "Just message")    // we will see this line in logs
+	err = xlog.Errorf(ctx, "Wrapped: %w", err) // not this; but log message will be wrapped correctly
+	xlog.Log(ctx, err)
+	// Output:
+	// [error] xlog/xlog_test.go:56 xlog/xlog_test.go:54 Wrapped: Just message
+}
+
+func ExampleLog_formatting() {
+	xlog.Fields = []xlog.Field{
+		xlog.StdFieldLevel,
+		xlog.StdFieldMessage,
+	}
+	ctx := context.Background()
+	xlog.Log(ctx, []byte(nil))       // nil
+	xlog.Log(ctx, []byte{})          // len=0
+	xlog.Log(ctx, []byte("ok"))      // bytes
+	xlog.Log(ctx, []byte{255})       // wrong char
+	xlog.Log(ctx, error(nil))        // nil error
+	xlog.Log(ctx, errors.New("err")) // true error
+	// Output:
+	// [info] ""
+	// [info] ""
+	// [info] ok
+	// [info] "\xff"
+	// [info] <nil>
+	// [error] err
 }

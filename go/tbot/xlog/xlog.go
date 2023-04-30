@@ -4,15 +4,88 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"os"
+	"runtime"
 	"strings"
+	"time"
+	"unicode/utf8"
 )
 
 // TODO it has to be DefaultLogger and methods
 
-var (
-	Fields     = []string(nil) // TODO it has to be []struct{name string; formatter: func(string) string}?
-	LabelInfo  = "[info]"      // TODO move labels to fields, to be able to order them? caller etc to fields too?
-	LabelError = "[error]"
+var pathReplacer = func() *strings.Replacer {
+	// WARNING: this naive approach wont work in dedicated package
+	_, fileName, _, _ := runtime.Caller(0)
+	sep := string(os.PathSeparator)
+	p := strings.Split(fileName, sep)
+	s := strings.Join(p[:len(p)-2], sep) + sep
+	return strings.NewReplacer(s, "")
+}()
+
+func relativeCaller(level int) string {
+	_, file, no, ok := runtime.Caller(level)
+	if ok {
+		return fmt.Sprintf("%s:%d", pathReplacer.Replace(file), no)
+	}
+	return "nocaller"
+}
+
+type Field struct {
+	Name string
+	Proc func(any) string
+}
+
+func ProcFuncCaller(any) string {
+	return relativeCaller(3)
+}
+
+var StdFieldTime = Field{
+	Name: "log_time",
+	Proc: func(any) string {
+		return time.Now().Format("2006-01-02 15:04:05.000")
+	},
+}
+
+var StdFieldLevel = Field{
+	Name: "log_level",
+	Proc: func(x any) string {
+		if x.(int) == LevelError {
+			return "[error]"
+		}
+		return "[info]"
+	},
+}
+
+var StdFieldCaller = Field{
+	Name: "log_caller",
+	Proc: ProcFuncCaller,
+}
+
+var StdFieldOCaller = Field{
+	Name: "log_ocaller",
+	Proc: func(x any) string {
+		return x.(string)
+	},
+}
+
+var StdFieldMessage = Field{
+	Name: "log_message",
+	Proc: func(x any) string {
+		return x.(string)
+	},
+}
+
+var Fields = []Field{
+	StdFieldTime,
+	StdFieldLevel,
+	StdFieldCaller,
+	StdFieldOCaller,
+	StdFieldMessage,
+}
+
+const (
+	LevelInfo = iota
+	LevelError
 )
 
 var ctxKey = struct{}{}
@@ -34,6 +107,7 @@ func Errorf(ctx context.Context, format string, a ...any) error {
 	// TODO original caller
 	err := fmt.Errorf(format, a...)
 	kv := ctxKv(ctx)
+	kv["log_ocaller"] = relativeCaller(2)
 	ctxKvOverride(kv, err)
 	return &ctxError{
 		err: err,
@@ -52,35 +126,39 @@ func Ctx(ctx context.Context, kv ...any) context.Context {
 }
 
 func Log(ctx context.Context, a ...any) {
-	// TODO caller
 	fkv := ctxKv(ctx)
 
-	errorLevel := false
-	for _, x := range a {
+	errorLevel := LevelInfo
+	msg := make([]string, len(a))
+	for i, x := range a {
 		if err, ok := x.(error); ok {
-			errorLevel = true
+			errorLevel = LevelError
 			ctxKvOverride(fkv, err)
 		}
+		msg[i] = formatArg(x)
 	}
-	label := LabelInfo
-	if errorLevel {
-		label = LabelError
-	}
+	fkv["log_level"] = errorLevel
+	fkv["log_message"] = strings.Join(msg, " ")
+
+	fkv["log_time"] = nil   // value doesn't matter, looks slightly hackish
+	fkv["log_caller"] = nil // value doesn't matter, looks slightly hackish
 
 	fs := []string(nil)
 	for _, f := range Fields {
-		if x, ok := fkv[f]; ok {
-			fs = append(fs, fmt.Sprintf("%+v", x))
+		if x, ok := fkv[f.Name]; ok {
+			p := ""
+			if f.Proc != nil {
+				p = f.Proc(x)
+			} else {
+				p = fmt.Sprintf("%v", x) // TODO some conversion
+			}
+			if p != "" {
+				fs = append(fs, p)
+			}
 		}
 	}
 
-	msg := []string(nil)
-	for _, m := range a {
-		msg = append(msg, formatArg(m))
-	}
-
-	// TODO ------v--v-- remove this spaces if %s substitutions are empty strings
-	fmt.Printf("%s %s %s\n", label, strings.Join(fs, " "), strings.Join(msg, " "))
+	fmt.Printf(strings.Join(fs, " ") + "\n")
 }
 
 func formatArg(x any) string { // TODO has to be method, has to be tunable
@@ -88,12 +166,19 @@ func formatArg(x any) string { // TODO has to be method, has to be tunable
 	switch t := x.(type) {
 	case string:
 		s = t
+		if s == "" {
+			s = "[empty string]"
+		}
 	case []byte:
-		s = fmt.Sprintf("%q", string(t)) // TODO check correct UTF
+		if len(t) > 0 && utf8.Valid(t) {
+			s = string(t)
+		} else {
+			s = fmt.Sprintf("%q", t)
+		}
 	default:
 		s = fmt.Sprintf("%v", t)
 	}
-	if len(s) > 1000 { // TODO rune!
+	if len([]rune(s)) > 1000 {
 		s = s[:400]
 	}
 	return s

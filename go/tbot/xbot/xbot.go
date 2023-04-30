@@ -107,10 +107,10 @@ func (b *Bot) API(ctx context.Context, request *Request) ([]byte, error) {
 	resp := (*http.Response)(nil)
 	data := []byte(nil)
 	defer func() {
-		xlog.Log(ctx, string(request.Body), string(data), err) // TODO formatting
+		xlog.Log(ctx, request.Body, data, err)
 	}()
-	reqUrl := b.APIOrigin + "/bot" + b.Token + "/" + request.Method
-	req, err = http.NewRequestWithContext(ctx, http.MethodPost, reqUrl, bytes.NewReader(request.Body))
+	reqURL := b.APIOrigin + "/bot" + b.Token + "/" + request.Method
+	req, err = http.NewRequestWithContext(ctx, http.MethodPost, reqURL, bytes.NewReader(request.Body))
 	if err != nil {
 		return nil, xlog.Errorf(ctx, "request constructor: %w", err)
 	}
