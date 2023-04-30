@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net"
 	"net/http"
+	_ "net/http/pprof"
 	"os"
 	"path"
 	"strconv"
@@ -80,7 +81,7 @@ func safeGaugeSet(opts prometheus.GaugeOpts, v float64) {
 			panic(err)
 		}
 	} else {
-		log(fmt.Sprintf("Reg new metric: %s", m.Desc().String()))
+		// log(fmt.Sprintf("Reg new metric: %s", m.Desc().String()))
 	}
 	m.Set(v)
 }
@@ -161,7 +162,9 @@ func updateSensors() {
 			}
 			l, ok := label[k]
 			if !ok {
-				log("FALLBACK key not found in labels:", name, k)
+				if name != "acpitz" && name != "iwlwifi_1" { // known key missing cases
+					log("FALLBACK key not found in labels:", name, k)
+				}
 			}
 			safeGaugeSet(prometheus.GaugeOpts{
 				Name:        "app_temperature",
@@ -327,6 +330,8 @@ func updateMikrotik() {
 		"dc85ded80a77": "asusLaptop",
 		"e89309fe3a08": "J1",
 		"f21aa397a964": "A22",
+		"7c23022a5290": "known1", // 2023-04-14
+		"9ed3fd55950f": "known2", // 2023-04-29 02:57
 	}
 	mikrotik := readSnmp(".1.3.6.1.4.1.14988.1.1.1.2.1") // https://oidref.com/1.3.6.1.4.1.14988.1.1.1.2.1
 	data := map[string]map[string]any{}                  // x[head key][tail key] = value
@@ -527,9 +532,20 @@ func bindAddr() string {
 	return addr
 }
 
+type gosnmplogger struct{}
+
+func (gosnmplogger) Print(v ...interface{}) {
+	log(v...)
+}
+
+func (gosnmplogger) Printf(format string, v ...interface{}) {
+	log(fmt.Sprintf(format, v...))
+}
+
 func main() {
 	gosnmp.Default.Target = "192.168.199.1" // ugly, but recommended by author in docs; and good enough for such small project
-	err := gosnmp.Default.Connect()         // TODO will it reconnect automatically?
+	// gosnmp.Default.Logger = gosnmp.NewLogger(gosnmplogger{})
+	err := gosnmp.Default.Connect() // TODO will it reconnect automatically?
 	if err != nil {
 		panic(err)
 	}
