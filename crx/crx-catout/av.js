@@ -1,33 +1,35 @@
 // avito jira
 (() => {
   const F = () => {
-    const ee = document.getElementsByClassName('ghx-extra-field');
+    const ee = document.getElementsByClassName('ghx-extra-field-content');
     [...ee].forEach(x => {
-      const ttip = x.getAttribute('data-tooltip');
-      if (!ttip) {
-        return;
+      if (x.childNodes && x.childNodes[0] && x.childNodes[0].nodeType === 1) {
+        return; // child is not text (3): node already fixed
       }
-      const tt = ttip.split(/:\s+/);
-      if (tt[0] != 'Labels') {
-        return;
+      const itext = x.innerText;
+      if (itext === 'None') {
+        x.parentNode.removeChild(x);
+        return
       }
-      const label = tt[1];
-      if (!label) {
-        return;
-      }
-      let p = 0;
-      for (let i = 0; i < label.length; i++) {
-        p *= 2;
-        p += label.charCodeAt(i);
-      }
-      // const clr = '#' + (p % 4096).toString(16).padStart(3, '0');
-      const clr = `hsl(${p % 360}, 100%, 30%)`;
-      x.style.backgroundColor = clr;
-      x.style.color = '#fff';
-      x.style.fontSize = '10px';
-      x.style.fontWeight = 'bold';
-      x.style.borderRadius = '100%';
-      x.style.padding = '2px 10px';
+      x.innerText = '';
+      itext.split(/\s*,\s*/).forEach(label => {
+        const s = document.createElement('span');
+        s.innerText = label;
+        let p = 0;
+        for (let i = 0; i < label.length; i++) {
+          p *= 2;
+          p += label.charCodeAt(i);
+        }
+        // const clr = '#' + (p % 4096).toString(16).padStart(3, '0');
+        const clr = 'hsl(' + (p % 360) + ', 100%, 30%)';
+        s.style.backgroundColor = clr;
+        s.style.color = '#fff';
+        s.style.fontSize = '10px';
+        s.style.fontWeight = 'bold';
+        s.style.borderRadius = '100%';
+        s.style.padding = '2px 10px';
+        x.appendChild(s);
+      });
     });
     [...document.getElementsByTagName('aui-badge')].forEach(x => {
       let its = x.innerText;
@@ -44,8 +46,7 @@
       x.style.color = '#fff';
     });
   };
-  F();
+  setTimeout(F, 50);
   setTimeout(F, 500);
-  setTimeout(F, 1000);
-  setInterval(F, 2000);
+  setInterval(F, 1000);
 })();
