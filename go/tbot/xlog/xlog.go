@@ -125,6 +125,14 @@ func Ctx(ctx context.Context, kv ...any) context.Context {
 	return context.WithValue(ctx, ctxKey, nkv)
 }
 
+func CloneCtx(targetCtx context.Context, ctx context.Context) context.Context {
+	kv := ctxKv(targetCtx)
+	for k, v := range ctxKv(ctx) {
+		kv[k] = v
+	}
+	return context.WithValue(targetCtx, ctxKey, kv)
+}
+
 func Log(ctx context.Context, a ...any) {
 	fkv := ctxKv(ctx)
 

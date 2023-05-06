@@ -64,7 +64,7 @@ func Handler(bot *xbot.Bot, cmd *xproc.Cmd) http.HandlerFunc {
 			}
 			// TODO add `to` to log context
 			go func() { // TODO: limit concurency
-				ctx := context.Background()
+				ctx := xlog.CloneCtx(context.Background(), ctx)
 				// TODO logger has to be abel to clone logging context
 				// TODO refactor. it is similar to processMessage
 				body, err := cmd.Run(ctx, q["a"], nil)

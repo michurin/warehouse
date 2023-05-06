@@ -3,10 +3,8 @@ package tests_test
 import (
 	"bytes"
 	"context"
-	"io"
 	"net/http"
 	"net/http/httptest"
-	"os"
 	"os/exec"
 	"strings"
 	"testing"
@@ -16,6 +14,8 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/michurin/warehouse/go/tbot/app"
+	"github.com/michurin/warehouse/go/tbot/tests/apiserver"
+	"github.com/michurin/warehouse/go/tbot/tests/files"
 	"github.com/michurin/warehouse/go/tbot/xbot"
 	"github.com/michurin/warehouse/go/tbot/xproc"
 )
@@ -29,35 +29,27 @@ func TestAPI_justCall(t *testing.T) {
 	|<--req---|
 	|---resp->|
 	*/
-	tg := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		require.Equal(t, http.MethodPost, r.Method)
-		require.Equal(t, "/botMORN/xMorn", r.URL.String())
-		require.Equal(t, "application/x-morn", r.Header.Get("content-type"))
-		body, err := io.ReadAll(r.Body)
-		require.NoError(t, err)
-		require.Equal(t, []byte("{request}"), body)
-		_, err = w.Write([]byte("{response}"))
-		if err != nil {
-			t.Fatal(err)
-		}
-	}))
-	defer tg.Close()
+	tgURL, tgClose := apiserver.ApiServer(t, nil, map[string][]apiserver.ApiAct{
+		"/botMORN/xMorn": {{
+			IsJSON:   true,
+			Request:  `{"ok":1}`,
+			Response: []byte(`{"response":1}`),
+		}},
+	})
+	defer tgClose()
 
 	ctx := context.Background()
 
-	bot := xbot.Bot{
-		APIOrigin: tg.URL,
-		Token:     "MORN",
-		Client:    http.DefaultClient,
-	}
+	bot := buildBot(tgURL)
+
 	body, err := bot.API(ctx, &xbot.Request{
 		Method:      "xMorn",
-		ContentType: "application/x-morn",
-		Body:        []byte("{request}"),
+		ContentType: "application/json",
+		Body:        []byte(`{"ok":1}`),
 	})
 
 	require.NoError(t, err)
-	assert.Equal(t, []byte("{response}"), body)
+	assert.JSONEq(t, `{"response":1}`, string(body))
 }
 
 func TestLoop(t *testing.T) {
@@ -75,33 +67,33 @@ func TestLoop(t *testing.T) {
 	|<--req---| (and send response from script)
 	|---resp->| (the order of update and send doesn't metter)
 	*/
-	simpleUpdates := []apiAct{
+	simpleUpdates := []apiserver.ApiAct{
 		{
-			true,
-			`{"offset":0,"timeout":30}`,
-			file(t, "data/get_update.json"),
+			IsJSON:   true,
+			Request:  `{"offset":0,"timeout":30}`,
+			Response: files.File(t, "data/get_update.json"),
 		},
 		{
-			true,
-			`{"offset":501,"timeout":30}`,
-			nil,
+			IsJSON:   true,
+			Request:  `{"offset":501,"timeout":30}`,
+			Response: nil,
 		},
 	}
 	for _, cs := range []struct {
 		name   string
 		script string
-		api    map[string][]apiAct
+		api    map[string][]apiserver.ApiAct
 	}{
 		{
 			name:   "simple_text",
 			script: "scripts/just_ok.sh",
-			api: map[string][]apiAct{
+			api: map[string][]apiserver.ApiAct{
 				"/botMORN/getUpdates": simpleUpdates,
 				"/botMORN/sendMessage": {
 					{
-						true,
-						fileStr(t, "data/send_message_request.json"),
-						file(t, "data/send_message_response.json"),
+						IsJSON:   true,
+						Request:  files.FileStr(t, "data/send_message_request.json"),
+						Response: files.File(t, "data/send_message_response.json"),
 					},
 				},
 			},
@@ -109,13 +101,13 @@ func TestLoop(t *testing.T) {
 		{
 			name:   "media_jpeg",
 			script: "scripts/media_jpeg.sh",
-			api: map[string][]apiAct{
+			api: map[string][]apiserver.ApiAct{
 				"/botMORN/getUpdates": simpleUpdates,
 				"/botMORN/sendPhoto": {
 					{
-						false,
-						"--BOUND\r\nContent-Disposition: form-data; name=\"chat_id\"\r\n\r\n1500\r\n--BOUND\r\nContent-Disposition: form-data; name=\"photo\"; filename=\"image.jpeg\"\r\nContent-Type: image/jpeg\r\n\r\n\xff\xd8\xff\r\n--BOUND--\r\n",
-						file(t, "data/send_message_response.json"),
+						IsJSON:   false,
+						Request:  "--BOUND\r\nContent-Disposition: form-data; name=\"chat_id\"\r\n\r\n1500\r\n--BOUND\r\nContent-Disposition: form-data; name=\"photo\"; filename=\"image.jpeg\"\r\nContent-Type: image/jpeg\r\n\r\n\xff\xd8\xff\r\n--BOUND--\r\n",
+						Response: files.File(t, "data/send_message_response.json"),
 					},
 				},
 			},
@@ -123,13 +115,13 @@ func TestLoop(t *testing.T) {
 		{
 			name:   "media_png",
 			script: "scripts/media_png.sh",
-			api: map[string][]apiAct{
+			api: map[string][]apiserver.ApiAct{
 				"/botMORN/getUpdates": simpleUpdates,
 				"/botMORN/sendPhoto": {
 					{
-						false,
-						"--BOUND\r\nContent-Disposition: form-data; name=\"chat_id\"\r\n\r\n1500\r\n--BOUND\r\nContent-Disposition: form-data; name=\"photo\"; filename=\"image.png\"\r\nContent-Type: image/png\r\n\r\n\x89PNG\r\n\x1a\n\r\n--BOUND--\r\n",
-						file(t, "data/send_message_response.json"),
+						IsJSON:   false,
+						Request:  "--BOUND\r\nContent-Disposition: form-data; name=\"chat_id\"\r\n\r\n1500\r\n--BOUND\r\nContent-Disposition: form-data; name=\"photo\"; filename=\"image.png\"\r\nContent-Type: image/png\r\n\r\n\x89PNG\r\n\x1a\n\r\n--BOUND--\r\n",
+						Response: files.File(t, "data/send_message_response.json"),
 					},
 				},
 			},
@@ -137,13 +129,13 @@ func TestLoop(t *testing.T) {
 		{
 			name:   "media_mp3",
 			script: "scripts/media_mp3.sh",
-			api: map[string][]apiAct{
+			api: map[string][]apiserver.ApiAct{
 				"/botMORN/getUpdates": simpleUpdates,
 				"/botMORN/sendAudio": {
 					{
-						false,
-						"--BOUND\r\nContent-Disposition: form-data; name=\"chat_id\"\r\n\r\n1500\r\n--BOUND\r\nContent-Disposition: form-data; name=\"audio\"; filename=\"audio.mpeg\"\r\nContent-Type: audio/mpeg\r\n\r\nID3\r\n--BOUND--\r\n",
-						file(t, "data/send_message_response.json"),
+						IsJSON:   false,
+						Request:  "--BOUND\r\nContent-Disposition: form-data; name=\"chat_id\"\r\n\r\n1500\r\n--BOUND\r\nContent-Disposition: form-data; name=\"audio\"; filename=\"audio.mpeg\"\r\nContent-Type: audio/mpeg\r\n\r\nID3\r\n--BOUND--\r\n",
+						Response: files.File(t, "data/send_message_response.json"),
 					},
 				},
 			},
@@ -151,13 +143,13 @@ func TestLoop(t *testing.T) {
 		{
 			name:   "media_ogg",
 			script: "scripts/media_ogg.sh",
-			api: map[string][]apiAct{
+			api: map[string][]apiserver.ApiAct{
 				"/botMORN/getUpdates": simpleUpdates,
 				"/botMORN/sendDocument": { // consider ogg as document, it seems it's not fully supported
 					{
-						false,
-						"--BOUND\r\nContent-Disposition: form-data; name=\"chat_id\"\r\n\r\n1500\r\n--BOUND\r\nContent-Disposition: form-data; name=\"document\"; filename=\"document\"\r\nContent-Type: application/ogg\r\n\r\nOggS\x00\r\n--BOUND--\r\n",
-						file(t, "data/send_message_response.json"),
+						IsJSON:   false,
+						Request:  "--BOUND\r\nContent-Disposition: form-data; name=\"chat_id\"\r\n\r\n1500\r\n--BOUND\r\nContent-Disposition: form-data; name=\"document\"; filename=\"document\"\r\nContent-Type: application/ogg\r\n\r\nOggS\x00\r\n--BOUND--\r\n",
+						Response: files.File(t, "data/send_message_response.json"),
 					},
 				},
 			},
@@ -165,13 +157,13 @@ func TestLoop(t *testing.T) {
 		{
 			name:   "media_mp4",
 			script: "scripts/media_mp4.sh",
-			api: map[string][]apiAct{
+			api: map[string][]apiserver.ApiAct{
 				"/botMORN/getUpdates": simpleUpdates,
 				"/botMORN/sendVideo": {
 					{
-						false,
-						"--BOUND\r\nContent-Disposition: form-data; name=\"chat_id\"\r\n\r\n1500\r\n--BOUND\r\nContent-Disposition: form-data; name=\"video\"; filename=\"video.mp4\"\r\nContent-Type: video/mp4\r\n\r\n\x00\x00\x00\fftypmp4_\r\n--BOUND--\r\n",
-						file(t, "data/send_message_response.json"),
+						IsJSON:   false,
+						Request:  "--BOUND\r\nContent-Disposition: form-data; name=\"chat_id\"\r\n\r\n1500\r\n--BOUND\r\nContent-Disposition: form-data; name=\"video\"; filename=\"video.mp4\"\r\nContent-Type: video/mp4\r\n\r\n\x00\x00\x00\fftypmp4_\r\n--BOUND--\r\n",
+						Response: files.File(t, "data/send_message_response.json"),
 					},
 				},
 			},
@@ -179,13 +171,13 @@ func TestLoop(t *testing.T) {
 		{
 			name:   "media_pdf",
 			script: "scripts/media_pdf.sh",
-			api: map[string][]apiAct{
+			api: map[string][]apiserver.ApiAct{
 				"/botMORN/getUpdates": simpleUpdates,
 				"/botMORN/sendDocument": {
 					{
-						false,
-						"--BOUND\r\nContent-Disposition: form-data; name=\"chat_id\"\r\n\r\n1500\r\n--BOUND\r\nContent-Disposition: form-data; name=\"document\"; filename=\"document\"\r\nContent-Type: application/pdf\r\n\r\n%PDF-\r\n--BOUND--\r\n",
-						file(t, "data/send_message_response.json"),
+						IsJSON:   false,
+						Request:  "--BOUND\r\nContent-Disposition: form-data; name=\"chat_id\"\r\n\r\n1500\r\n--BOUND\r\nContent-Disposition: form-data; name=\"document\"; filename=\"document\"\r\nContent-Type: application/pdf\r\n\r\n%PDF-\r\n--BOUND--\r\n",
+						Response: files.File(t, "data/send_message_response.json"),
 					},
 				},
 			},
@@ -196,21 +188,12 @@ func TestLoop(t *testing.T) {
 			ctx, cancel := context.WithCancel(context.Background())
 			defer cancel()
 
-			tgURL, tgClose := botServer(t, cancel, cs.api)
+			tgURL, tgClose := apiserver.ApiServer(t, cancel, cs.api)
 			defer tgClose()
 
-			bot := &xbot.Bot{
-				APIOrigin: tgURL,
-				Token:     "MORN",
-				Client:    http.DefaultClient,
-			}
+			bot := buildBot(tgURL)
 
-			command := &xproc.Cmd{
-				InterruptDelay: time.Second,
-				KillDelay:      time.Second,
-				Command:        cs.script,
-				Cwd:            ".",
-			}
+			command := buildCommand(cs.script)
 
 			err := app.Loop(ctx, bot, command)
 			require.Error(t, err)
@@ -219,70 +202,7 @@ func TestLoop(t *testing.T) {
 	}
 }
 
-// ---- move to tooling
-
-type apiAct struct {
-	isJSON   bool
-	request  string
-	response []byte
-}
-
-func botServer(t *testing.T, cancel context.CancelFunc, api map[string][]apiAct) (string, func()) {
-	t.Helper()
-	testDone := make(chan struct{})
-	steps := map[string]int{} // it looks ugly, however we can use it without locks
-	tg := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		require.Equal(t, http.MethodPost, r.Method)
-		bodyBytes, err := io.ReadAll(r.Body)
-		require.NoError(t, err)
-		body := string(bodyBytes)
-
-		url := r.URL.String()
-		n := steps[url]
-		a := api[url][n] // TODO this panic is caught by server! so test wont fail!
-		steps[url] = n + 1
-		if a.isJSON {
-			require.Equal(t, "application/json", r.Header.Get("content-type"))
-			require.JSONEq(t, a.request, body)
-		} else {
-			ctype := r.Header.Get("content-type")
-			require.Contains(t, ctype, "multipart/form-data")
-			idx := strings.Index(ctype, "boundary=")
-			assert.Greater(t, idx, -1)
-			universal := strings.ReplaceAll(body, ctype[idx+9:], "BOUND")
-			assert.Equal(t, a.request, universal)
-		}
-		if a.response == nil {
-			cancel()
-			<-testDone
-		}
-		_, err = w.Write(a.response)
-		require.NoError(t, err)
-	}))
-	return tg.URL, func() {
-		close(testDone)
-		tg.Close()
-	}
-}
-
-func file(t *testing.T, f string) []byte {
-	t.Helper()
-	if f == "" {
-		return nil
-	}
-	data, err := os.ReadFile(f)
-	require.NoError(t, err, f)
-	return data
-}
-
-func fileStr(t *testing.T, f string) string {
-	t.Helper()
-	return string(file(t, f))
-}
-
-// ----
-
-func TestHttp(t *testing.T) { // curl -F works transparently as is
+func TestHttp(t *testing.T) {
 	/* cases
 	tg        bots loop
 	|         |
@@ -295,17 +215,17 @@ func TestHttp(t *testing.T) { // curl -F works transparently as is
 		name string
 		curl []string
 		qs   string
-		api  map[string][]apiAct
+		api  map[string][]apiserver.ApiAct
 	}{
 		{
-			name: "curl_F",
+			name: "curl_F", // curl -F works transparently as is
 			curl: []string{"-q", "-s", "-F", "user_id=10", "-F", "text=ok"},
 			qs:   "",
-			api: map[string][]apiAct{
+			api: map[string][]apiserver.ApiAct{
 				"/botMORN/someMethod": {{
-					isJSON:   false,
-					request:  "--BOUND\r\nContent-Disposition: form-data; name=\"user_id\"\r\n\r\n10\r\n--BOUND\r\nContent-Disposition: form-data; name=\"text\"\r\n\r\nok\r\n--BOUND--\r\n",
-					response: []byte("done."),
+					IsJSON:   false,
+					Request:  "--BOUND\r\nContent-Disposition: form-data; name=\"user_id\"\r\n\r\n10\r\n--BOUND\r\nContent-Disposition: form-data; name=\"text\"\r\n\r\nok\r\n--BOUND--\r\n",
+					Response: []byte("done."),
 				}},
 			},
 		},
@@ -313,45 +233,73 @@ func TestHttp(t *testing.T) { // curl -F works transparently as is
 			name: "curl_d",
 			curl: []string{"-q", "-s", "-d", "ok"},
 			qs:   "?to=111",
-			api: map[string][]apiAct{
+			api: map[string][]apiserver.ApiAct{
 				"/botMORN/sendMessage": {{
-					isJSON:   true,
-					request:  `{"chat_id":111, "text":"ok"}`,
-					response: []byte("done."),
+					IsJSON:   true,
+					Request:  `{"chat_id":111, "text":"ok"}`,
+					Response: []byte("done."),
 				}},
 			},
 		},
 	} {
 		cs := cs
 		t.Run(cs.name, func(t *testing.T) {
-			tgURL, tgClose := botServer(t, nil, cs.api)
+			tgURL, tgClose := apiserver.ApiServer(t, nil, cs.api)
 			defer tgClose()
 
-			bot := &xbot.Bot{
-				APIOrigin: tgURL,
-				Token:     "MORN",
-				Client:    http.DefaultClient,
-			}
+			bot := buildBot(tgURL)
 
-			h := app.Handler(bot)
+			h := app.Handler(bot, nil) // we won't use second argument in this test
 
 			s := httptest.NewServer(h)
 
-			cmd := exec.Command("curl", append(cs.curl, s.URL+"/x/someMethod"+cs.qs)...)
-			var stdOut, stdErr bytes.Buffer
-			cmd.Stdout = &stdOut
-			cmd.Stderr = &stdErr
-			err := cmd.Run()
-			require.NoError(t, err)
-			assert.Equal(t, "done.", stdOut.String())
-			assert.Empty(t, stdErr.String())
+			ou, er := runCurl(t, append(cs.curl, s.URL+"/x/someMethod"+cs.qs)...)
+			assert.Equal(t, "done.", ou)
+			assert.Empty(t, er)
 		})
 	}
 }
 
-// ----
+func TestHttp_long(t *testing.T) { // CAUTION: test has sleep
+	/* cases
+	tg        bots loop
+	|         |
+	|         |<-- someone external calls bot over http (method=RUN)
+	|         |
+	|         |--exec-->| long-running external script
+	|         |<-stdout-|
+	|         |
+	|<--req---| (request to send)
+	|---resp->| (response will be skipped; and test tries cover it by making small sleep)
+	*/
 
-func TestProc(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	tgURL, tgClose := apiserver.ApiServer(t, cancel, map[string][]apiserver.ApiAct{
+		"/botMORN/sendMessage": {{
+			IsJSON:   true,
+			Request:  `{"chat_id":222, "text":"args: a1 a2\n"}`,
+			Response: nil, // response will be skipped, but in fact, we do not test this fact
+		}},
+	})
+	defer tgClose()
+
+	bot := buildBot(tgURL)
+	command := buildCommand("scripts/longrunning.sh")
+
+	h := app.Handler(bot, command)
+
+	s := httptest.NewServer(h)
+
+	ou, er := runCurl(t, "-q", "-s", "-X", "RUN", s.URL+"/?to=222&a=a1&a=a2")
+	assert.Empty(t, ou)
+	assert.Empty(t, er)
+	<-ctx.Done()
+	time.Sleep(time.Millisecond * 100) // we give small amount of time to let Bot.API method finishing after receiving response; it is not necessary
+}
+
+func TestProc(t *testing.T) { // CAUTION: test has sleep indirectly
 	ctx := context.Background()
 	t.Run("argsEnvs", func(t *testing.T) {
 		data, err := buildCommand("scripts/run_show_args.sh").Run(ctx, []string{"ARG1", "ARG2"}, []string{"test1=TEST1", "test2=TEST2"})
@@ -391,9 +339,29 @@ trap EXIT
 
 func buildCommand(cmd string) *xproc.Cmd {
 	return &xproc.Cmd{
-		InterruptDelay: 200 * time.Millisecond,
+		InterruptDelay: 200 * time.Millisecond, // timeouts important for TestProc
 		KillDelay:      200 * time.Millisecond,
 		Command:        cmd,
 		Cwd:            ".",
 	}
+}
+
+func buildBot(origin string) *xbot.Bot {
+	return &xbot.Bot{
+		APIOrigin: origin,
+		Token:     "MORN",
+		Client:    http.DefaultClient,
+	}
+}
+
+func runCurl(t *testing.T, args ...string) (string, string) {
+	t.Helper()
+	t.Logf("Run curl %s", strings.Join(args, " "))
+	cmd := exec.Command("curl", args...)
+	var stdOut, stdErr bytes.Buffer
+	cmd.Stdout = &stdOut
+	cmd.Stderr = &stdErr
+	err := cmd.Run()
+	require.NoError(t, err)
+	return stdOut.String(), stdErr.String()
 }

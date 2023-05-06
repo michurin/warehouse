@@ -78,3 +78,23 @@ func ExampleLog_formatting() {
 	// [info] <nil>
 	// [error] err
 }
+
+func ExampleLog_cloneContext() {
+	xlog.Fields = []xlog.Field{
+		xlog.StdFieldLevel,
+		{Name: "a"},
+		{Name: "b"},
+		{Name: "c"},
+		xlog.StdFieldMessage,
+	}
+	ctx1 := xlog.Ctx(context.Background(), "a", "A1", "b", "B1")
+	xlog.Log(ctx1, "Original context")
+	ctx2 := xlog.Ctx(context.Background(), "a", "A2", "c", "C2")
+	xlog.Log(ctx2, "Second context")
+	ctx3 := xlog.CloneCtx(ctx2, ctx1) // copy ctx1 -> ctx2
+	xlog.Log(ctx3, "Meted together context")
+	// Output:
+	// [info] A1 B1 Original context
+	// [info] A2 C2 Second context
+	// [info] A1 B1 C2 Meted together context
+}
