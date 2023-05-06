@@ -158,7 +158,7 @@ func Log(ctx context.Context, a ...any) {
 		}
 	}
 
-	fmt.Printf(strings.Join(fs, " ") + "\n")
+	fmt.Printf(strings.Join(fs, " ") + "\n") // TODO log.New(os.Stdout, "", 0).Printf() // log.LstdFlags?
 }
 
 func formatArg(x any) string { // TODO has to be method, has to be tunable

@@ -62,6 +62,9 @@ func main() {
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt)
 	defer stop()
 
+	// TODO following code has to be scalable in terms of it has to provide abbility
+	//      to facilitate several bots at onec
+
 	bot := &xbot.Bot{
 		APIOrigin: "https://api.telegram.org",
 		Token:     os.Getenv("BOT_TOKEN"), // TODO config!
@@ -75,12 +78,19 @@ func main() {
 		Cwd:            ".",         // TODO config?
 	}
 
+	commandLong := &xproc.Cmd{
+		InterruptDelay: 10 * time.Minute, // TODO config?
+		KillDelay:      10 * time.Second, // TODO config??
+		Command:        "./x-long.sh",    // TODO config!
+		Cwd:            ".",              // TODO config?
+	}
+
 	eg, ctx := errgroup.WithContext(ctx)
 	eg.Go(func() error {
 		return app.Loop(ctx, bot, command)
 	})
 
-	server := &http.Server{Addr: ":9999", Handler: app.Handler(bot)}
+	server := &http.Server{Addr: ":9999", Handler: app.Handler(bot, commandLong)}
 	eg.Go(func() error {
 		<-ctx.Done()
 		cx, stop := context.WithTimeout(context.Background(), time.Second)

@@ -21,21 +21,22 @@ BOT_TOKEN=your_bot_token go run ./tbot/...
 ## Application structure
 
 ```
-   Telegram infrastructure           ........................ crons etc.
-             ^                  HTTP :
-        HTTP :                       :    ...............
-             :                       v    v             : HTTP
-.=BOT===============================================.   :
-|            API           | HTTP server for        |   : script itself
-|..........................| asynchronous messaging |   : is able to send
-| polling for : sending    |                        |   : more than one
-| updates     : messages  <-- send data from req    |   : message
-`==================================================='   :
-    |             ^                                     : it is also
-    | message     | send                                : possible to
-    v data        | stdout                              : send message
-........................                                : to any user or
-: run script for every :................................: chat
-: message              :
-:......................:
+   Telegram infrastructure
+             ^                             ............. crons
+        HTTP :                        HTTP :             scripts
+             :                             v             any other
+.=BOT================================================.   asynchronous
+|            API           | HTTP server for         |
+|..........................| asynchronous messaging  |
+| polling for : sending    |                         |
+| updates     : messages  <-- send data from req     |
+`===================================================='
+    |             ^    ^  send stdout     |
+    |             |    `---------.        | request params
+    | message     | send         |        | as command line positional args
+    v data        | stdout       |        v
+........................        ......................
+: run script for every :        : long-running       :
+: message              :        : script             :
+:......................:        :....................:
 ```

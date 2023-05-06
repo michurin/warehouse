@@ -15,7 +15,7 @@ import (
 	"github.com/michurin/warehouse/go/tbot/xproc"
 )
 
-func Handler(bot *xbot.Bot) http.HandlerFunc {
+func Handler(bot *xbot.Bot, cmd *xproc.Cmd) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
 		// TODO mark ctx for logging?
@@ -55,6 +55,39 @@ func Handler(bot *xbot.Bot) http.HandlerFunc {
 				}
 				data, err = bot.API(ctx, req)
 			}
+		case "RUN":
+			q := r.URL.Query()
+			to, err := strconv.ParseInt(r.URL.Query().Get("to"), 10, 64) // TODO code dup
+			if err != nil {
+				xlog.Log(ctx, err) // TODO response!
+				return
+			}
+			// TODO add `to` to log context
+			go func() { // TODO: limit concurency
+				ctx := context.Background()
+				// TODO logger has to be abel to clone logging context
+				// TODO refactor. it is similar to processMessage
+				body, err := cmd.Run(ctx, q["a"], nil)
+				if err != nil {
+					xlog.Log(ctx, err)
+					return
+				}
+				req, err := xbot.RequestFromBinary(body, to)
+				if err != nil {
+					xlog.Log(ctx, err)
+					return
+				}
+				if req == nil { // TODO hmm... it happens?
+					xlog.Log(ctx, "Script response skipped")
+					return
+				}
+				_, err = bot.API(ctx, req) // TODO check body?
+				if err != nil {
+					xlog.Log(ctx, err)
+					return
+				}
+			}()
+			return
 		default:
 			w.WriteHeader(http.StatusMethodNotAllowed)
 			return
