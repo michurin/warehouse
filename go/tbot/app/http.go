@@ -15,7 +15,7 @@ import (
 	"github.com/michurin/warehouse/go/tbot/xproc"
 )
 
-func Handler(bot *xbot.Bot, cmd *xproc.Cmd) http.HandlerFunc {
+func Handler(bot *xbot.Bot, cmd *xproc.Cmd) http.HandlerFunc { //nolint:gocognit // reason to refactor
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
 		// TODO mark ctx for logging?

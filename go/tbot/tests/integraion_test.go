@@ -29,7 +29,7 @@ func TestAPI_justCall(t *testing.T) {
 	|<--req---|
 	|---resp->|
 	*/
-	tgURL, tgClose := apiserver.ApiServer(t, nil, map[string][]apiserver.ApiAct{
+	tgURL, tgClose := apiserver.APIServer(t, nil, map[string][]apiserver.APIAct{
 		"/botMORN/xMorn": {{
 			IsJSON:   true,
 			Request:  `{"ok":1}`,
@@ -67,7 +67,7 @@ func TestLoop(t *testing.T) {
 	|<--req---| (and send response from script)
 	|---resp->| (the order of update and send doesn't metter)
 	*/
-	simpleUpdates := []apiserver.ApiAct{
+	simpleUpdates := []apiserver.APIAct{
 		{
 			IsJSON:   true,
 			Request:  `{"offset":0,"timeout":30}`,
@@ -82,12 +82,12 @@ func TestLoop(t *testing.T) {
 	for _, cs := range []struct {
 		name   string
 		script string
-		api    map[string][]apiserver.ApiAct
+		api    map[string][]apiserver.APIAct
 	}{
 		{
 			name:   "simple_text",
 			script: "scripts/just_ok.sh",
-			api: map[string][]apiserver.ApiAct{
+			api: map[string][]apiserver.APIAct{
 				"/botMORN/getUpdates": simpleUpdates,
 				"/botMORN/sendMessage": {
 					{
@@ -101,7 +101,7 @@ func TestLoop(t *testing.T) {
 		{
 			name:   "media_jpeg",
 			script: "scripts/media_jpeg.sh",
-			api: map[string][]apiserver.ApiAct{
+			api: map[string][]apiserver.APIAct{
 				"/botMORN/getUpdates": simpleUpdates,
 				"/botMORN/sendPhoto": {
 					{
@@ -115,7 +115,7 @@ func TestLoop(t *testing.T) {
 		{
 			name:   "media_png",
 			script: "scripts/media_png.sh",
-			api: map[string][]apiserver.ApiAct{
+			api: map[string][]apiserver.APIAct{
 				"/botMORN/getUpdates": simpleUpdates,
 				"/botMORN/sendPhoto": {
 					{
@@ -129,7 +129,7 @@ func TestLoop(t *testing.T) {
 		{
 			name:   "media_mp3",
 			script: "scripts/media_mp3.sh",
-			api: map[string][]apiserver.ApiAct{
+			api: map[string][]apiserver.APIAct{
 				"/botMORN/getUpdates": simpleUpdates,
 				"/botMORN/sendAudio": {
 					{
@@ -143,7 +143,7 @@ func TestLoop(t *testing.T) {
 		{
 			name:   "media_ogg",
 			script: "scripts/media_ogg.sh",
-			api: map[string][]apiserver.ApiAct{
+			api: map[string][]apiserver.APIAct{
 				"/botMORN/getUpdates": simpleUpdates,
 				"/botMORN/sendDocument": { // consider ogg as document, it seems it's not fully supported
 					{
@@ -157,7 +157,7 @@ func TestLoop(t *testing.T) {
 		{
 			name:   "media_mp4",
 			script: "scripts/media_mp4.sh",
-			api: map[string][]apiserver.ApiAct{
+			api: map[string][]apiserver.APIAct{
 				"/botMORN/getUpdates": simpleUpdates,
 				"/botMORN/sendVideo": {
 					{
@@ -171,7 +171,7 @@ func TestLoop(t *testing.T) {
 		{
 			name:   "media_pdf",
 			script: "scripts/media_pdf.sh",
-			api: map[string][]apiserver.ApiAct{
+			api: map[string][]apiserver.APIAct{
 				"/botMORN/getUpdates": simpleUpdates,
 				"/botMORN/sendDocument": {
 					{
@@ -188,7 +188,7 @@ func TestLoop(t *testing.T) {
 			ctx, cancel := context.WithCancel(context.Background())
 			defer cancel()
 
-			tgURL, tgClose := apiserver.ApiServer(t, cancel, cs.api)
+			tgURL, tgClose := apiserver.APIServer(t, cancel, cs.api)
 			defer tgClose()
 
 			bot := buildBot(tgURL)
@@ -215,13 +215,13 @@ func TestHttp(t *testing.T) {
 		name string
 		curl []string
 		qs   string
-		api  map[string][]apiserver.ApiAct
+		api  map[string][]apiserver.APIAct
 	}{
 		{
 			name: "curl_F", // curl -F works transparently as is
 			curl: []string{"-q", "-s", "-F", "user_id=10", "-F", "text=ok"},
 			qs:   "",
-			api: map[string][]apiserver.ApiAct{
+			api: map[string][]apiserver.APIAct{
 				"/botMORN/someMethod": {{
 					IsJSON:   false,
 					Request:  "--BOUND\r\nContent-Disposition: form-data; name=\"user_id\"\r\n\r\n10\r\n--BOUND\r\nContent-Disposition: form-data; name=\"text\"\r\n\r\nok\r\n--BOUND--\r\n",
@@ -233,7 +233,7 @@ func TestHttp(t *testing.T) {
 			name: "curl_d",
 			curl: []string{"-q", "-s", "-d", "ok"},
 			qs:   "?to=111",
-			api: map[string][]apiserver.ApiAct{
+			api: map[string][]apiserver.APIAct{
 				"/botMORN/sendMessage": {{
 					IsJSON:   true,
 					Request:  `{"chat_id":111, "text":"ok"}`,
@@ -244,7 +244,7 @@ func TestHttp(t *testing.T) {
 	} {
 		cs := cs
 		t.Run(cs.name, func(t *testing.T) {
-			tgURL, tgClose := apiserver.ApiServer(t, nil, cs.api)
+			tgURL, tgClose := apiserver.APIServer(t, nil, cs.api)
 			defer tgClose()
 
 			bot := buildBot(tgURL)
@@ -276,7 +276,7 @@ func TestHttp_long(t *testing.T) { // CAUTION: test has sleep
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	tgURL, tgClose := apiserver.ApiServer(t, cancel, map[string][]apiserver.ApiAct{
+	tgURL, tgClose := apiserver.APIServer(t, cancel, map[string][]apiserver.APIAct{
 		"/botMORN/sendMessage": {{
 			IsJSON:   true,
 			Request:  `{"chat_id":222, "text":"args: a1 a2\n"}`,

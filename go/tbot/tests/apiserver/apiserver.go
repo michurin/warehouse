@@ -11,13 +11,13 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-type ApiAct struct {
+type APIAct struct {
 	IsJSON   bool // TODO use content type?
 	Request  string
 	Response []byte
 }
 
-func ApiServer(t *testing.T, cancel context.CancelFunc, api map[string][]ApiAct) (string, func()) {
+func APIServer(t *testing.T, cancel context.CancelFunc, api map[string][]APIAct) (string, func()) {
 	t.Helper()
 	testDone := make(chan struct{})
 	steps := map[string]int{} // it looks ugly, however we can use it without locks
