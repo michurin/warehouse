@@ -532,37 +532,51 @@ func bindAddr() string {
 	return addr
 }
 
-type gosnmplogger struct{}
-
-func (gosnmplogger) Print(v ...interface{}) {
-	log(v...)
-}
-
-func (gosnmplogger) Printf(format string, v ...interface{}) {
-	log(fmt.Sprintf(format, v...))
+func timeoutWrapper(f func(), i int) func() {
+	sync := make(chan struct{}, 1)
+	return func() {
+		select {
+		case sync <- struct{}{}:
+			defer func() { <-sync }()
+		default:
+			log("RUN SKIPPED", i) // TODO more details
+			return
+		}
+		f()
+	}
 }
 
 func main() {
-	gosnmp.Default.Target = "192.168.199.1" // ugly, but recommended by author in docs; and good enough for such small project
-	// gosnmp.Default.Logger = gosnmp.NewLogger(gosnmplogger{})
+	gosnmp.Default.Target = "192.168.199.1"                  // ugly, but recommended by author in docs; and good enough for such small project
+	gosnmp.Default.Timeout = time.Duration(30) * time.Second // default 2s, and connection hangs time to time
+	// gosnmp.Default.Logger = gosnmp.NewLogger(logging.New(os.Stdout, "", 0))
 	err := gosnmp.Default.Connect() // TODO will it reconnect automatically?
 	if err != nil {
 		panic(err)
 	}
 	defer gosnmp.Default.Conn.Close()
 
+	collectors := []func(){
+		updateLocalNetwork,
+		updateSensors,
+		updateLoadAvg,
+		updateCPU,
+		updateInterrupts,
+		updateBlocks,
+		updateRouterNetwork,
+		updateMikrotik,
+		updateTCP,
+	}
+	for i, c := range collectors {
+		collectors[i] = timeoutWrapper(c, i)
+	}
+
 	metricHandler := promhttp.Handler()
 	http.Handle("/metrics", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) { // TODO will be nice to pass r.Context everywhere
 		log("Update metrics")
-		updateLocalNetwork()
-		updateSensors()
-		updateLoadAvg()
-		updateCPU()
-		updateInterrupts()
-		updateBlocks()
-		updateRouterNetwork()
-		updateMikrotik()
-		updateTCP()
+		for _, c := range collectors {
+			c()
+		}
 		metricHandler.ServeHTTP(w, r)
 		unregistre()
 	}))
