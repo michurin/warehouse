@@ -6,21 +6,35 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"path"
 	"time"
 
 	"golang.org/x/sync/errgroup"
 
 	"github.com/michurin/warehouse/go/tbot/app"
 	"github.com/michurin/warehouse/go/tbot/xbot"
+	"github.com/michurin/warehouse/go/tbot/xcfg"
+	"github.com/michurin/warehouse/go/tbot/xenv"
 	"github.com/michurin/warehouse/go/tbot/xlog"
 	"github.com/michurin/warehouse/go/tbot/xproc"
 )
 
-func main() {
-	// setup logging
+func setupLogging() {
 	xlog.Fields = []xlog.Field{
 		xlog.StdFieldTime,
 		xlog.StdFieldLevel,
+		{
+			Name: "bot",
+			Proc: func(a any) string {
+				return a.(string)
+			},
+		},
+		{
+			Name: "comp",
+			Proc: func(a any) string {
+				return a.(string)
+			},
+		},
 		{
 			Name: "api",
 			Proc: func(a any) string {
@@ -58,39 +72,34 @@ func main() {
 			return "\033[1;35m" + x.(string) + "\033[0m"
 		}
 	}
+}
 
-	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt)
-	defer stop()
-
-	// TODO following code has to be scalable in terms of it has to provide abbility
-	//      to facilitate several bots at onec
-
+func bot(ctx context.Context, eg *errgroup.Group, cfg xcfg.Config) {
 	bot := &xbot.Bot{
 		APIOrigin: "https://api.telegram.org",
-		Token:     os.Getenv("BOT_TOKEN"), // TODO config!
+		Token:     cfg.Token,
 		Client:    http.DefaultClient,
 	}
 
 	command := &xproc.Cmd{
-		InterruptDelay: time.Second, // TODO config?
-		KillDelay:      time.Second, // TODO config??
-		Command:        "./x.sh",    // TODO config!
-		Cwd:            ".",         // TODO config?
+		InterruptDelay: 5 * time.Second,
+		KillDelay:      5 * time.Second,
+		Command:        cfg.Script,
+		Cwd:            path.Dir(cfg.Script),
 	}
 
 	commandLong := &xproc.Cmd{
-		InterruptDelay: 10 * time.Minute, // TODO config?
-		KillDelay:      10 * time.Second, // TODO config??
-		Command:        "./x-long.sh",    // TODO config!
-		Cwd:            ".",              // TODO config?
+		InterruptDelay: 10 * time.Minute,
+		KillDelay:      10 * time.Second,
+		Command:        cfg.LongRunningScript,
+		Cwd:            path.Dir(cfg.LongRunningScript),
 	}
 
-	eg, ctx := errgroup.WithContext(ctx)
 	eg.Go(func() error {
 		return app.Loop(ctx, bot, command)
 	})
 
-	server := &http.Server{Addr: ":9999", Handler: app.Handler(bot, commandLong)}
+	server := &http.Server{Addr: cfg.ControlAddr, Handler: app.Handler(bot, commandLong)}
 	eg.Go(func() error {
 		<-ctx.Done()
 		cx, stop := context.WithTimeout(context.Background(), time.Second)
@@ -101,7 +110,49 @@ func main() {
 	eg.Go(func() error {
 		return server.ListenAndServe()
 	})
+}
 
-	err := eg.Wait()
-	fmt.Println("Exit reason:", err)
+func application(rootCtx context.Context, bots map[string]xcfg.Config) error {
+	if len(bots) == 0 {
+		return xlog.Errorf(rootCtx, "there is no configuration")
+	}
+	eg, ctx := errgroup.WithContext(rootCtx)
+	for name, cfg := range bots {
+		bot(xlog.Ctx(ctx, "bot", name), eg, cfg)
+	}
+	return eg.Wait()
+}
+
+func loadConfigs(ctx context.Context, files ...string) (map[string]xcfg.Config, error) {
+	env := os.Environ()
+	for _, file := range files {
+		xlog.Log(ctx, "Loading configuration file", file)
+		cfgData, err := os.ReadFile(file)
+		if err != nil {
+			return nil, err
+		}
+		pairs, err := xenv.Parser([]rune(string(cfgData))) // TODO helper?
+		if err != nil {
+			return nil, err
+		}
+		env = append(env, xenv.Env(pairs)...)
+	}
+	return xcfg.Cfg(env), nil
+}
+
+func main() {
+	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt)
+	defer stop()
+
+	setupLogging()
+	cfg, err := loadConfigs(ctx, "tbot.env") // TODO hardcoded
+	if err != nil {
+		xlog.Log(ctx, err)
+		return
+	}
+	err = application(ctx, cfg)
+	if err != nil {
+		xlog.Log(ctx, err)
+		return
+	}
 }
