@@ -3,8 +3,9 @@ package xcfg_test
 import (
 	"testing"
 
-	"github.com/michurin/warehouse/go/tbot/xcfg"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/michurin/warehouse/go/tbot/xcfg"
 )
 
 func TestCfg(t *testing.T) {

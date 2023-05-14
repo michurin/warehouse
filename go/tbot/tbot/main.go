@@ -123,19 +123,10 @@ func application(rootCtx context.Context, bots map[string]xcfg.Config) error {
 	return eg.Wait()
 }
 
-func loadConfigs(ctx context.Context, files ...string) (map[string]xcfg.Config, error) {
-	env := os.Environ()
-	for _, file := range files {
-		xlog.Log(ctx, "Loading configuration file", file)
-		cfgData, err := os.ReadFile(file)
-		if err != nil {
-			return nil, err
-		}
-		pairs, err := xenv.Parser([]rune(string(cfgData))) // TODO helper?
-		if err != nil {
-			return nil, err
-		}
-		env = append(env, xenv.Env(pairs)...)
+func loadConfigs(files ...string) (map[string]xcfg.Config, error) {
+	env, err := xenv.Environ(os.Environ(), files...)
+	if err != nil {
+		return nil, err
 	}
 	return xcfg.Cfg(env), nil
 }
@@ -145,7 +136,7 @@ func main() {
 	defer stop()
 
 	setupLogging()
-	cfg, err := loadConfigs(ctx, "tbot.env") // TODO hardcoded
+	cfg, err := loadConfigs("tbot.env") // TODO hardcoded
 	if err != nil {
 		xlog.Log(ctx, err)
 		return

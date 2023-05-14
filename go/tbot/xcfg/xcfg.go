@@ -31,7 +31,7 @@ type Config struct {
 	LongRunningScript string
 }
 
-func Cfg(osEnviron []string) map[string]Config {
+func Cfg(osEnviron []string) map[string]Config { //nolint:gocognit
 	ctx := xlog.Ctx(context.Background(), "comp", "cfg")
 	x := map[string]map[string]string{}
 	for _, pair := range osEnviron {
