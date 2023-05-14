@@ -39,7 +39,7 @@ func ProcFuncCaller(any) string {
 	return relativeCaller(3)
 }
 
-var StdFieldTime = Field{
+var StdFieldTime = Field{ // TODO fields has to be smarter: take all keys and analyze them. It allows to remove fake keys like log_time
 	Name: "log_time",
 	Proc: func(any) string {
 		return time.Now().Format("2006-01-02 15:04:05.000")
