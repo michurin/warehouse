@@ -4,97 +4,71 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log"
+	"os"
+	"runtime"
+	"strings"
 
 	"github.com/michurin/warehouse/go/tbot/xlog"
 )
-
-// TODO cannot be run in parallel
 
 type customError struct{}
 
 func (customError) Error() string { return "custom" }
 
-func ExampleLog_message() {
-	xlog.Fields = []xlog.Field{
-		xlog.StdFieldLevel,
-		{Name: "a"},
-		{Name: "b"},
-		{Name: "c"},
-		{Name: "d"},
-		xlog.StdFieldMessage,
-	}
+func ExampleNew() {
+	_, file, _, _ := runtime.Caller(0)
+	pfx := file[:strings.LastIndex(file, "/")+1]
+
+	log := xlog.New(
+		xlog.WithStdLogger(log.New(os.Stdout, "", 0)),
+		xlog.WithPersistFields("p", "pst"),
+		xlog.WithFields(
+			xlog.FieldLevel("[INFO]", "[ERRR]"),
+			xlog.FieldCaller(pfx),
+			xlog.FieldErrorCaller(pfx),
+			xlog.FieldNamed("p"),
+			xlog.FieldNamed("a"),
+			xlog.FieldNamed("b"),
+			xlog.FieldNamed("c"),
+			xlog.FieldNamed("d"),
+			xlog.FieldFallbackKV("a", "b", "c", "d", "p"),
+			xlog.FieldMessage(),
+		),
+	).Log
+
 	ctx := xlog.Ctx(context.Background(), "a", 0)
-	xlog.Log(ctx, "Just message")
+	log(ctx, "Just message")
+	log(ctx, "Test formatting", []byte("valid bytes"))
+	log(ctx, "Test formatting", append([]byte("invalid bytes "), 255))
+	log(ctx, "Test formatting numbers", 255, 3.14)
 	err := error(customError{})
-	xlog.Log(ctx, "Naked error", err)
-	xlog.Log(xlog.Ctx(ctx, "a", 7, "b", "9"), "Naked error with tweaked ctx", err)
-	err = xlog.Errorf(xlog.Ctx(ctx, "a", 1), "e1: %w", err) // [A]
+	log(ctx, "Naked error", err)
+	log(xlog.Ctx(ctx, "a", 7, "b", "9"), "Naked error with tweaked ctx", err)
+	err = xlog.Errorf(xlog.Ctx(context.Background(), "a", 1), "e1: %w", err) // [A]
 	err = fmt.Errorf("f1: %w", err)
-	err = xlog.Errorf(xlog.Ctx(ctx, "a", 2, "b", 2), "e2: %w", err) // [B]
+	err = xlog.Errorf(xlog.Ctx(context.Background(), "a", 2, "b", 2), "e2: %w", err) // [B]
 	err = fmt.Errorf("f2: %w", err)
 	ctx = xlog.Ctx(ctx, "a", 4, "b", 4, "c", 4, "d", 4)
-	xlog.Log(xlog.Ctx(ctx, "c", 3), "Message", err) // "a" comes from [A], "b" comes from "B"
-	fmt.Println(errors.Is(err, customError{}))
-	// Output:
-	// [info] 0 Just message
-	// [error] 0 Naked error custom
-	// [error] 7 9 Naked error with tweaked ctx custom
-	// [error] 1 2 3 4 Message f2: e2: f1: e1: custom
-	// true
-}
+	log(xlog.Ctx(ctx, "c", 3), "Message", err) // "a" comes from [A], "b" comes from "B"
+	log(context.Background(), errors.Is(err, customError{}))
 
-func ExampleLog_caller() {
-	xlog.Fields = []xlog.Field{
-		xlog.StdFieldLevel,
-		xlog.StdFieldCaller,
-		xlog.StdFieldOCaller,
-		xlog.StdFieldMessage,
-	}
-	ctx := context.Background()
-	err := xlog.Errorf(ctx, "Just message")    // we will see this line in logs
-	err = xlog.Errorf(ctx, "Wrapped: %w", err) // not this; but log message will be wrapped correctly
-	xlog.Log(ctx, err)
-	// Output:
-	// [error] xlog/xlog_test.go:56 xlog/xlog_test.go:54 Wrapped: Just message
-}
+	ctx1 := xlog.Ctx(context.Background(), "a", 1, "b", 1)
+	ctx2 := xlog.Ctx(context.Background(), "b", 2, "c", 2)
+	ctx = xlog.CloneCtx(ctx2, ctx1) // 2<-1: b=1 replace b=2
+	log(ctx, "Show cloning")
 
-func ExampleLog_formatting() {
-	xlog.Fields = []xlog.Field{
-		xlog.StdFieldLevel,
-		xlog.StdFieldMessage,
-	}
-	ctx := context.Background()
-	xlog.Log(ctx, []byte(nil))       // nil
-	xlog.Log(ctx, []byte{})          // len=0
-	xlog.Log(ctx, []byte("ok"))      // bytes
-	xlog.Log(ctx, []byte{255})       // wrong char
-	xlog.Log(ctx, error(nil))        // nil error
-	xlog.Log(ctx, errors.New("err")) // true error
-	// Output:
-	// [info] ""
-	// [info] ""
-	// [info] ok
-	// [info] "\xff"
-	// [info] <nil>
-	// [error] err
-}
+	log(xlog.Ctx(context.Background(), "a", 1, "f", 7), "Unknown field")
 
-func ExampleLog_cloneContext() {
-	xlog.Fields = []xlog.Field{
-		xlog.StdFieldLevel,
-		{Name: "a"},
-		{Name: "b"},
-		{Name: "c"},
-		xlog.StdFieldMessage,
-	}
-	ctx1 := xlog.Ctx(context.Background(), "a", "A1", "b", "B1")
-	xlog.Log(ctx1, "Original context")
-	ctx2 := xlog.Ctx(context.Background(), "a", "A2", "c", "C2")
-	xlog.Log(ctx2, "Second context")
-	ctx3 := xlog.CloneCtx(ctx2, ctx1) // copy ctx1 -> ctx2
-	xlog.Log(ctx3, "Meted together context")
 	// Output:
-	// [info] A1 B1 Original context
-	// [info] A2 C2 Second context
-	// [info] A1 B1 C2 Meted together context
+	// [INFO] xlog_test.go:41 pst 0 Just message
+	// [INFO] xlog_test.go:42 pst 0 Test formatting valid bytes
+	// [INFO] xlog_test.go:43 pst 0 Test formatting "invalid bytes \xff"
+	// [INFO] xlog_test.go:44 pst 0 Test formatting numbers 255 3.14
+	// [ERRR] xlog_test.go:46 pst 0 Naked error custom
+	// [ERRR] xlog_test.go:47 pst 7 9 Naked error with tweaked ctx custom
+	// [ERRR] xlog_test.go:53 xlog_test.go:48 pst 1 2 3 4 Message f2: e2: f1: e1: custom
+	// [INFO] xlog_test.go:54 pst true
+	// [INFO] xlog_test.go:59 pst 1 1 2 Show cloning
+	// [INFO] xlog_test.go:61 pst 1 f=7 Unknown field
 }

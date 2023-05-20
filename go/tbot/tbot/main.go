@@ -2,11 +2,12 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 	"os"
 	"os/signal"
 	"path"
+	"runtime"
+	"strings"
 	"time"
 
 	"golang.org/x/sync/errgroup"
@@ -14,64 +15,63 @@ import (
 	"github.com/michurin/warehouse/go/tbot/app"
 	"github.com/michurin/warehouse/go/tbot/xbot"
 	"github.com/michurin/warehouse/go/tbot/xcfg"
+	"github.com/michurin/warehouse/go/tbot/xctrl"
 	"github.com/michurin/warehouse/go/tbot/xenv"
 	"github.com/michurin/warehouse/go/tbot/xlog"
+	"github.com/michurin/warehouse/go/tbot/xloop"
 	"github.com/michurin/warehouse/go/tbot/xproc"
 )
 
-func setupLogging() {
-	xlog.Fields = []xlog.Field{
-		xlog.StdFieldTime,
-		xlog.StdFieldLevel,
-		{
-			Name: "bot",
-			Proc: func(a any) string {
-				return a.(string)
-			},
-		},
-		{
-			Name: "comp",
-			Proc: func(a any) string {
-				return a.(string)
-			},
-		},
-		{
-			Name: "api",
-			Proc: func(a any) string {
-				return a.(string)
-			},
-		},
-		{
-			Name: "pid",
-			Proc: func(a any) string {
-				return fmt.Sprintf("%v", a)
-			},
-		},
-		{
-			Name: "user",
-			Proc: func(a any) string {
-				return fmt.Sprintf("%v", a)
-			},
-		},
-		xlog.StdFieldCaller,
-		xlog.StdFieldOCaller,
-		xlog.StdFieldMessage,
+func prefix(next xlog.FieldFunc, prefix string) xlog.FieldFunc { // TODO move it to xlog package?
+	return func(r xlog.Record) string {
+		t := next(r)
+		if t == "" {
+			return t
+		}
+		return prefix + next(r)
 	}
+}
+
+func color(next xlog.FieldFunc, colorCode string) xlog.FieldFunc { // TODO move it to xlog package?
+	return func(r xlog.Record) string {
+		t := next(r)
+		if t == "" {
+			return t
+		}
+		return "\033[" + colorCode + "m" + next(r) + "\033[0m"
+	}
+}
+
+func setupLogging() {
+	_, file, _, _ := runtime.Caller(0)
+	pfx := strings.TrimSuffix(file, "tbot/main.go")
+	opts := []xlog.Option(nil)
 	o, _ := os.Stdout.Stat()
 	if (o.Mode() & os.ModeCharDevice) == os.ModeCharDevice {
-		xlog.Fields[0].Proc = func(any) string {
-			return "\033[1;34m" + time.Now().Format("2006-01-02 15:04:05.000") + "\033[0m"
+		opts = []xlog.Option{
+			xlog.WithFields(
+				xlog.FieldLevel("", "\033[1;33;41m ERROR \033[0m"),
+				color(xlog.FieldCaller(pfx), "1;34"),
+				color(xlog.FieldErrorCaller(pfx), "1;31"),
+				color(xlog.FieldNamed("comp"), "32"),
+				color(xlog.FieldNamed("bot"), "35"),
+				color(xlog.FieldNamed("api"), "1;35"),
+				color(xlog.FieldNamed("user"), "1;32"),
+				prefix(color(xlog.FieldNamed("pid"), "33"), "PID:"),
+				xlog.FieldFallbackKV("api", "bot", "comp", "pid", "user"),
+				xlog.FieldMessage()),
 		}
-		xlog.Fields[1].Proc = func(x any) string {
-			if x.(int) == xlog.LevelError {
-				return "\033[1;33;41m[error]\033[0m"
-			}
-			return "\033[1;32m[info]\033[0m"
-		}
-		xlog.Fields[2].Proc = func(x any) string {
-			return "\033[1;35m" + x.(string) + "\033[0m"
+	} else {
+		opts = []xlog.Option{
+			xlog.WithFields(
+				xlog.FieldLevel("[I]", "[E]"),
+				xlog.FieldCaller(pfx),
+				xlog.FieldErrorCaller(pfx),
+				xlog.FieldFallbackKV(),
+				xlog.FieldMessage()),
 		}
 	}
+	app.Log = xlog.New(opts...).Log
 }
 
 func bot(ctx context.Context, eg *errgroup.Group, cfg xcfg.Config) {
@@ -81,25 +81,29 @@ func bot(ctx context.Context, eg *errgroup.Group, cfg xcfg.Config) {
 		Client:    http.DefaultClient,
 	}
 
+	envCtrl := "tg_ctrl_addr=" + cfg.ControlAddr
+
 	command := &xproc.Cmd{
-		InterruptDelay: 5 * time.Second,
-		KillDelay:      5 * time.Second,
+		InterruptDelay: 10 * time.Second,
+		KillDelay:      10 * time.Second,
+		Env:            []string{envCtrl, "tg_run_mode=short"},
 		Command:        cfg.Script,
 		Cwd:            path.Dir(cfg.Script),
 	}
 
 	commandLong := &xproc.Cmd{
 		InterruptDelay: 10 * time.Minute,
-		KillDelay:      10 * time.Second,
+		KillDelay:      10 * time.Minute,
+		Env:            []string{envCtrl, "tg_run_mode=long"},
 		Command:        cfg.LongRunningScript,
 		Cwd:            path.Dir(cfg.LongRunningScript),
 	}
 
 	eg.Go(func() error {
-		return app.Loop(ctx, bot, command)
+		return xloop.Loop(ctx, bot, command)
 	})
 
-	server := &http.Server{Addr: cfg.ControlAddr, Handler: app.Handler(bot, commandLong)}
+	server := &http.Server{Addr: cfg.ControlAddr, Handler: xctrl.Handler(bot, commandLong)}
 	eg.Go(func() error {
 		<-ctx.Done()
 		cx, stop := context.WithTimeout(context.Background(), time.Second)
@@ -138,12 +142,12 @@ func main() {
 	setupLogging()
 	cfg, err := loadConfigs("tbot.env") // TODO hardcoded
 	if err != nil {
-		xlog.Log(ctx, err)
+		app.Log(ctx, err)
 		return
 	}
 	err = application(ctx, cfg)
 	if err != nil {
-		xlog.Log(ctx, err)
+		app.Log(ctx, err)
 		return
 	}
 }

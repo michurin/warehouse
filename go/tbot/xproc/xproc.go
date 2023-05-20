@@ -9,12 +9,14 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/michurin/warehouse/go/tbot/app"
 	"github.com/michurin/warehouse/go/tbot/xlog"
 )
 
 type Cmd struct {
 	InterruptDelay time.Duration
 	KillDelay      time.Duration
+	Env            []string
 	Command        string
 	Cwd            string
 }
@@ -25,12 +27,12 @@ func killGrp(ctx context.Context, pid int, sig syscall.Signal) {
 	// For example you can get ESRCH (0x3) that doesn't support by syscall.Errno.Is().
 	pgid, err := syscall.Getpgid(pid) // not cmd.SysProcAttr.Pgid
 	if err != nil {
-		xlog.Log(ctx, xlog.Errorf(ctx, "kill: getpgid: %w", err))
+		app.Log(ctx, xlog.Errorf(ctx, "kill: getpgid: %w", err))
 		return
 	}
 	err = syscall.Kill(-pgid, sig) // minus
 	if err != nil {
-		xlog.Log(ctx, xlog.Errorf(ctx, "kill: kill %d: %w", -pgid, err))
+		app.Log(ctx, xlog.Errorf(ctx, "kill: kill %d: %w", -pgid, err))
 		return
 	}
 }
@@ -44,19 +46,19 @@ func (c *Cmd) Run(
 	[]byte,
 	error,
 ) {
-	// TODO if (for example) timeouts are zero, subprocess has to
-	//      run without time lemits. And stdout wont be processed
 	// setup cmd
 	cmd := exec.Command(c.Command, args...) // we don't use CommandContext here because it kills only process, not group
 	cmd.SysProcAttr = &syscall.SysProcAttr{
 		Setpgid: true,
 	}
 	cmd.Dir = c.Cwd
-	cmd.Env = env
+	cmd.Env = append(c.Env, env...)
 	var outBuffer bytes.Buffer
 	cmd.Stdout = &outBuffer
 	var errBuffer bytes.Buffer
 	cmd.Stderr = &errBuffer
+
+	app.Log(ctx, fmt.Sprintf("starting %s %v", c.Command, args)) // TODO put command to context?
 
 	err := cmd.Start() // start command synchronously
 	if err != nil {
@@ -78,7 +80,7 @@ func (c *Cmd) Run(
 			case <-done: // it has to appear before kill sections to catch stat errors
 				return
 			case <-ctx.Done(): // urgent exit, we doesn't even wait for process finalization
-				xlog.Log(ctx, "Exec terminated by context")
+				app.Log(ctx, "Exec terminated by context")
 				killGrp(ctx, cmd.Process.Pid, syscall.SIGKILL)
 				return
 			case <-intBound.C:
@@ -100,7 +102,8 @@ func (c *Cmd) Run(
 	}
 	errStr := errBuffer.String()
 	if errStr != "" {
-		errMsg = append(errMsg, fmt.Sprintf("stderr: %q", errStr))
+		app.Log(ctx, "stderr:", errStr) // TODO consider as error?
+		// errMsg = append(errMsg, fmt.Sprintf("stderr: %q", errStr))
 	}
 	outBytes := outBuffer.Bytes()
 	if errMsg == nil {

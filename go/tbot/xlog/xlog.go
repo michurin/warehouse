@@ -4,116 +4,116 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log"
 	"os"
 	"runtime"
+	"sort"
 	"strings"
-	"time"
 	"unicode/utf8"
 )
 
-// TODO it has to be DefaultLogger and methods
+type RecordCaller struct {
+	File string
+	Line int
+}
 
-var pathReplacer = func() *strings.Replacer {
-	// WARNING: this naive approach wont work in dedicated package
-	_, fileName, _, _ := runtime.Caller(0)
-	sep := string(os.PathSeparator)
-	p := strings.Split(fileName, sep)
-	s := strings.Join(p[:len(p)-2], sep) + sep
-	return strings.NewReplacer(s, "")
-}()
+type Record struct {
+	Message     string
+	IsError     bool
+	Context     map[string]any
+	Caller      RecordCaller
+	ErrorCaller RecordCaller
+}
 
-func relativeCaller(level int) string {
-	_, file, no, ok := runtime.Caller(level)
-	if ok {
-		return fmt.Sprintf("%s:%d", pathReplacer.Replace(file), no)
+type FieldFunc func(Record) string
+
+type Logger struct {
+	printer       func(string)
+	fields        []FieldFunc
+	argFormatter  func(any) string
+	persistFields map[string]string
+}
+
+type Option func(*Logger) // dedicated type just to ease code navigation
+
+func New(option ...Option) *Logger {
+	l := new(Logger)
+	for _, op := range option {
+		op(l)
 	}
-	return "nocaller"
+	if l.printer == nil {
+		WithStdLogger(log.New(os.Stderr, "", 0))(l)
+	}
+	if len(l.fields) == 0 {
+		WithFields(
+			FieldLevel("[INFO]", "[ERRR]"),
+			FieldCaller(""),
+			FieldErrorCaller(""),
+			FieldFallbackKV(),
+			FieldMessage(),
+		)(l)
+	}
+	if l.argFormatter == nil {
+		WithArgFormatter(formatArg)(l)
+	}
+	if l.persistFields == nil {
+		WithPersistFields()(l)
+	}
+	return l
 }
 
-type Field struct {
-	Name string
-	Proc func(any) string
-}
+func (l *Logger) Log(ctx context.Context, a ...any) {
+	kv := map[string]any{}
+	for k, v := range l.persistFields {
+		kv[k] = v
+	}
+	ctxKvX(kv, ctx)
 
-func ProcFuncCaller(any) string {
-	return relativeCaller(3)
-}
-
-var StdFieldTime = Field{ // TODO fields has to be smarter: take all keys and analyze them. It allows to remove fake keys like log_time
-	Name: "log_time",
-	Proc: func(any) string {
-		return time.Now().Format("2006-01-02 15:04:05.000")
-	},
-}
-
-var StdFieldLevel = Field{
-	Name: "log_level",
-	Proc: func(x any) string {
-		if x.(int) == LevelError {
-			return "[error]"
+	isErr := false
+	errCaller := RecordCaller{}
+	msg := make([]string, len(a))
+	for i, x := range a {
+		if err, ok := x.(error); ok {
+			isErr = true
+			errCaller = ctxKvOverride(kv, err)
 		}
-		return "[info]"
-	},
+		msg[i] = l.argFormatter(x)
+	}
+	message := strings.Join(msg, " ")
+
+	rec := Record{
+		Message:     message,
+		IsError:     isErr,
+		Context:     kv,
+		Caller:      caller(2),
+		ErrorCaller: errCaller,
+	}
+	fs := []string(nil)
+	for _, f := range l.fields {
+		p := f(rec)
+		if p != "" {
+			fs = append(fs, p)
+		}
+	}
+
+	l.printer(strings.Join(fs, " ") + "\n")
 }
 
-var StdFieldCaller = Field{
-	Name: "log_caller",
-	Proc: ProcFuncCaller,
-}
-
-var StdFieldOCaller = Field{
-	Name: "log_ocaller",
-	Proc: func(x any) string {
-		return x.(string)
-	},
-}
-
-var StdFieldMessage = Field{
-	Name: "log_message",
-	Proc: func(x any) string {
-		return x.(string)
-	},
-}
-
-var Fields = []Field{
-	StdFieldTime,
-	StdFieldLevel,
-	StdFieldCaller,
-	StdFieldOCaller,
-	StdFieldMessage,
-}
-
-const (
-	LevelInfo = iota
-	LevelError
-)
-
-var ctxKey = struct{}{}
-
-type ctxError struct {
-	err error
-	kv  map[string]any
-}
-
-func (e *ctxError) Error() string {
-	return e.err.Error()
-}
-
-func (e *ctxError) Unwrap() error {
-	return e.err
-}
-
-func Errorf(ctx context.Context, format string, a ...any) error {
-	// TODO original caller
-	err := fmt.Errorf(format, a...)
-	kv := ctxKv(ctx)
-	kv["log_ocaller"] = relativeCaller(2)
-	ctxKvOverride(kv, err)
-	return &ctxError{
-		err: err,
-		kv:  kv,
+func caller(level int) RecordCaller {
+	_, file, no, ok := runtime.Caller(level)
+	if !ok {
+		return RecordCaller{
+			File: "nofile",
+			Line: 0,
+		}
+	}
+	return RecordCaller{
+		File: file,
+		Line: no,
 	}
 }
+
+// ---- TODO split (?)
 
 func Ctx(ctx context.Context, kv ...any) context.Context {
 	nkv := ctxKv(ctx)
@@ -133,43 +133,140 @@ func CloneCtx(targetCtx context.Context, ctx context.Context) context.Context {
 	return context.WithValue(targetCtx, ctxKey, kv)
 }
 
-func Log(ctx context.Context, a ...any) {
-	fkv := ctxKv(ctx)
+// ---- TODO split
 
-	errorLevel := LevelInfo
-	msg := make([]string, len(a))
-	for i, x := range a {
-		if err, ok := x.(error); ok {
-			errorLevel = LevelError
-			ctxKvOverride(fkv, err)
-		}
-		msg[i] = formatArg(x)
+func FieldMessage() FieldFunc {
+	return func(r Record) string {
+		return r.Message
 	}
-	fkv["log_level"] = errorLevel
-	fkv["log_message"] = strings.Join(msg, " ")
-
-	fkv["log_time"] = nil   // value doesn't matter, looks slightly hackish
-	fkv["log_caller"] = nil // value doesn't matter, looks slightly hackish
-
-	fs := []string(nil)
-	for _, f := range Fields {
-		if x, ok := fkv[f.Name]; ok {
-			p := ""
-			if f.Proc != nil {
-				p = f.Proc(x)
-			} else {
-				p = fmt.Sprintf("%v", x) // TODO some conversion
-			}
-			if p != "" {
-				fs = append(fs, p)
-			}
-		}
-	}
-
-	fmt.Printf(strings.Join(fs, " ") + "\n") // TODO log.New(os.Stdout, "", 0).Printf() // log.LstdFlags?
 }
 
-func formatArg(x any) string { // TODO has to be method, has to be tunable
+func FieldCaller(pfx string) FieldFunc {
+	return func(r Record) string {
+		return fmt.Sprintf("%s:%d", strings.TrimPrefix(r.Caller.File, pfx), r.Caller.Line)
+	}
+}
+
+func FieldErrorCaller(pfx string) FieldFunc {
+	return func(r Record) string {
+		if r.IsError {
+			if r.ErrorCaller.File == "" {
+				return ""
+			}
+			return fmt.Sprintf("%s:%d", strings.TrimPrefix(r.ErrorCaller.File, pfx), r.ErrorCaller.Line)
+		}
+		return ""
+	}
+}
+
+func FieldLevel(info, errr string) FieldFunc {
+	return func(r Record) string {
+		if r.IsError {
+			return errr
+		}
+		return info
+	}
+}
+
+func FieldFallbackKV(exclude ...string) FieldFunc {
+	exc := map[string]struct{}{}
+	for _, v := range exclude {
+		exc[v] = struct{}{}
+	}
+	return func(r Record) string {
+		fs := []string(nil)
+		for k := range r.Context {
+			if _, ok := exc[k]; ok {
+				continue
+			}
+			fs = append(fs, k)
+		}
+		if fs == nil {
+			return ""
+		}
+		sort.Strings(fs)
+		pts := make([]string, len(fs))
+		for i, k := range fs {
+			pts[i] = fmt.Sprintf("%s=%v", k, r.Context[k])
+		}
+		return strings.Join(pts, " ")
+	}
+}
+
+func FieldNamed(fieldName string) FieldFunc {
+	return func(r Record) string {
+		if x, ok := r.Context[fieldName]; ok {
+			return fmt.Sprintf("%v", x)
+		}
+		return ""
+	}
+}
+
+// ---- TODO split
+
+func WithStdLogger(printer interface{ Print(v ...any) }) Option {
+	return func(l *Logger) {
+		l.printer = func(x string) {
+			printer.Print(x)
+		}
+	}
+}
+
+func WithFields(fields ...FieldFunc) Option {
+	return func(l *Logger) {
+		l.fields = fields
+	}
+}
+
+func WithArgFormatter(formatter func(any) string) Option {
+	return func(l *Logger) {
+		l.argFormatter = formatter
+	}
+}
+
+func WithPersistFields(kv ...string) Option {
+	p := map[string]string{}
+	for i := 0; i < len(kv)-1; i++ {
+		p[kv[i]] = kv[i+1]
+	}
+	return func(l *Logger) {
+		l.persistFields = p
+	}
+}
+
+// ---------------------------------
+
+var ctxKey = struct{}{}
+
+type ctxError struct {
+	err    error
+	kv     map[string]any
+	caller RecordCaller
+}
+
+func (e *ctxError) Error() string {
+	return e.err.Error()
+}
+
+func (e *ctxError) Unwrap() error {
+	return e.err
+}
+
+func Errorf(ctx context.Context, format string, a ...any) error {
+	err := fmt.Errorf(format, a...)
+	kv := ctxKv(ctx)
+	ec := ctxKvOverride(kv, err)
+	if ec.File == "" {
+		ec = caller(2)
+	}
+	return &ctxError{
+		err:    err,
+		kv:     kv,
+		caller: ec,
+	}
+}
+
+func formatArg(x any) string {
 	s := ""
 	switch t := x.(type) {
 	case string:
@@ -183,6 +280,13 @@ func formatArg(x any) string { // TODO has to be method, has to be tunable
 		} else {
 			s = fmt.Sprintf("%q", t)
 		}
+	case bool:
+		if t {
+			return "true"
+		}
+		return "false"
+	case error:
+		return t.Error()
 	default:
 		s = fmt.Sprintf("%v", t)
 	}
@@ -193,20 +297,26 @@ func formatArg(x any) string { // TODO has to be method, has to be tunable
 }
 
 func ctxKv(ctx context.Context) map[string]any {
-	a := map[string]any{}
-	if kv, ok := ctx.Value(ctxKey).(map[string]any); ok {
-		for k, v := range kv {
-			a[k] = v
-		}
-	}
-	return a
+	kv := map[string]any{}
+	ctxKvX(kv, ctx)
+	return kv
 }
 
-func ctxKvOverride(kv map[string]any, err error) {
+func ctxKvX(kv map[string]any, ctx context.Context) { // TODO naming
+	if x, ok := ctx.Value(ctxKey).(map[string]any); ok {
+		for k, v := range x {
+			kv[k] = v
+		}
+	}
+}
+
+func ctxKvOverride(kv map[string]any, err error) RecordCaller { // TODO rename?
 	t := &ctxError{}
 	if errors.As(err, &t) {
 		for k, v := range t.kv {
 			kv[k] = v
 		}
+		return t.caller
 	}
+	return RecordCaller{}
 }

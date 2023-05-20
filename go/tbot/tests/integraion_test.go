@@ -13,10 +13,10 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/michurin/warehouse/go/tbot/app"
 	"github.com/michurin/warehouse/go/tbot/tests/apiserver"
-	"github.com/michurin/warehouse/go/tbot/tests/files"
 	"github.com/michurin/warehouse/go/tbot/xbot"
+	"github.com/michurin/warehouse/go/tbot/xctrl"
+	"github.com/michurin/warehouse/go/tbot/xloop"
 	"github.com/michurin/warehouse/go/tbot/xproc"
 )
 
@@ -69,9 +69,14 @@ func TestLoop(t *testing.T) {
 	*/
 	simpleUpdates := []apiserver.APIAct{
 		{
-			IsJSON:   true,
-			Request:  `{"offset":0,"timeout":30}`,
-			Response: files.File(t, "data/get_update.json"),
+			IsJSON:  true,
+			Request: `{"offset":0,"timeout":30}`,
+			Response: []byte(`{"ok": true, "result": [{"update_id": 500, "message": {
+"message_id": 100,
+"from": {"id": 1500, "is_bot": false, "first_name": "Alex", "last_name": "Morn", "username": "AlexMorn", "language_code": "en"},
+"chat": {"id": 1500, "first_name": "Alex", "last_name": "Morn", "username": "AlexMorn", "type": "private"},
+"date": 1682222222,
+"text": "word"}}]}`),
 		},
 		{
 			IsJSON:   true,
@@ -79,6 +84,7 @@ func TestLoop(t *testing.T) {
 			Response: nil,
 		},
 	}
+	sendMessageResponseJSON := []byte(`{"ok": true, "result": {}}`)
 	for _, cs := range []struct {
 		name   string
 		script string
@@ -92,8 +98,22 @@ func TestLoop(t *testing.T) {
 				"/botMORN/sendMessage": {
 					{
 						IsJSON:   true,
-						Request:  files.FileStr(t, "data/send_message_request.json"),
-						Response: files.File(t, "data/send_message_response.json"),
+						Request:  `{"chat_id": 1500, "text": "ok\n"}`,
+						Response: sendMessageResponseJSON,
+					},
+				},
+			},
+		},
+		{
+			name:   "simple_text",
+			script: "scripts/preformatted_ok.sh",
+			api: map[string][]apiserver.APIAct{
+				"/botMORN/getUpdates": simpleUpdates,
+				"/botMORN/sendMessage": {
+					{
+						IsJSON:   true,
+						Request:  `{"chat_id": 1500, "text": "ok", "entities": [{"type": "pre", "offset": 0, "length": 2}]}`,
+						Response: sendMessageResponseJSON,
 					},
 				},
 			},
@@ -107,7 +127,7 @@ func TestLoop(t *testing.T) {
 					{
 						IsJSON:   false,
 						Request:  "--BOUND\r\nContent-Disposition: form-data; name=\"chat_id\"\r\n\r\n1500\r\n--BOUND\r\nContent-Disposition: form-data; name=\"photo\"; filename=\"image.jpeg\"\r\nContent-Type: image/jpeg\r\n\r\n\xff\xd8\xff\r\n--BOUND--\r\n",
-						Response: files.File(t, "data/send_message_response.json"),
+						Response: sendMessageResponseJSON,
 					},
 				},
 			},
@@ -121,7 +141,7 @@ func TestLoop(t *testing.T) {
 					{
 						IsJSON:   false,
 						Request:  "--BOUND\r\nContent-Disposition: form-data; name=\"chat_id\"\r\n\r\n1500\r\n--BOUND\r\nContent-Disposition: form-data; name=\"photo\"; filename=\"image.png\"\r\nContent-Type: image/png\r\n\r\n\x89PNG\r\n\x1a\n\r\n--BOUND--\r\n",
-						Response: files.File(t, "data/send_message_response.json"),
+						Response: sendMessageResponseJSON,
 					},
 				},
 			},
@@ -135,7 +155,7 @@ func TestLoop(t *testing.T) {
 					{
 						IsJSON:   false,
 						Request:  "--BOUND\r\nContent-Disposition: form-data; name=\"chat_id\"\r\n\r\n1500\r\n--BOUND\r\nContent-Disposition: form-data; name=\"audio\"; filename=\"audio.mpeg\"\r\nContent-Type: audio/mpeg\r\n\r\nID3\r\n--BOUND--\r\n",
-						Response: files.File(t, "data/send_message_response.json"),
+						Response: sendMessageResponseJSON,
 					},
 				},
 			},
@@ -149,7 +169,7 @@ func TestLoop(t *testing.T) {
 					{
 						IsJSON:   false,
 						Request:  "--BOUND\r\nContent-Disposition: form-data; name=\"chat_id\"\r\n\r\n1500\r\n--BOUND\r\nContent-Disposition: form-data; name=\"document\"; filename=\"document\"\r\nContent-Type: application/ogg\r\n\r\nOggS\x00\r\n--BOUND--\r\n",
-						Response: files.File(t, "data/send_message_response.json"),
+						Response: sendMessageResponseJSON,
 					},
 				},
 			},
@@ -163,7 +183,7 @@ func TestLoop(t *testing.T) {
 					{
 						IsJSON:   false,
 						Request:  "--BOUND\r\nContent-Disposition: form-data; name=\"chat_id\"\r\n\r\n1500\r\n--BOUND\r\nContent-Disposition: form-data; name=\"video\"; filename=\"video.mp4\"\r\nContent-Type: video/mp4\r\n\r\n\x00\x00\x00\fftypmp4_\r\n--BOUND--\r\n",
-						Response: files.File(t, "data/send_message_response.json"),
+						Response: sendMessageResponseJSON,
 					},
 				},
 			},
@@ -177,7 +197,7 @@ func TestLoop(t *testing.T) {
 					{
 						IsJSON:   false,
 						Request:  "--BOUND\r\nContent-Disposition: form-data; name=\"chat_id\"\r\n\r\n1500\r\n--BOUND\r\nContent-Disposition: form-data; name=\"document\"; filename=\"document\"\r\nContent-Type: application/pdf\r\n\r\n%PDF-\r\n--BOUND--\r\n",
-						Response: files.File(t, "data/send_message_response.json"),
+						Response: sendMessageResponseJSON,
 					},
 				},
 			},
@@ -195,7 +215,7 @@ func TestLoop(t *testing.T) {
 
 			command := buildCommand(cs.script)
 
-			err := app.Loop(ctx, bot, command)
+			err := xloop.Loop(ctx, bot, command)
 			require.Error(t, err)
 			require.Contains(t, err.Error(), "context canceled") // like "api: client: Post \"http://127.0.0.1:34241/botMORN/getUpdates\": context canceled"
 		})
@@ -249,7 +269,7 @@ func TestHttp(t *testing.T) {
 
 			bot := buildBot(tgURL)
 
-			h := app.Handler(bot, nil) // we won't use second argument in this test
+			h := xctrl.Handler(bot, nil) // we won't use second argument in this test
 
 			s := httptest.NewServer(h)
 
@@ -288,7 +308,7 @@ func TestHttp_long(t *testing.T) { // CAUTION: test has sleep
 	bot := buildBot(tgURL)
 	command := buildCommand("scripts/longrunning.sh")
 
-	h := app.Handler(bot, command)
+	h := xctrl.Handler(bot, command)
 
 	s := httptest.NewServer(h)
 
@@ -304,7 +324,7 @@ func TestProc(t *testing.T) { // CAUTION: test has sleep indirectly
 	t.Run("argsEnvs", func(t *testing.T) {
 		data, err := buildCommand("scripts/run_show_args.sh").Run(ctx, []string{"ARG1", "ARG2"}, []string{"test1=TEST1", "test2=TEST2"})
 		require.NoError(t, err, "data="+string(data))
-		assert.Equal(t, "arg1=ARG1 arg2=ARG2 test1=TEST1 test2=TEST2\n", string(data))
+		assert.Equal(t, "arg1=ARG1 arg2=ARG2 test1=TEST1 test2=TEST2 TEST=test\n", string(data))
 	})
 	t.Run("exit", func(t *testing.T) {
 		data, err := buildCommand("scripts/run_exit.sh").Run(ctx, nil, nil)
@@ -341,6 +361,7 @@ func buildCommand(cmd string) *xproc.Cmd {
 	return &xproc.Cmd{
 		InterruptDelay: 200 * time.Millisecond, // timeouts important for TestProc
 		KillDelay:      200 * time.Millisecond,
+		Env:            []string{"TEST=test"},
 		Command:        cmd,
 		Cwd:            ".",
 	}

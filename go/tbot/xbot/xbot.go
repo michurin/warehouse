@@ -11,7 +11,9 @@ import (
 	"net/textproto"
 	"strconv"
 	"strings"
+	"unicode/utf8"
 
+	"github.com/michurin/warehouse/go/tbot/app"
 	"github.com/michurin/warehouse/go/tbot/xlog"
 )
 
@@ -42,7 +44,23 @@ func RequestFromBinary(data []byte, userID int64) (*Request, error) {
 	switch {
 	case strings.HasPrefix(contentType, "text/"):
 		// TODO check length
-		// TODO preformated: "entities":[{"offset":0,"length":len([]rune(string(data))),"type":"pre"}]
+		if !utf8.Valid(data) {
+			return nil, fmt.Errorf("invalid utf8")
+		}
+		if bytes.HasPrefix(data, []byte("%!PRE\n")) {
+			str := strings.TrimSpace(string(data[6:])) // 6 is len of prefix
+			return RequestStruct("sendMessage", map[string]any{
+				"chat_id": userID,
+				"text":    str,
+				"entities": []any{
+					map[string]any{
+						"type":   "pre",
+						"offset": 0,
+						"length": len([]rune(str)),
+					},
+				},
+			})
+		}
 		return RequestStruct("sendMessage", map[string]any{"chat_id": userID, "text": string(data)})
 	case strings.HasPrefix(contentType, "image/"): // TODO to limit image formats
 		return reqMultipart("sendPhoto", userID, "photo", data, "image."+contentType[6:], contentType) // TODO naive way, it can be 'x-icon' for instance
@@ -107,7 +125,7 @@ func (b *Bot) API(ctx context.Context, request *Request) ([]byte, error) {
 	resp := (*http.Response)(nil)
 	data := []byte(nil)
 	defer func() {
-		xlog.Log(ctx, request.Body, data, err)
+		app.Log(ctx, request.Body, data, err)
 	}()
 	reqURL := b.APIOrigin + "/bot" + b.Token + "/" + request.Method
 	req, err = http.NewRequestWithContext(ctx, http.MethodPost, reqURL, bytes.NewReader(request.Body))
