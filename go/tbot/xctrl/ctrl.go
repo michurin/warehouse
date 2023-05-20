@@ -14,9 +14,9 @@ import (
 	"github.com/michurin/warehouse/go/tbot/xproc"
 )
 
-func Handler(bot *xbot.Bot, cmd *xproc.Cmd) http.HandlerFunc { //nolint:gocognit // reason to refactor
+func Handler(bot *xbot.Bot, cmd *xproc.Cmd, loggingCtx context.Context) http.HandlerFunc { //nolint:gocognit // reason to refactor
 	return func(w http.ResponseWriter, r *http.Request) {
-		ctx := r.Context()
+		ctx := xlog.CloneCtx(r.Context(), loggingCtx)
 		// TODO mark ctx for logging?
 		// TODO put http method to ctx
 		// TODO put http content-type to ctx
@@ -31,7 +31,6 @@ func Handler(bot *xbot.Bot, cmd *xproc.Cmd) http.HandlerFunc { //nolint:gocognit
 			data, err = bot.API(ctx, &xbot.Request{Method: method})
 		case http.MethodPost:
 			ct := r.Header.Get("content-type")
-			app.Log(ctx, "content-type:", ct) // TODO remove
 			if ct == "application/json" || strings.Contains(ct, "multipart/form-data") {
 				data, err = bot.API(ctx, &xbot.Request{
 					Method:      method,

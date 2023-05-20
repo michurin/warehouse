@@ -269,7 +269,7 @@ func TestHttp(t *testing.T) {
 
 			bot := buildBot(tgURL)
 
-			h := xctrl.Handler(bot, nil) // we won't use second argument in this test
+			h := xctrl.Handler(bot, nil, context.Background()) // we won't use second argument in this test
 
 			s := httptest.NewServer(h)
 
@@ -308,7 +308,7 @@ func TestHttp_long(t *testing.T) { // CAUTION: test has sleep
 	bot := buildBot(tgURL)
 	command := buildCommand("scripts/longrunning.sh")
 
-	h := xctrl.Handler(bot, command)
+	h := xctrl.Handler(bot, command, context.Background())
 
 	s := httptest.NewServer(h)
 
