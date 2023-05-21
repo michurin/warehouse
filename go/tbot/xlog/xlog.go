@@ -125,12 +125,21 @@ func Ctx(ctx context.Context, kv ...any) context.Context {
 	return context.WithValue(ctx, ctxKey, nkv)
 }
 
-func CloneCtx(targetCtx context.Context, ctx context.Context) context.Context {
-	kv := ctxKv(targetCtx)
-	for k, v := range ctxKv(ctx) {
+type LogPatch struct {
+	kv map[string]any
+}
+
+// Patch woks with ApplyPatch like this to copy logging context to another go context
+func Patch(ctx context.Context) LogPatch {
+	return LogPatch{kv: ctxKv(ctx)}
+}
+
+func ApplyPatch(ctx context.Context, patch LogPatch) context.Context {
+	kv := ctxKv(ctx)
+	for k, v := range patch.kv {
 		kv[k] = v
 	}
-	return context.WithValue(targetCtx, ctxKey, kv)
+	return context.WithValue(ctx, ctxKey, kv)
 }
 
 // ---- TODO split

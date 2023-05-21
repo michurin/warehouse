@@ -55,7 +55,7 @@ func ExampleNew() {
 
 	ctx1 := xlog.Ctx(context.Background(), "a", 1, "b", 1)
 	ctx2 := xlog.Ctx(context.Background(), "b", 2, "c", 2)
-	ctx = xlog.CloneCtx(ctx2, ctx1) // 2<-1: b=1 replace b=2
+	ctx = xlog.ApplyPatch(ctx2, xlog.Patch(ctx1)) // 2<-1: b=1 replace b=2
 	log(ctx, "Show cloning")
 
 	log(xlog.Ctx(context.Background(), "a", 1, "f", 7), "Unknown field")

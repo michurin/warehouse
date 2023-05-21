@@ -14,9 +14,9 @@ import (
 	"github.com/michurin/warehouse/go/tbot/xproc"
 )
 
-func Handler(bot *xbot.Bot, cmd *xproc.Cmd, loggingCtx context.Context) http.HandlerFunc { //nolint:gocognit // reason to refactor
+func Handler(bot *xbot.Bot, cmd *xproc.Cmd, loggingPatch xlog.LogPatch) http.HandlerFunc { //nolint:gocognit // reason to refactor
 	return func(w http.ResponseWriter, r *http.Request) {
-		ctx := xlog.CloneCtx(r.Context(), loggingCtx)
+		ctx := xlog.ApplyPatch(r.Context(), loggingPatch)
 		// TODO mark ctx for logging?
 		// TODO put http method to ctx
 		// TODO put http content-type to ctx
@@ -60,10 +60,10 @@ func Handler(bot *xbot.Bot, cmd *xproc.Cmd, loggingCtx context.Context) http.Han
 				app.Log(ctx, err) // TODO response!
 				return
 			}
-			// TODO add `to` to log context
+			ctx := xlog.Ctx(ctx, "user", to)
+			lPatch := xlog.Patch(ctx)
 			go func() { // TODO: limit concurency
-				ctx := xlog.CloneCtx(context.Background(), ctx)
-				// TODO logger has to be abel to clone logging context
+				ctx := xlog.ApplyPatch(context.Background(), lPatch)
 				// TODO refactor. it is similar to processMessage
 				body, err := cmd.Run(ctx, q["a"], nil)
 				if err != nil {

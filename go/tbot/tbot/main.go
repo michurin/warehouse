@@ -103,7 +103,7 @@ func bot(ctx context.Context, eg *errgroup.Group, cfg xcfg.Config) {
 		return xloop.Loop(ctx, bot, command)
 	})
 
-	server := &http.Server{Addr: cfg.ControlAddr, Handler: xctrl.Handler(bot, commandLong, ctx)}
+	server := &http.Server{Addr: cfg.ControlAddr, Handler: xctrl.Handler(bot, commandLong, xlog.Patch(ctx))}
 	eg.Go(func() error {
 		<-ctx.Done()
 		cx, stop := context.WithTimeout(context.Background(), time.Second)
