@@ -67,7 +67,7 @@ func (l *Logger) Log(ctx context.Context, a ...any) {
 	for k, v := range l.persistFields {
 		kv[k] = v
 	}
-	ctxKvX(kv, ctx)
+	ctxKvMerge(kv, ctx)
 
 	isErr := false
 	errCaller := RecordCaller{}
@@ -307,11 +307,11 @@ func formatArg(x any) string {
 
 func ctxKv(ctx context.Context) map[string]any {
 	kv := map[string]any{}
-	ctxKvX(kv, ctx)
+	ctxKvMerge(kv, ctx)
 	return kv
 }
 
-func ctxKvX(kv map[string]any, ctx context.Context) { // TODO naming
+func ctxKvMerge(kv map[string]any, ctx context.Context) {
 	if x, ok := ctx.Value(ctxKey).(map[string]any); ok {
 		for k, v := range x {
 			kv[k] = v
