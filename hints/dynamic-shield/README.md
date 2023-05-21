@@ -10,3 +10,5 @@ query params (decoded):
   url:   https://raw.githubusercontent.com/michurin/warehouse/master/hints/dynamic-shield/codecov.json
                  (magic domain)            (user)   (repo)    (br)   (path)
 ```
+
+[Playground](https://shields.io/#your-badge)
