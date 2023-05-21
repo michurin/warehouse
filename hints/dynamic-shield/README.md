@@ -1,1 +1,1 @@
-![demo](https://img.shields.io/badge/dynamic/json?color=%2396be25&label=michurin&query=%24.codecov&url=https%3A%2F%2Fgithub.com%2Fmichurin%2Fwarehouse%2Fblob%2Fmaster%2Fhints%2Fdynamic-shield%2Fcodecov.json)
+![demo](https://img.shields.io/badge/dynamic/json?color=%2396be25&label=michurin&query=%24.codecov&url=https%3A%2F%2Fraw.githubusercontent.com%2Fmichurin%2Fwarehouse%2Fmaster%2Fhints%2Fdynamic-shield%2Fcodecov.json)
