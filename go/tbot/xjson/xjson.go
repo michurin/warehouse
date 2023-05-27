@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"sort"
 	"strconv"
+	"strings"
 )
 
 func jsonToEnv(pfx string, x any) ([]string, error) {
@@ -17,17 +18,25 @@ func jsonToEnv(pfx string, x any) ([]string, error) {
 	case string:
 		return []string{fmt.Sprintf("%s=%s", pfx, e)}, nil
 	case []any:
-		res := []string(nil)
+		l := len(e)
+		if l == 0 {
+			return nil, nil
+		}
+		res := make([]string, 0, l+1) // we cannot predict final length, however it's not less than l+1
+		lst := make([]string, l)
 		for i, v := range e {
-			t, err := jsonToEnv(pfx+"_"+strconv.Itoa(i), v)
+			p := pfx + "_" + strconv.Itoa(i)
+			lst[i] = p
+			t, err := jsonToEnv(p, v)
 			if err != nil {
 				return nil, err
 			}
 			res = append(res, t...)
 		}
+		res = append(res, fmt.Sprintf("%s=%s", pfx, strings.Join(lst, " ")))
 		return res, nil
 	case map[string]any:
-		res := []string(nil)
+		res := make([]string, 0, len(e)) // the same case as above
 		for k, v := range e {
 			t, err := jsonToEnv(pfx+"_"+k, v)
 			if err != nil {
