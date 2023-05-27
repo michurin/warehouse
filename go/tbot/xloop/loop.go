@@ -6,10 +6,11 @@ import (
 	"fmt"
 	"strings"
 
+	xlog "github.com/michurin/minlog"
+
 	"github.com/michurin/warehouse/go/tbot/app"
 	"github.com/michurin/warehouse/go/tbot/xbot"
 	"github.com/michurin/warehouse/go/tbot/xjson"
-	"github.com/michurin/warehouse/go/tbot/xlog"
 	"github.com/michurin/warehouse/go/tbot/xproc"
 )
 

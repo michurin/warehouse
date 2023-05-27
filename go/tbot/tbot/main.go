@@ -10,6 +10,7 @@ import (
 	"strings"
 	"time"
 
+	xlog "github.com/michurin/minlog"
 	"golang.org/x/sync/errgroup"
 
 	"github.com/michurin/warehouse/go/tbot/app"
@@ -17,7 +18,6 @@ import (
 	"github.com/michurin/warehouse/go/tbot/xcfg"
 	"github.com/michurin/warehouse/go/tbot/xctrl"
 	"github.com/michurin/warehouse/go/tbot/xenv"
-	"github.com/michurin/warehouse/go/tbot/xlog"
 	"github.com/michurin/warehouse/go/tbot/xloop"
 	"github.com/michurin/warehouse/go/tbot/xproc"
 )

@@ -9,8 +9,9 @@ import (
 	"syscall"
 	"time"
 
+	xlog "github.com/michurin/minlog"
+
 	"github.com/michurin/warehouse/go/tbot/app"
-	"github.com/michurin/warehouse/go/tbot/xlog"
 )
 
 type Cmd struct {

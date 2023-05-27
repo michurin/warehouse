@@ -13,8 +13,9 @@ import (
 	"strings"
 	"unicode/utf8"
 
+	xlog "github.com/michurin/minlog"
+
 	"github.com/michurin/warehouse/go/tbot/app"
-	"github.com/michurin/warehouse/go/tbot/xlog"
 )
 
 // --- TODO move Request

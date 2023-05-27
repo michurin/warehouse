@@ -10,13 +10,13 @@ import (
 	"testing"
 	"time"
 
+	xlog "github.com/michurin/minlog"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	"github.com/michurin/warehouse/go/tbot/tests/apiserver"
 	"github.com/michurin/warehouse/go/tbot/xbot"
 	"github.com/michurin/warehouse/go/tbot/xctrl"
-	"github.com/michurin/warehouse/go/tbot/xlog"
 	"github.com/michurin/warehouse/go/tbot/xloop"
 	"github.com/michurin/warehouse/go/tbot/xproc"
 )
