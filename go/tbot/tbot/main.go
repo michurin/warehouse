@@ -11,13 +11,13 @@ import (
 	"time"
 
 	xlog "github.com/michurin/minlog"
+	xenv "github.com/michurin/systemd-env-file/sdenv"
 	"golang.org/x/sync/errgroup"
 
 	"github.com/michurin/warehouse/go/tbot/app"
 	"github.com/michurin/warehouse/go/tbot/xbot"
 	"github.com/michurin/warehouse/go/tbot/xcfg"
 	"github.com/michurin/warehouse/go/tbot/xctrl"
-	"github.com/michurin/warehouse/go/tbot/xenv"
 	"github.com/michurin/warehouse/go/tbot/xloop"
 	"github.com/michurin/warehouse/go/tbot/xproc"
 )
