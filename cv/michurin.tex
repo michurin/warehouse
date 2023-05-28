@@ -19,12 +19,12 @@
 %	PACKAGES AND OTHER DOCUMENT CONFIGURATIONS
 %----------------------------------------------------------------------------------------
 
-\documentclass[a4paper,12pt]{memoir} % Font and paper size
+\documentclass[a4paper,11pt]{memoir} % Font and paper size
 
 \input{structure.tex} % Include the file specifying document layout and packages
 
 %----------------------------------------------------------------------------------------
-%	NAME AND CONTACT INFORMATION 
+%	NAME AND CONTACT INFORMATION
 %----------------------------------------------------------------------------------------
 
 \userinformation{ % Set the content that goes into the sidebar of each page
@@ -33,30 +33,38 @@
 \includegraphics[width=0.8\columnwidth]{michurin.jpg}\\[\baselineskip] % Your photo
 \footnotesize % \small % Smaller font size
 Alexey Michurin \\ % Your name
+\url{michurin.github.io} \\ % Your URL
 \url{github.com/michurin} \\ % Your URL
 \Sep
-Gett, Yandex, VimpelCom, MSU \\
+Avito, Gett, Yandex, VimpelCom, MSU
 \Sep % Some whitespace
 %\textbf{Backend} \\
 Golang \\
 Python \\
 NodeJS \\
-MapReduce/SQL/NoSQL \\
+PostgreSQL \\
+Redis \\
+MapReduce/PrestoDB \\
 Linux \\
 \Sep % Some whitespace
+Product development \\
 Billing \\
 Inventory \\
 Fraud prevention \\
-ML infrastructure \\
+ML infrastructure for bidding and weather forecasting \\
 \Sep % Some whitespace
 %\textbf{Contacts} \\
 \url{a.michurin@gmail.com} \\ % Your email address
-+7 (906) 722-5401 \\ % Your phone number
+\url{alexeymichurin.t.me} \\ % Your email address
++7 906 722 5401 \\ % Your phone number
 \Sep % Some whitespace
 %\textbf{Location} \\
 Moscow, Russia \\ % Address 1
+\Sep % Some whitespace
+Ready for relocation \\
+Not ready for remote
 \vfill % Whitespace under this block to push it up under the photo
-v. 2020.12.28
+v. 2023.05.28
 \end{flushright}
 }
 
@@ -79,7 +87,7 @@ v. 2020.12.28
 
 \cvheading{Alexey Michurin} % Large heading - your name
 
-\cvsubheading{Backend Developer} % Subheading - your occupation/specialization
+\cvsubheading{Backend Golang Developer} % Subheading - your occupation/specialization
 
 %----------------------------------------------------------------------------------------
 %	ABOUT ME
@@ -97,12 +105,23 @@ I believe my expertise might come in handy and you have challenging job.}
 
 %------------------------------------------------
 
-\CVItem{May 2018 -- present, Gett, Payments and Fraud prevention}{
-Golang, Python, RabbitMQ, Postgres, PrestoDB, Redis, AWS.
+\CVItem{Jan 2021 -- present, Avito, Cross-functional team}{
+Mostly Golang, PostgreSQL, Redis.
 
-The primary responsibility of our team is to support and develop payments infrastructure.
-It is made up of lots of internal and external integrations as well as parts of business logic.
-I also support existing fraud prevention system based on ML.
+It is my most product-focused position. I learned here how to make
+extremely flexible software, how to fit approaches to tests, logging, monitoring
+into unpredictable requirements changes. How to deal with
+contracts to ship new features faster and keep backward
+compatibility. How to share knowledge to move faster and work under the same roof with
+front-end engineers, designers, product-managers.
+}
+
+\CVItem{May 2018 -- Dec 2020, Gett, Payments and Fraud prevention}{
+Golang, Python, RabbitMQ, PostgreSQL, PrestoDB, Redis, AWS.
+
+The primary responsibility of our team was to support and develop payments infrastructure.
+It was made up of lots of internal and external integrations as well as parts of business logic.
+I also supported existing fraud prevention system based on ML.
 }
 
 \CVItem{Jun 2016 -- May 2018, Yandex, Weather forecasting system}{
@@ -113,7 +132,7 @@ and produced weather forecast based on ML. I was engaged into process of
 significant modifications of system. We got global and began to process
 more data sources. I was responsible for applying ML models and collecting
 logs for training process. I designed not only the system itself, but also
-degradation strategy, monitorings and other useful things.
+degradation strategy, monitoring and other useful things.
 }
 
 \CVItem{Nov 2014 -- Jun 2016, Yandex, Advertising system}{
@@ -123,8 +142,6 @@ Our team was focused on auction and bidding. I took part in development and inve
 I also actively participated in design and development of RTB system.
 I was feature owner and key developer for new banner enrichment feature.
 In addition I contributed a bit to MapReduce engine.}
-
-\vspace*{-6mm}  %%%%%%%%%% WHY!!!???
 
 \CVItem{Dec 2006 -- Nov 2014, Vimpelcom (Beeline), Billing and Inventory}{
 Python, Perl, MySQL, widespread distributed systems.
@@ -138,7 +155,7 @@ conjunction with billing system. For example, it switches shapers to align traff
 
 \CVSection{Education}
 
-\CVItem{1992 -- 1998, Moscow State University}{Physical department. Master Of Science (Solid State Physics)}
+\CVItem{1992 -- 1998, Moscow State University}{Physical department. Master Of Science (Solid State Physics).}
 
 \Sep % Extra whitespace after the end of a major section
 
