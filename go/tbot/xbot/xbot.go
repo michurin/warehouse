@@ -15,7 +15,7 @@ import (
 
 	xlog "github.com/michurin/minlog"
 
-	"github.com/michurin/warehouse/go/tbot/app"
+	"github.com/michurin/cnbot/app"
 )
 
 // --- TODO move Request

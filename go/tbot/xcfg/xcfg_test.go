@@ -5,7 +5,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/michurin/warehouse/go/tbot/xcfg"
+	"github.com/michurin/cnbot/xcfg"
 )
 
 func TestCfg(t *testing.T) {

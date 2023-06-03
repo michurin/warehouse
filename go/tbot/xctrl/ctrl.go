@@ -10,9 +10,9 @@ import (
 
 	xlog "github.com/michurin/minlog"
 
-	"github.com/michurin/warehouse/go/tbot/app"
-	"github.com/michurin/warehouse/go/tbot/xbot"
-	"github.com/michurin/warehouse/go/tbot/xproc"
+	"github.com/michurin/cnbot/app"
+	"github.com/michurin/cnbot/xbot"
+	"github.com/michurin/cnbot/xproc"
 )
 
 func Handler(bot *xbot.Bot, cmd *xproc.Cmd, loggingPatch xlog.LogPatch) http.HandlerFunc { //nolint:gocognit // reason to refactor

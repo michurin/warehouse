@@ -6,7 +6,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/michurin/warehouse/go/tbot/xjson"
+	"github.com/michurin/cnbot/xjson"
 )
 
 func TestJSONToEnv(t *testing.T) {

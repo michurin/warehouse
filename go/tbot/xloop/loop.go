@@ -9,10 +9,10 @@ import (
 	"github.com/michurin/minlog"
 	xlog "github.com/michurin/minlog"
 
-	"github.com/michurin/warehouse/go/tbot/app"
-	"github.com/michurin/warehouse/go/tbot/xbot"
-	"github.com/michurin/warehouse/go/tbot/xjson"
-	"github.com/michurin/warehouse/go/tbot/xproc"
+	"github.com/michurin/cnbot/app"
+	"github.com/michurin/cnbot/xbot"
+	"github.com/michurin/cnbot/xjson"
+	"github.com/michurin/cnbot/xproc"
 )
 
 func Loop(ctx context.Context, bot *xbot.Bot, command *xproc.Cmd) error {

@@ -1,4 +1,4 @@
-module github.com/michurin/warehouse/go/tbot
+module github.com/michurin/cnbot
 
 go 1.20
 

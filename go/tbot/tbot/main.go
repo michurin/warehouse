@@ -14,15 +14,15 @@ import (
 	xenv "github.com/michurin/systemd-env-file/sdenv"
 	"golang.org/x/sync/errgroup"
 
-	"github.com/michurin/warehouse/go/tbot/app"
-	"github.com/michurin/warehouse/go/tbot/xbot"
-	"github.com/michurin/warehouse/go/tbot/xcfg"
-	"github.com/michurin/warehouse/go/tbot/xctrl"
-	"github.com/michurin/warehouse/go/tbot/xloop"
-	"github.com/michurin/warehouse/go/tbot/xproc"
+	"github.com/michurin/cnbot/app"
+	"github.com/michurin/cnbot/xbot"
+	"github.com/michurin/cnbot/xcfg"
+	"github.com/michurin/cnbot/xctrl"
+	"github.com/michurin/cnbot/xloop"
+	"github.com/michurin/cnbot/xproc"
 )
 
-const Version = "0.1"
+const Version = "undefined"
 
 func prefix(next xlog.FieldFunc, prefix string) xlog.FieldFunc { // TODO move it to xlog package?
 	return func(r xlog.Record) string {

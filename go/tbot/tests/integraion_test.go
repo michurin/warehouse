@@ -14,11 +14,11 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/michurin/warehouse/go/tbot/tests/apiserver"
-	"github.com/michurin/warehouse/go/tbot/xbot"
-	"github.com/michurin/warehouse/go/tbot/xctrl"
-	"github.com/michurin/warehouse/go/tbot/xloop"
-	"github.com/michurin/warehouse/go/tbot/xproc"
+	"github.com/michurin/cnbot/tests/apiserver"
+	"github.com/michurin/cnbot/xbot"
+	"github.com/michurin/cnbot/xctrl"
+	"github.com/michurin/cnbot/xloop"
+	"github.com/michurin/cnbot/xproc"
 )
 
 // TODO setup xlog
