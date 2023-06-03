@@ -22,6 +22,8 @@ import (
 	"github.com/michurin/warehouse/go/tbot/xproc"
 )
 
+const Version = "0.1"
+
 func prefix(next xlog.FieldFunc, prefix string) xlog.FieldFunc { // TODO move it to xlog package?
 	return func(r xlog.Record) string {
 		t := next(r)
@@ -81,12 +83,12 @@ func bot(ctx context.Context, eg *errgroup.Group, cfg xcfg.Config) {
 		Client:    http.DefaultClient,
 	}
 
-	envCtrl := "tg_ctrl_addr=" + cfg.ControlAddr
+	envCommon := []string{"tg_x_ctrl_addr=" + cfg.ControlAddr, "tg_x_version=" + Version}
 
 	command := &xproc.Cmd{
 		InterruptDelay: 10 * time.Second,
 		KillDelay:      10 * time.Second,
-		Env:            []string{envCtrl, "tg_run_mode=short"},
+		Env:            append([]string{"tg_x_run_mode=short"}, envCommon...),
 		Command:        cfg.Script,
 		Cwd:            path.Dir(cfg.Script),
 	}
@@ -94,7 +96,7 @@ func bot(ctx context.Context, eg *errgroup.Group, cfg xcfg.Config) {
 	commandLong := &xproc.Cmd{
 		InterruptDelay: 10 * time.Minute,
 		KillDelay:      10 * time.Minute,
-		Env:            []string{envCtrl, "tg_run_mode=long"},
+		Env:            append([]string{"tg_x_run_mode=long"}, envCommon...),
 		Command:        cfg.LongRunningScript,
 		Cwd:            path.Dir(cfg.LongRunningScript),
 	}
