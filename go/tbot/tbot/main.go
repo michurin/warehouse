@@ -22,7 +22,7 @@ import (
 	"github.com/michurin/cnbot/xproc"
 )
 
-const Version = "undefined"
+var Build = "development"
 
 func prefix(next xlog.FieldFunc, prefix string) xlog.FieldFunc { // TODO move it to xlog package?
 	return func(r xlog.Record) string {
@@ -83,7 +83,7 @@ func bot(ctx context.Context, eg *errgroup.Group, cfg xcfg.Config) {
 		Client:    http.DefaultClient,
 	}
 
-	envCommon := []string{"tg_x_ctrl_addr=" + cfg.ControlAddr, "tg_x_version=" + Version}
+	envCommon := []string{"tg_x_ctrl_addr=" + cfg.ControlAddr, "tg_x_build=" + Build}
 
 	command := &xproc.Cmd{
 		InterruptDelay: 10 * time.Second,
@@ -126,6 +126,7 @@ func application(rootCtx context.Context, bots map[string]xcfg.Config) error {
 	for name, cfg := range bots {
 		bot(xlog.Ctx(ctx, "bot", name), eg, cfg)
 	}
+	app.Log(ctx, "Run. Build="+Build)
 	return eg.Wait()
 }
 

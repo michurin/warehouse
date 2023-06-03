@@ -1,0 +1,3 @@
+#!/bin/sh
+
+go build -ldflags="-s -w -X 'main.Build=$(date -u '+Build_%F_%R')'" -o cnbot ./tbot/...
