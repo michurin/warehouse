@@ -40,7 +40,7 @@ func RequestStruct(method string, x any) (*Request, error) {
 
 var quoteEscaper = strings.NewReplacer("\\", "\\\\", `"`, "\\\"")
 
-func RequestFromBinary(data []byte, userID int64) (*Request, error) {
+func RequestFromBinary(data []byte, userID int64) (*Request, error) { // TODO return skip-flag and %!SKIP label
 	contentType := http.DetectContentType(data)
 	switch {
 	case strings.HasPrefix(contentType, "text/"):
@@ -49,7 +49,11 @@ func RequestFromBinary(data []byte, userID int64) (*Request, error) {
 			return nil, fmt.Errorf("invalid utf8")
 		}
 		if bytes.HasPrefix(data, []byte("%!PRE\n")) {
-			str := strings.TrimSpace(string(data[6:])) // 6 is len of prefix
+			croped := bytes.TrimSpace(data[6:]) // 6 is len of prefix
+			str, l, err := checkTextLen(croped)
+			if err != nil {
+				return nil, fmt.Errorf("preformatted stdout: %w", err)
+			}
 			return RequestStruct("sendMessage", map[string]any{
 				"chat_id": userID,
 				"text":    str,
@@ -57,12 +61,16 @@ func RequestFromBinary(data []byte, userID int64) (*Request, error) {
 					map[string]any{
 						"type":   "pre",
 						"offset": 0,
-						"length": len([]rune(str)),
+						"length": l,
 					},
 				},
 			})
 		}
-		return RequestStruct("sendMessage", map[string]any{"chat_id": userID, "text": string(data)})
+		str, _, err := checkTextLen(data)
+		if err != nil {
+			return nil, fmt.Errorf("raw stdout: %w", err)
+		}
+		return RequestStruct("sendMessage", map[string]any{"chat_id": userID, "text": str})
 	case strings.HasPrefix(contentType, "image/"): // TODO to limit image formats
 		return reqMultipart("sendPhoto", userID, "photo", data, "image."+contentType[6:], contentType) // TODO naive way, it can be 'x-icon' for instance
 	case strings.HasPrefix(contentType, "video/"): // TODO to limit video formats
@@ -105,6 +113,18 @@ func reqMultipart(method string, to int64, fieldname string, data []byte, filena
 		ContentType: w.FormDataContentType(),
 		Body:        body.Bytes(),
 	}, nil
+}
+
+func checkTextLen(x []byte) (string, int, error) {
+	if len(x) == 0 {
+		return "", 0, fmt.Errorf("empty text")
+	}
+	r := []rune(string(x))
+	l := len(r)
+	if l > 4096 {
+		return "", 0, fmt.Errorf("text too long: %d chars: %s...%s", l, string(r[:10]), string(r[len(r)-10:]))
+	}
+	return string(r), l, nil
 }
 
 // --- /TODO

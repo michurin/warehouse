@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/michurin/minlog"
 	xlog "github.com/michurin/minlog"
 
 	"github.com/michurin/warehouse/go/tbot/app"
@@ -36,7 +37,7 @@ func Loop(ctx context.Context, bot *xbot.Bot, command *xproc.Cmd) error {
 			// TODO refactor: get env, get args, run command
 			req, err := processMessage(ctx, m, command)
 			if err != nil {
-				app.Log(ctx, err)
+				app.Log(ctx, "Skip message", err)
 				continue
 			}
 			if req == nil {
@@ -116,23 +117,19 @@ func processMessage(ctx context.Context, m any, command *xproc.Cmd) (*xbot.Reque
 	}
 	text, err := xjson.String(m, "message", "text") // TODO consider callback_query.message.text, callback_query.message.data?
 	if err != nil {
-		app.Log(ctx, err)
-		// return nil, err // TODO callback_query...
+		app.Log(ctx, err) // return nil, err // TODO callback_query...
 	}
 	args := strings.Fields(strings.ToLower(text))
 	data, err := command.Run(ctx, args, env)
 	if err != nil {
-		app.Log(ctx, err)
-		return nil, err // already wrapped
+		return nil, err // already wrapped with context
 	}
 	req, err := xbot.RequestFromBinary(data, userID)
 	if err != nil {
-		app.Log(ctx, err)
-		return nil, err
+		return nil, minlog.Errorf(ctx, "invalid data: %w", err)
 	}
 	if req == nil { // TODO hmm... it happens?
-		app.Log(ctx, "Script response skipped")
-		return nil, err
+		return nil, minlog.Errorf(ctx, "cannot prepare request (nil): %w", err)
 	}
 	return req, nil
 }
