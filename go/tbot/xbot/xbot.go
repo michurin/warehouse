@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"mime"
 	"mime/multipart"
 	"net/http"
 	"net/textproto"
@@ -72,14 +73,35 @@ func RequestFromBinary(data []byte, userID int64) (*Request, error) { // TODO re
 		}
 		return RequestStruct("sendMessage", map[string]any{"chat_id": userID, "text": str})
 	case strings.HasPrefix(contentType, "image/"): // TODO to limit image formats
-		return reqMultipart("sendPhoto", userID, "photo", data, "image."+contentType[6:], contentType) // TODO naive way, it can be 'x-icon' for instance
+		return reqMultipart("sendPhoto", userID, "photo", data, "image", contentType)
 	case strings.HasPrefix(contentType, "video/"): // TODO to limit video formats
-		return reqMultipart("sendVideo", userID, "video", data, "video."+contentType[6:], contentType)
+		return reqMultipart("sendVideo", userID, "video", data, "video", contentType)
 	case strings.HasPrefix(contentType, "audio/"): // it seems application/ogg is not fully supported; it requires OPUS encoding
-		return reqMultipart("sendAudio", userID, "audio", data, "audio."+contentType[6:], contentType)
+		return reqMultipart("sendAudio", userID, "audio", data, "audio", contentType)
 	default: // TODO hmm... application/* and font/*
-		return reqMultipart("sendDocument", userID, "document", data, "document", contentType) // TODO extension!?
+		return reqMultipart("sendDocument", userID, "document", data, "document", contentType)
 	}
+}
+
+func fext(ctype string) string {
+	// mime.ExtensionsByType can return several extension sorted alphabetical.
+	// We are trying to find most common extension, by comparing with last
+	// part of mime type of data.
+	prefExt, _, _ := mime.ParseMediaType(ctype)
+	idx := strings.LastIndex(prefExt, "/")
+	if idx >= 0 {
+		prefExt = "." + prefExt[idx+1:]
+	}
+	exts, _ := mime.ExtensionsByType(ctype)
+	if len(exts) == 0 {
+		return ".dat"
+	}
+	for _, e := range exts { // find preferable extension, if any
+		if e == prefExt {
+			return e
+		}
+	}
+	return exts[0]
 }
 
 func reqMultipart(method string, to int64, fieldname string, data []byte, filename string, ctype string) (*Request, error) { // TODO legacy
@@ -93,7 +115,7 @@ func reqMultipart(method string, to int64, fieldname string, data []byte, filena
 		"Content-Disposition": {fmt.Sprintf(
 			`form-data; name="%s"; filename="%s"`,
 			quoteEscaper.Replace(fieldname),
-			quoteEscaper.Replace(filename),
+			quoteEscaper.Replace(filename+fext(ctype)),
 		)},
 		"Content-Type": {ctype},
 	})

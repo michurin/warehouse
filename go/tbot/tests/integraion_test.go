@@ -155,7 +155,7 @@ func TestLoop(t *testing.T) {
 				"/botMORN/sendAudio": {
 					{
 						IsJSON:   false,
-						Request:  "--BOUND\r\nContent-Disposition: form-data; name=\"chat_id\"\r\n\r\n1500\r\n--BOUND\r\nContent-Disposition: form-data; name=\"audio\"; filename=\"audio.mpeg\"\r\nContent-Type: audio/mpeg\r\n\r\nID3\r\n--BOUND--\r\n",
+						Request:  "--BOUND\r\nContent-Disposition: form-data; name=\"chat_id\"\r\n\r\n1500\r\n--BOUND\r\nContent-Disposition: form-data; name=\"audio\"; filename=\"audio.mp3\"\r\nContent-Type: audio/mpeg\r\n\r\nID3\r\n--BOUND--\r\n",
 						Response: sendMessageResponseJSON,
 					},
 				},
@@ -169,7 +169,7 @@ func TestLoop(t *testing.T) {
 				"/botMORN/sendDocument": { // consider ogg as document, it seems it's not fully supported
 					{
 						IsJSON:   false,
-						Request:  "--BOUND\r\nContent-Disposition: form-data; name=\"chat_id\"\r\n\r\n1500\r\n--BOUND\r\nContent-Disposition: form-data; name=\"document\"; filename=\"document\"\r\nContent-Type: application/ogg\r\n\r\nOggS\x00\r\n--BOUND--\r\n",
+						Request:  "--BOUND\r\nContent-Disposition: form-data; name=\"chat_id\"\r\n\r\n1500\r\n--BOUND\r\nContent-Disposition: form-data; name=\"document\"; filename=\"document.ogx\"\r\nContent-Type: application/ogg\r\n\r\nOggS\x00\r\n--BOUND--\r\n",
 						Response: sendMessageResponseJSON,
 					},
 				},
@@ -197,7 +197,7 @@ func TestLoop(t *testing.T) {
 				"/botMORN/sendDocument": {
 					{
 						IsJSON:   false,
-						Request:  "--BOUND\r\nContent-Disposition: form-data; name=\"chat_id\"\r\n\r\n1500\r\n--BOUND\r\nContent-Disposition: form-data; name=\"document\"; filename=\"document\"\r\nContent-Type: application/pdf\r\n\r\n%PDF-\r\n--BOUND--\r\n",
+						Request:  "--BOUND\r\nContent-Disposition: form-data; name=\"chat_id\"\r\n\r\n1500\r\n--BOUND\r\nContent-Disposition: form-data; name=\"document\"; filename=\"document.pdf\"\r\nContent-Type: application/pdf\r\n\r\n%PDF-\r\n--BOUND--\r\n",
 						Response: sendMessageResponseJSON,
 					},
 				},
