@@ -203,6 +203,34 @@ func TestLoop(t *testing.T) {
 				},
 			},
 		},
+		{
+			name:   "media_unknown_binary",
+			script: "scripts/media_bin.sh",
+			api: map[string][]apiserver.APIAct{
+				"/botMORN/getUpdates": simpleUpdates,
+				"/botMORN/sendDocument": {
+					{
+						IsJSON:   false,
+						Request:  "--BOUND\r\nContent-Disposition: form-data; name=\"chat_id\"\r\n\r\n1500\r\n--BOUND\r\nContent-Disposition: form-data; name=\"document\"; filename=\"document.dat\"\r\nContent-Type: application/octet-stream\r\n\r\n\x00\x00\x00\x00\r\n--BOUND--\r\n",
+						Response: sendMessageResponseJSON,
+					},
+				},
+			},
+		},
+		{
+			name:   "media_len_zero",
+			script: "scripts/media_len_zero.sh",
+			api: map[string][]apiserver.APIAct{
+				"/botMORN/getUpdates": simpleUpdates,
+			},
+		},
+		{
+			name:   "media_len_too_long",
+			script: "scripts/media_len_too_long.sh",
+			api: map[string][]apiserver.APIAct{
+				"/botMORN/getUpdates": simpleUpdates,
+			},
+		},
 	} {
 		cs := cs
 		t.Run(cs.name, func(t *testing.T) {

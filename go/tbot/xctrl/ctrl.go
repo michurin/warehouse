@@ -63,7 +63,7 @@ func Handler(bot *xbot.Bot, cmd *xproc.Cmd, loggingPatch xlog.LogPatch) http.Han
 			}
 			ctx := xlog.Ctx(ctx, "user", to)
 			lPatch := xlog.Patch(ctx)
-			go func() { // TODO: limit concurency
+			go func() { // TODO: limit concurrency
 				ctx := xlog.ApplyPatch(context.Background(), lPatch)
 				// TODO refactor. it is similar to processMessage
 				body, err := cmd.Run(ctx, q["a"], nil)
