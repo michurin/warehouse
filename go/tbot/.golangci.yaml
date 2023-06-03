@@ -38,5 +38,5 @@ linters-settings:
     sections:
       - standard
       - default
-      - prefix(github.com/michurin/warehouse/go/tbot)
+      - prefix(github.com/michurin/cnbot)
 

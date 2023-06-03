@@ -7,7 +7,6 @@ import (
 	"strings"
 
 	"github.com/michurin/minlog"
-	xlog "github.com/michurin/minlog"
 
 	"github.com/michurin/cnbot/app"
 	"github.com/michurin/cnbot/xbot"
@@ -55,16 +54,16 @@ func Loop(ctx context.Context, bot *xbot.Bot, command *xproc.Cmd) error {
 func getUpdates(ctx context.Context, bot *xbot.Bot, offset int64) ([]any, error) {
 	req, err := xbot.RequestStruct("getUpdates", map[string]any{"offset": offset, "timeout": 30})
 	if err != nil {
-		return nil, xlog.Errorf(ctx, "cannot build request")
+		return nil, minlog.Errorf(ctx, "cannot build request")
 	}
 	bytes, err := bot.API(ctx, req)
 	if err != nil {
-		return nil, xlog.Errorf(ctx, "api: %w", err) // TODO all returns are too hard?
+		return nil, minlog.Errorf(ctx, "api: %w", err) // TODO all returns are too hard?
 	}
 	data := any(nil)
 	err = json.Unmarshal(bytes, &data)
 	if err != nil {
-		return nil, xlog.Errorf(ctx, "unmarshal: %w", err)
+		return nil, minlog.Errorf(ctx, "unmarshal: %w", err)
 	}
 	ok, err := xjson.Bool(data, "ok") // TODO xjson.True()?
 	if err != nil {
@@ -108,12 +107,12 @@ func userID(m any) (int64, error) { // TODO consider all types
 func processMessage(ctx context.Context, m any, command *xproc.Cmd) (*xbot.Request, error) {
 	userID, err := userID(m)
 	if err != nil {
-		return nil, xlog.Errorf(ctx, "no user id: %w", err)
+		return nil, minlog.Errorf(ctx, "no user id: %w", err)
 	}
-	ctx = xlog.Ctx(ctx, "user", userID)
+	ctx = minlog.Ctx(ctx, "user", userID)
 	env, err := xjson.JSONToEnv(m)
 	if err != nil {
-		return nil, xlog.Errorf(ctx, "cannot create env: %w", err)
+		return nil, minlog.Errorf(ctx, "cannot create env: %w", err)
 	}
 	text, err := xjson.String(m, "message", "text") // TODO consider callback_query.message.text, callback_query.message.data?
 	if err != nil {
