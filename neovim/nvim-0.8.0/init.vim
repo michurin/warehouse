@@ -105,6 +105,7 @@ nnoremap gr <cmd>lua require('telescope.builtin').lsp_references({show_line=fals
 nnoremap gi <cmd>lua require('telescope.builtin').lsp_implementations({show_line=false})<cr>
 nnoremap gd <cmd>lua require('telescope.builtin').lsp_definitions({show_line=false})<cr>
 nnoremap gs <cmd>lua require('telescope.builtin').lsp_definitions({show_line=false, jump_type='vsplit'})<cr> " nnoremap gs <cmd>vsplit \| lua vim.lsp.buf.definition()<cr>
+nnoremap ga <cmd>lua require('telescope.builtin').lsp_definitions({show_line=false, jump_type='tab'})<cr>
 nnoremap gy <cmd>lua require('telescope.builtin').lsp_type_definitions({show_line=false})<cr>
 " treesitter
 nnoremap <space>fs <cmd>lua require('telescope.builtin').treesitter()<cr>
