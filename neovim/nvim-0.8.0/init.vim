@@ -149,6 +149,7 @@ require('telescope').load_extension('dap')
 TELESCOPE_SETTINGS
 
 highlight TelescopeNormal ctermfg=7
+highlight TelescopeMatching cterm=none ctermfg=none ctermbg=23
 
 if filereadable(getcwd() . "/.nogofumpt") " Oh, too hackish. vim.lsp.buf.list_workspace_folders() or util.root_pattern?
   let g:nogofumpt_tweak = 1
@@ -419,7 +420,7 @@ set foldexpr=nvim_treesitter#foldexpr()
 set splitright
 set isfname-=# " TODO: do it for YAML only?
 
-:set guicursor=n-c-sm:block,i-ci-ve:ver25,r-cr-o-v:hor20
+set guicursor=n-c-sm:block,i-ci-ve:ver25,r-cr-o-v:hor20
 
 highlight Whitespace term=none cterm=none ctermfg=DarkGray gui=none guifg=DarkGray ctermbg=none
 highlight EndOfBuffer term=none cterm=none ctermfg=DarkGray gui=none guifg=DarkGray ctermbg=none
@@ -436,6 +437,9 @@ highlight CursorColumn cterm=none ctermbg=242
 highlight Normal cterm=none ctermfg=none ctermbg=none
 highlight NormalFloat cterm=none ctermfg=none ctermbg=none
 highlight FloatBorder cterm=none ctermfg=DarkGray ctermbg=none
+highlight Search cterm=none ctermfg=none ctermbg=23
+highlight IncSearch cterm=bold ctermfg=none ctermbg=58
+highlight Todo cterm=none ctermfg=142 ctermbg=58 " ctermfg=0 ctermbg=236
 
 let g:netrw_winsize = 30
 let g:netrw_banner = 0
