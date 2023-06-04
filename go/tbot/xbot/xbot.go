@@ -41,11 +41,10 @@ func RequestStruct(method string, x any) (*Request, error) {
 
 var quoteEscaper = strings.NewReplacer("\\", "\\\\", `"`, "\\\"")
 
-func RequestFromBinary(data []byte, userID int64) (*Request, error) { // TODO return skip-flag and %!SKIP label
+func RequestFromBinary(data []byte, userID int64) (*Request, error) {
 	contentType := http.DetectContentType(data)
 	switch {
 	case strings.HasPrefix(contentType, "text/"):
-		// TODO check length
 		if !utf8.Valid(data) {
 			return nil, fmt.Errorf("invalid utf8")
 		}
@@ -67,7 +66,7 @@ func RequestFromBinary(data []byte, userID int64) (*Request, error) { // TODO re
 				},
 			})
 		}
-		str, _, err := checkTextLen(data)
+		str, _, err := checkTextLen(bytes.TrimSpace(data))
 		if err != nil {
 			return nil, fmt.Errorf("raw stdout: %w", err)
 		}
