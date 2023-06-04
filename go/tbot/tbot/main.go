@@ -143,7 +143,7 @@ func main() {
 	defer stop()
 
 	setupLogging()
-	cfg, err := loadConfigs("tbot.env") // TODO hardcoded
+	cfg, err := loadConfigs(os.Args[1:]...)
 	if err != nil {
 		app.Log(ctx, err)
 		return
