@@ -498,6 +498,23 @@ set foldtext=XFoldText()
 highlight Folded ctermfg=155 ctermbg=235
 " it is useful modeline: vi:fdm=marker:foldlevel=0
 
+" Markdown and HTML
+
+highlight htmlH1              cterm=none ctermfg=231 ctermbg=236
+highlight markdownH1Delimiter cterm=none ctermfg=231 ctermbg=236
+highlight htmlH2              cterm=none ctermfg=226 ctermbg=236
+highlight markdownH2Delimiter cterm=none ctermfg=226 ctermbg=236
+highlight htmlH3              cterm=none ctermfg=82 ctermbg=236
+highlight markdownH3Delimiter cterm=none ctermfg=82 ctermbg=236
+highlight htmlH4              cterm=none ctermfg=45 ctermbg=236
+highlight markdownH4Delimiter cterm=none ctermfg=45 ctermbg=236
+highlight htmlH5              cterm=none ctermfg=213 ctermbg=236
+highlight markdownH5Delimiter cterm=none ctermfg=213 ctermbg=236
+highlight htmlH6              cterm=none ctermfg=231 ctermbg=236
+highlight markdownH6Delimiter cterm=none ctermfg=231 ctermbg=236
+highlight htmlLink            cterm=none ctermfg=81 ctermbg=none
+highlight markdownCodeBlock   cterm=none ctermfg=73 ctermbg=none
+
 " GO STUFF
 
 autocmd bufenter *.go syntax keyword goTodo contained TODO FIXME XXX BUG todo fixme xxx bug
