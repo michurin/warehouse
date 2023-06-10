@@ -39,6 +39,7 @@ func killGrp(ctx context.Context, pid int, sig syscall.Signal) {
 }
 
 // Note: don't use ctx for timeouts
+// Note: be careful with env argument, side effects are possible
 func (c *Cmd) Run(
 	ctx context.Context,
 	args []string,
@@ -53,7 +54,7 @@ func (c *Cmd) Run(
 		Setpgid: true,
 	}
 	cmd.Dir = c.Cwd
-	cmd.Env = append(c.Env, env...)
+	cmd.Env = append(env, c.Env...)
 	var outBuffer bytes.Buffer
 	cmd.Stdout = &outBuffer
 	var errBuffer bytes.Buffer
