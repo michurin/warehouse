@@ -2,6 +2,36 @@
 
 Successor of [cnbot](https://github.com/michurin/cnbot).
 
+## What is to for
+
+## Quick start
+
+## Advanced configuration
+
+### Configuration file(s)
+
+### Secure API token
+
+### Launch multiply bots
+
+## Examples
+
+### Simple scripts
+
+#### Simplest text
+
+#### Preformatted text
+
+### Advanced control API
+
+#### Advanced formatting
+
+#### Multimedia and documents in response
+
+### Long-running scripts
+
+## Develop
+
 ## Main ideas
 
 - Contract must be simple and flexible
@@ -12,13 +42,9 @@ Successor of [cnbot](https://github.com/michurin/cnbot).
 - Code must be testable and has to be covered
 - Functionality has to be observable and has to provide ability to add metrics and monitoring by adding middleware without code changing
 
-## Run
+### Embedding
 
-```sh
-BOT_TOKEN=your_bot_token go run ./tbot/...
-```
-
-## Application structure
+### Application structure
 
 ```
    Telegram infrastructure
