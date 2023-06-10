@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"mime"
 	"net/http"
 	"strconv"
 	"strings"
@@ -32,12 +33,21 @@ func Handler(bot *xbot.Bot, cmd *xproc.Cmd, loggingPatch xlog.LogPatch) http.Han
 			data, err = bot.API(ctx, &xbot.Request{Method: method})
 		case http.MethodPost:
 			ct := r.Header.Get("content-type")
-			if ct == "application/json" || strings.Contains(ct, "multipart/form-data") {
+			sct, _, err := mime.ParseMediaType(ct)
+			if err != nil {
+				app.Log(ctx, err) // TODO response!
+				return
+			}
+			if sct == "application/json" || sct == "multipart/form-data" {
 				data, err = bot.API(ctx, &xbot.Request{
 					Method:      method,
 					ContentType: ct,
 					Body:        body,
 				})
+				if err != nil {
+					app.Log(ctx, err) // TODO response!
+					return
+				}
 			} else {
 				var to int64          // TODO refactor
 				var req *xbot.Request // TODO refactor
@@ -53,6 +63,10 @@ func Handler(bot *xbot.Bot, cmd *xproc.Cmd, loggingPatch xlog.LogPatch) http.Han
 					return
 				}
 				data, err = bot.API(ctx, req)
+				if err != nil {
+					app.Log(ctx, err) // TODO response!
+					return
+				}
 			}
 		case "RUN":
 			q := r.URL.Query()

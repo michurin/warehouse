@@ -41,7 +41,7 @@ func APIServer(t *testing.T, cancel context.CancelFunc, api map[string][]APIAct)
 			ctype := r.Header.Get("content-type")
 			assert.Contains(t, ctype, "multipart/form-data")
 			idx := strings.Index(ctype, "boundary=")
-			assert.Greater(t, idx, -1)
+			assert.Greater(t, idx, -1, "ctype="+ctype)
 			universal := strings.ReplaceAll(body, ctype[idx+9:], "BOUND")
 			assert.Equal(t, a.Request, universal)
 		}
