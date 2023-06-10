@@ -253,7 +253,7 @@ func TestLoop(t *testing.T) {
 
 func TestHttp(t *testing.T) {
 	/* cases
-	tg        bots loop
+	tg        bots ctrl
 	|         |
 	|         |<-- someone external calls bot over http
 	|<--req---| (request to send)
@@ -309,6 +309,43 @@ func TestHttp(t *testing.T) {
 	}
 }
 
+func TestDownload(t *testing.T) {
+	/* cases
+	tg        bots ctrl
+	|         |
+	|         |<-- someone external calls bot over http with file_id
+	|<--req---| (getFile)
+	|---resp->|
+	|<--req---| (download data)
+	|---resp->|
+	|         |--> reply to external client
+	*/
+	tgURL, tgClose := apiserver.APIServer(t, nil, map[string][]apiserver.APIAct{
+		"/botMORN/getFile": {{
+			IsJSON:   true,
+			Request:  `{"file_id":"FILE"}`,
+			Response: []byte(`{"ok":true, "result":{"file_path":"file/path.jpeg"}}`),
+		}},
+		"/file/botMORN/file/path.jpeg": {{
+			IsJSON:   false,
+			Stream:   true,
+			Request:  "",
+			Response: []byte("DATA"),
+		}},
+	})
+	defer tgClose()
+
+	bot := buildBot(tgURL)
+
+	h := xctrl.Handler(bot, nil, xlog.Patch(context.Background())) // we won't use second argument in this test
+
+	s := httptest.NewServer(h)
+
+	ou, er := runCurl(t, "-q", "-s", s.URL+"?file_id=FILE")
+	assert.Equal(t, "DATA", ou)
+	assert.Empty(t, er)
+}
+
 func TestHttp_long(t *testing.T) { // CAUTION: test has sleep
 	/* cases
 	tg        bots loop
@@ -328,7 +365,7 @@ func TestHttp_long(t *testing.T) { // CAUTION: test has sleep
 	tgURL, tgClose := apiserver.APIServer(t, cancel, map[string][]apiserver.APIAct{
 		"/botMORN/sendMessage": {{
 			IsJSON:   true,
-			Request:  `{"chat_id":222, "text":"args: a1 a2"}`,
+			Request:  `{"chat_id":222, "text":"args [222]: a1 a2"}`,
 			Response: nil, // response will be skipped, but in fact, we do not test this fact
 		}},
 	})

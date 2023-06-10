@@ -88,7 +88,7 @@ func bot(ctx context.Context, eg *errgroup.Group, cfg xcfg.Config) {
 	command := &xproc.Cmd{
 		InterruptDelay: 10 * time.Second,
 		KillDelay:      10 * time.Second,
-		Env:            append([]string{"tg_x_run_mode=short"}, envCommon...),
+		Env:            envCommon,
 		Command:        cfg.Script,
 		Cwd:            path.Dir(cfg.Script),
 	}
@@ -96,7 +96,7 @@ func bot(ctx context.Context, eg *errgroup.Group, cfg xcfg.Config) {
 	commandLong := &xproc.Cmd{
 		InterruptDelay: 10 * time.Minute,
 		KillDelay:      10 * time.Minute,
-		Env:            append([]string{"tg_x_run_mode=long"}, envCommon...),
+		Env:            envCommon,
 		Command:        cfg.LongRunningScript,
 		Cwd:            path.Dir(cfg.LongRunningScript),
 	}

@@ -1,3 +1,3 @@
 #!/bin/sh
 
-echo args: "$@"
+echo args [$tg_x_to]: "$@"

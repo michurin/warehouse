@@ -2,6 +2,7 @@ package xctrl
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"io"
 	"mime"
@@ -13,6 +14,7 @@ import (
 
 	"github.com/michurin/cnbot/app"
 	"github.com/michurin/cnbot/xbot"
+	"github.com/michurin/cnbot/xjson"
 	"github.com/michurin/cnbot/xproc"
 )
 
@@ -30,7 +32,46 @@ func Handler(bot *xbot.Bot, cmd *xproc.Cmd, loggingPatch xlog.LogPatch) http.Han
 		data := []byte(nil)
 		switch r.Method {
 		case http.MethodGet:
-			data, err = bot.API(ctx, &xbot.Request{Method: method})
+			fileID := r.URL.Query().Get("file_id")
+			if fileID == "" {
+				data, err = bot.API(ctx, &xbot.Request{Method: method})
+			} else {
+				req, err := xbot.RequestStruct("getFile", map[string]string{"file_id": fileID})
+				if err != nil {
+					app.Log(ctx, err) // TODO response!
+					return
+				}
+				x, err := bot.API(ctx, req)
+				if err != nil {
+					app.Log(ctx, err) // TODO response!
+					return
+				}
+				app.Log(ctx, x) // TODO!!!!!!
+				s := any(nil)
+				err = json.Unmarshal(x, &s)
+				if err != nil {
+					app.Log(ctx, err) // TODO response!
+					return
+				}
+				ok, err := xjson.Bool(s, "ok")
+				if err != nil {
+					app.Log(ctx, err) // TODO response!
+					return
+				}
+				filePath, err := xjson.String(s, "result", "file_path")
+				if err != nil {
+					app.Log(ctx, err) // TODO response!
+					return
+				}
+				app.Log(ctx, "ok/filePath", ok, filePath) // TODO remove
+				w.WriteHeader(http.StatusOK)
+				err = bot.Download(ctx, filePath, w)
+				if err != nil {
+					app.Log(ctx, err) // TODO response!
+					return
+				}
+				return
+			}
 		case http.MethodPost:
 			ct := r.Header.Get("content-type")
 			sct, _, err := mime.ParseMediaType(ct)
@@ -70,7 +111,7 @@ func Handler(bot *xbot.Bot, cmd *xproc.Cmd, loggingPatch xlog.LogPatch) http.Han
 			}
 		case "RUN":
 			q := r.URL.Query()
-			to, err := strconv.ParseInt(r.URL.Query().Get("to"), 10, 64) // TODO code dup
+			to, err := strconv.ParseInt(r.URL.Query().Get("to"), 10, 64)
 			if err != nil {
 				app.Log(ctx, err) // TODO response!
 				return
@@ -80,7 +121,7 @@ func Handler(bot *xbot.Bot, cmd *xproc.Cmd, loggingPatch xlog.LogPatch) http.Han
 			go func() { // TODO: limit concurrency
 				ctx := xlog.ApplyPatch(context.Background(), lPatch)
 				// TODO refactor. it is similar to processMessage
-				body, err := cmd.Run(ctx, q["a"], nil)
+				body, err := cmd.Run(ctx, q["a"], []string{"tg_x_to=" + strconv.FormatInt(to, 10)})
 				if err != nil {
 					app.Log(ctx, err)
 					return

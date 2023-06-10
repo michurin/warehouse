@@ -13,6 +13,7 @@ import (
 
 type APIAct struct {
 	IsJSON   bool // TODO use content type?
+	Stream   bool // TODO couple with IsJSON
 	Request  string
 	Response []byte
 }
@@ -25,15 +26,22 @@ func APIServer(t *testing.T, cancel context.CancelFunc, api map[string][]APIAct)
 		// DO NOT user require.* in this handler.
 		// require.* is based on t.FailNow() it won't work in goroutines
 		// assert.* is founded on t.Fatal()
-		assert.Equal(t, http.MethodPost, r.Method)
+		// assert.Equal(t, http.MethodPost, r.Method) // TODO! Assert method
 		bodyBytes, err := io.ReadAll(r.Body)
 		assert.NoError(t, err)
 		body := string(bodyBytes)
 
 		url := r.URL.String()
 		n := steps[url]
-		a := api[url][n] // TODO this panic is caught by server! so test wont fail!
+		ax, ok := api[url]
+		assert.True(t, ok, "URL not found: "+url)
+		a := ax[n]
 		steps[url] = n + 1
+		if a.Stream { // TODO couple Stream and IsJSON
+			_, err = w.Write(a.Response)
+			assert.NoError(t, err)
+			return
+		}
 		if a.IsJSON {
 			assert.Equal(t, "application/json", r.Header.Get("content-type"))
 			assert.JSONEq(t, a.Request, body)

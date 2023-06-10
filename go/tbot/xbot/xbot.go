@@ -186,3 +186,26 @@ func (b *Bot) API(ctx context.Context, request *Request) ([]byte, error) {
 	}
 	return data, nil
 }
+
+func (b *Bot) Download(ctx context.Context, path string, stream io.Writer) error {
+	ctx = xlog.Ctx(ctx, "api", "x-download")
+	err := error(nil)
+	defer func() {
+		app.Log(ctx, path, err)
+	}()
+	reqURL := b.APIOrigin + "/file/bot" + b.Token + "/" + path
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, reqURL, nil)
+	if err != nil {
+		return xlog.Errorf(ctx, "request constructor: %w", err)
+	}
+	resp, err := b.Client.Do(req)
+	if err != nil {
+		return xlog.Errorf(ctx, "client: %w", err)
+	}
+	defer resp.Body.Close() // we are skipping error here
+	_, err = io.Copy(stream, resp.Body)
+	if err != nil {
+		return xlog.Errorf(ctx, "coping: %w", err)
+	}
+	return nil
+}
