@@ -114,7 +114,7 @@ func processMessage(ctx context.Context, m any, command *xproc.Cmd) (*xbot.Reque
 	if err != nil {
 		return nil, minlog.Errorf(ctx, "cannot create env: %w", err)
 	}
-	text, err := xjson.String(m, "message", "text") // TODO consider callback_query.message.text, callback_query.message.data? message.caption?
+	text, err := xjson.String(m, "message", "text")
 	if err != nil {
 		app.Log(ctx, err) // return nil, err // TODO callback_query...
 	}
