@@ -99,7 +99,7 @@ func TestLoop(t *testing.T) {
 				"/botMORN/sendMessage": {
 					{
 						IsJSON:   true,
-						Request:  `{"chat_id": 1500, "text": "ok\n"}`,
+						Request:  `{"chat_id": 1500, "text": "ok"}`,
 						Response: sendMessageResponseJSON,
 					},
 				},
@@ -328,7 +328,7 @@ func TestHttp_long(t *testing.T) { // CAUTION: test has sleep
 	tgURL, tgClose := apiserver.APIServer(t, cancel, map[string][]apiserver.APIAct{
 		"/botMORN/sendMessage": {{
 			IsJSON:   true,
-			Request:  `{"chat_id":222, "text":"args: a1 a2\n"}`,
+			Request:  `{"chat_id":222, "text":"args: a1 a2"}`,
 			Response: nil, // response will be skipped, but in fact, we do not test this fact
 		}},
 	})
