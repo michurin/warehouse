@@ -118,7 +118,7 @@ func processMessage(ctx context.Context, m any, command *xproc.Cmd) (*xbot.Reque
 	if err != nil {
 		app.Log(ctx, err) // return nil, err // TODO callback_query...
 	}
-	args := strings.Fields(strings.ToLower(text))
+	args := textToArgs(text)
 	data, err := command.Run(ctx, args, env)
 	if err != nil {
 		return nil, err // already wrapped with context
@@ -131,4 +131,16 @@ func processMessage(ctx context.Context, m any, command *xproc.Cmd) (*xbot.Reque
 		return nil, minlog.Errorf(ctx, "cannot prepare request (nil): %w", err)
 	}
 	return req, nil
+}
+
+func textToArgs(text string) []string {
+	a := strings.Fields(strings.ToLower(text))
+	b := make([]string, len(a))
+	for i, v := range a {
+		if len(v) > 0 && v[0] == '/' {
+			v = v[1:]
+		}
+		b[i] = v
+	}
+	return b
 }
