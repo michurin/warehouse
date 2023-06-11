@@ -8,7 +8,7 @@ import (
 
 	"github.com/michurin/minlog"
 
-	"github.com/michurin/cnbot/app"
+	"github.com/michurin/cnbot/app/aw"
 	"github.com/michurin/cnbot/xbot"
 	"github.com/michurin/cnbot/xjson"
 	"github.com/michurin/cnbot/xproc"
@@ -36,7 +36,7 @@ func Loop(ctx context.Context, bot *xbot.Bot, command *xproc.Cmd) error {
 			// TODO refactor: get env, get args, run command
 			req, err := processMessage(ctx, m, command)
 			if err != nil {
-				app.Log(ctx, "Skip message", err)
+				aw.Log(ctx, "Skip message", err)
 				continue
 			}
 			if req == nil {
@@ -44,7 +44,7 @@ func Loop(ctx context.Context, bot *xbot.Bot, command *xproc.Cmd) error {
 			}
 			_, err = bot.API(ctx, req)
 			if err != nil {
-				app.Log(ctx, err) // TODO process error
+				aw.Log(ctx, err) // TODO process error
 			}
 		}
 		offset++
@@ -116,7 +116,7 @@ func processMessage(ctx context.Context, m any, command *xproc.Cmd) (*xbot.Reque
 	}
 	text, err := xjson.String(m, "message", "text")
 	if err != nil {
-		app.Log(ctx, err) // return nil, err // TODO callback_query...
+		aw.Log(ctx, err) // return nil, err // TODO callback_query...
 	}
 	args := textToArgs(text)
 	data, err := command.Run(ctx, args, env)

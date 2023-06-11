@@ -9,9 +9,9 @@ import (
 	"syscall"
 	"time"
 
-	xlog "github.com/michurin/minlog"
+	"github.com/michurin/minlog"
 
-	"github.com/michurin/cnbot/app"
+	"github.com/michurin/cnbot/app/aw"
 )
 
 type Cmd struct {
@@ -28,12 +28,12 @@ func killGrp(ctx context.Context, pid int, sig syscall.Signal) {
 	// For example you can get ESRCH (0x3) that doesn't support by syscall.Errno.Is().
 	pgid, err := syscall.Getpgid(pid) // not cmd.SysProcAttr.Pgid
 	if err != nil {
-		app.Log(ctx, xlog.Errorf(ctx, "kill: getpgid: %w", err))
+		aw.Log(ctx, minlog.Errorf(ctx, "kill: getpgid: %w", err))
 		return
 	}
 	err = syscall.Kill(-pgid, sig) // minus
 	if err != nil {
-		app.Log(ctx, xlog.Errorf(ctx, "kill: kill %d: %w", -pgid, err))
+		aw.Log(ctx, minlog.Errorf(ctx, "kill: kill %d: %w", -pgid, err))
 		return
 	}
 }
@@ -60,13 +60,13 @@ func (c *Cmd) Run(
 	var errBuffer bytes.Buffer
 	cmd.Stderr = &errBuffer
 
-	app.Log(ctx, fmt.Sprintf("starting %s %v", c.Command, args)) // TODO put command to context?
+	aw.Log(ctx, fmt.Sprintf("starting %s %v", c.Command, args)) // TODO put command to context?
 
 	err := cmd.Start() // start command synchronously
 	if err != nil {
-		return nil, xlog.Errorf(ctx, "start: %w", err)
+		return nil, minlog.Errorf(ctx, "start: %w", err)
 	}
-	ctx = xlog.Ctx(ctx, "pid", cmd.Process.Pid)
+	ctx = minlog.Ctx(ctx, "pid", cmd.Process.Pid)
 
 	done := make(chan struct{})
 	intBound := time.NewTimer(c.InterruptDelay)
@@ -82,7 +82,7 @@ func (c *Cmd) Run(
 			case <-done: // it has to appear before kill sections to catch stat errors
 				return
 			case <-ctx.Done(): // urgent exit, we doesn't even wait for process finalization
-				app.Log(ctx, "Exec terminated by context")
+				aw.Log(ctx, "Exec terminated by context")
 				killGrp(ctx, cmd.Process.Pid, syscall.SIGKILL)
 				return
 			case <-intBound.C:
@@ -94,7 +94,7 @@ func (c *Cmd) Run(
 	}()
 	err = cmd.Wait()
 	if err != nil {
-		return nil, xlog.Errorf(ctx, "wait: %w", err)
+		return nil, minlog.Errorf(ctx, "wait: %w", err)
 	}
 
 	errMsg := []string(nil)
@@ -104,7 +104,7 @@ func (c *Cmd) Run(
 	}
 	errStr := errBuffer.String()
 	if errStr != "" {
-		app.Log(ctx, "stderr:", errStr) // TODO consider as error?
+		aw.Log(ctx, "stderr:", errStr) // TODO consider as error?
 		// errMsg = append(errMsg, fmt.Sprintf("stderr: %q", errStr))
 	}
 	outBytes := outBuffer.Bytes()
@@ -112,5 +112,5 @@ func (c *Cmd) Run(
 		return outBytes, nil
 	}
 	errMsg = append(errMsg, fmt.Sprintf("stdout: %q", string(outBytes))) // TODO trim?
-	return nil, xlog.Errorf(ctx, strings.Join(errMsg, "; "))
+	return nil, minlog.Errorf(ctx, strings.Join(errMsg, "; "))
 }

@@ -6,9 +6,9 @@ import (
 	"os"
 	"strings"
 
-	xlog "github.com/michurin/minlog"
+	"github.com/michurin/minlog"
 
-	"github.com/michurin/cnbot/app"
+	"github.com/michurin/cnbot/app/aw"
 )
 
 var (
@@ -34,18 +34,18 @@ type Config struct {
 }
 
 func Cfg(osEnviron []string) map[string]Config { //nolint:gocognit
-	ctx := xlog.Ctx(context.Background(), "comp", "cfg")
+	ctx := minlog.Ctx(context.Background(), "comp", "cfg")
 	x := map[string]map[string]string{}
 	for _, pair := range osEnviron {
 		kv := strings.SplitN(pair, "=", 2)
 		if len(kv) != 2 {
-			app.Log(ctx, fmt.Errorf("skipping %q: cannot find `=`", pair))
+			aw.Log(ctx, fmt.Errorf("skipping %q: cannot find `=`", pair))
 			continue
 		}
 		ek := strings.ToLower(kv[0])
 		ev := kv[1]
 		if len(ev) == 0 {
-			app.Log(ctx, fmt.Errorf("skipping %q: value is empty", pair))
+			aw.Log(ctx, fmt.Errorf("skipping %q: value is empty", pair))
 			continue
 		}
 		if !strings.HasPrefix(ek, varPrefix) {
@@ -64,7 +64,7 @@ func Cfg(osEnviron []string) map[string]Config { //nolint:gocognit
 					t = map[string]string{}
 				}
 				if x, ok := t[sfx]; ok {
-					app.Log(ctx, fmt.Errorf("overriding %q by %q: %q", x, ev, pair))
+					aw.Log(ctx, fmt.Errorf("overriding %q by %q: %q", x, ev, pair))
 				}
 				t[sfx] = ev
 				x[k] = t
@@ -72,13 +72,13 @@ func Cfg(osEnviron []string) map[string]Config { //nolint:gocognit
 			}
 		}
 		if sfxNotFound {
-			app.Log(ctx, fmt.Errorf("skipping %q: has TB prefix, but wrong suffix. Allowed: %s", pair, varAllowedSfxs))
+			aw.Log(ctx, fmt.Errorf("skipping %q: has TB prefix, but wrong suffix. Allowed: %s", pair, varAllowedSfxs))
 		}
 	}
 	res := map[string]Config{}
 	for k, v := range x {
 		if len(v) != 4 {
-			app.Log(ctx, fmt.Errorf("skipping bot name %q: incomplete set of options", k))
+			aw.Log(ctx, fmt.Errorf("skipping bot name %q: incomplete set of options", k))
 			continue
 		}
 		c := Config{
@@ -90,7 +90,7 @@ func Cfg(osEnviron []string) map[string]Config { //nolint:gocognit
 		if strings.HasPrefix(c.Token, "@") {
 			x, err := os.ReadFile(c.Token[1:])
 			if err != nil {
-				app.Log(ctx, fmt.Errorf("skipping bot name %q: cannot get token from file: %q: %w", k, c.Token, err))
+				aw.Log(ctx, fmt.Errorf("skipping bot name %q: cannot get token from file: %q: %w", k, c.Token, err))
 				continue
 			}
 			c.Token = strings.TrimSpace(string(x))
