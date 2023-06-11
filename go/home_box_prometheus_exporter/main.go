@@ -320,6 +320,7 @@ func updateMikrotik() {
 		"28e347e47687": "asus",
 		"3c22fbb9bae3": "Mac",
 		"60f67723da48": "Owl",
+		"66e4d52267a2": "A22_2g",
 		"7e4d3ea56879": "A31_2g",
 		"7e65b7dda61d": "A12",
 		"8c8590803920": "Mac",
