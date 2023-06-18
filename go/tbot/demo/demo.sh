@@ -243,12 +243,21 @@ fi
 
 # -- manage bot itself --------------------------------------------------
 
+# note: use text='<-' to vanish filename-part of Content-Disposition header, Telegram API likes that
 if [ "$1" = 'menu' ]
 then
-    echo "***CAUTION!***"
-    echo "You need to restart some Telegram clients to see menu update"
-    echo ""
+    # sending warning
+    (
+        echo '```'
+        echo '**************'
+        echo '*  CAUTION!  *'
+        echo '**************'
+        echo '```'
+        echo 'You need to restart some Telegram clients to see this menu update'
+    ) | curl -qs "$CTRL/x/sendMessage" -F chat_id="$tg_message_from_id" -F text='<-' -F parse_mode='MarkdownV2' >&2
+    # check if menu present
     s="$(curl -qs "$CTRL/x/getMyCommands")" # {"ok":true,"result":[]}
+    # toggle menu
     if [ -z ${s##*[]*} ] # if $s contains '[]'
     then
         b="$(perl -ne 'if (/"\$1"\s*=\s*'"'"'([^'"'"']+)'"'"'/) {print(qq|${sep}{"command":"/$1","description":"$1"}|); $sep=", ";}' "$x_script")"
