@@ -21,6 +21,11 @@ linters:
     - wrapcheck
     - wsl
 
+      # not bad suggestions? disable by nolint comments?
+    - testpackage
+    - gomnd
+    - exhaustruct
+
 linters-settings:
   gci:
     sections:
@@ -29,3 +34,5 @@ linters-settings:
       - prefix(github.com/michurin/minlog)
   funlen: {statements: 150, lines: 150} # parsers are long
   cyclop: {max-complexity: 50}          # and "complex"
+  lll:
+    line-length: 150

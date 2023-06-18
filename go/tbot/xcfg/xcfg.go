@@ -6,8 +6,6 @@ import (
 	"os"
 	"strings"
 
-	"github.com/michurin/minlog"
-
 	"github.com/michurin/cnbot/app/aw"
 )
 
@@ -33,8 +31,7 @@ type Config struct {
 	LongRunningScript string
 }
 
-func Cfg(osEnviron []string) map[string]Config { //nolint:gocognit
-	ctx := minlog.Ctx(context.Background(), "comp", "cfg")
+func Cfg(ctx context.Context, osEnviron []string) map[string]Config { //nolint:gocognit
 	x := map[string]map[string]string{}
 	for _, pair := range osEnviron {
 		kv := strings.SplitN(pair, "=", 2)

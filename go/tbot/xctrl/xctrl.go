@@ -18,7 +18,7 @@ import (
 	"github.com/michurin/cnbot/xproc"
 )
 
-func Handler(bot *xbot.Bot, cmd *xproc.Cmd, loggingPatch minlog.LogPatch) http.HandlerFunc { //nolint:gocognit // reason to refactor
+func Handler(bot *xbot.Bot, cmd *xproc.Cmd, loggingPatch minlog.Patch) http.HandlerFunc { //nolint:gocognit // reason to refactor
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := minlog.ApplyPatch(r.Context(), loggingPatch)
 		// TODO mark ctx for logging?
@@ -117,9 +117,9 @@ func Handler(bot *xbot.Bot, cmd *xproc.Cmd, loggingPatch minlog.LogPatch) http.H
 				return
 			}
 			ctx := minlog.Ctx(ctx, "user", to)
-			lPatch := minlog.Patch(ctx)
+			logCtxPatch := minlog.TakePatch(ctx)
 			go func() { // TODO: limit concurrency
-				ctx := minlog.ApplyPatch(context.Background(), lPatch)
+				ctx := minlog.ApplyPatch(context.Background(), logCtxPatch)
 				// TODO refactor. it is similar to processMessage
 				body, err := cmd.Run(ctx, q["a"], []string{"tg_x_to=" + strconv.FormatInt(to, 10)})
 				if err != nil {

@@ -46,7 +46,7 @@ func bot(ctx context.Context, eg *errgroup.Group, cfg xcfg.Config, build string)
 		return xloop.Loop(minlog.Ctx(ctx, "comp", "loop"), bot, command)
 	})
 
-	server := &http.Server{Addr: cfg.ControlAddr, Handler: xctrl.Handler(bot, commandLong, minlog.Patch(minlog.Ctx(ctx, "comp", "ctrl")))}
+	server := &http.Server{Addr: cfg.ControlAddr, Handler: xctrl.Handler(bot, commandLong, minlog.TakePatch(minlog.Ctx(ctx, "comp", "ctrl")))}
 	eg.Go(func() error {
 		<-ctx.Done()
 		cx, stop := context.WithTimeout(context.Background(), time.Second)
