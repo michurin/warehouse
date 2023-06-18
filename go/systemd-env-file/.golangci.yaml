@@ -14,6 +14,7 @@ linters:
     - varcheck
 
       # project too small to be such paranoiac
+    - depguard
     - goerr113
     - nlreturn
     - paralleltest
