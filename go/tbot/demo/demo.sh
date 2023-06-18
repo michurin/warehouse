@@ -251,7 +251,7 @@ then
     s="$(curl -qs "$CTRL/x/getMyCommands")" # {"ok":true,"result":[]}
     if [ -z ${s##*[]*} ] # if $s contains '[]'
     then
-        b="$(perl -ne 'if (/"\$1"\s*=\s*'"'"'([^'"'"']+)'"'"'/) {print(qq|${sep}{"command":"/$1","description":"$1"}|); $sep=", ";}' "$0")"
+        b="$(perl -ne 'if (/"\$1"\s*=\s*'"'"'([^'"'"']+)'"'"'/) {print(qq|${sep}{"command":"/$1","description":"$1"}|); $sep=", ";}' "$x_script")"
         curl -qs "$CTRL/x/setMyCommands" -F commands='['"$b"']' >&2
         echo "Menu added"
     else
