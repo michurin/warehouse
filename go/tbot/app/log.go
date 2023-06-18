@@ -5,10 +5,22 @@ import (
 	"runtime"
 	"strings"
 
+	"github.com/michurin/jsonpainter"
 	"github.com/michurin/minlog"
 
 	"github.com/michurin/cnbot/app/aw"
 )
+
+func fieldMessage() minlog.FieldFunc {
+	opts := []jsonpainter.Option{
+		jsonpainter.ClrKey(jsonpainter.Yellow),
+		jsonpainter.ClrCtl(jsonpainter.Green),
+		jsonpainter.ClrSpecStr(jsonpainter.Darkgreen),
+	}
+	return func(r minlog.Record) string {
+		return jsonpainter.String(r.Message, opts...)
+	}
+}
 
 func SetupLogging() {
 	_, file, _, _ := runtime.Caller(0)
@@ -27,7 +39,7 @@ func SetupLogging() {
 				minlog.Color(minlog.FieldNamed("user"), minlog.HiGreen),
 				minlog.Prefix(minlog.Color(minlog.FieldNamed("pid"), minlog.HiYellow), "PID:"),
 				minlog.FieldFallbackKV("api", "bot", "comp", "pid", "user"),
-				minlog.FieldMessage()),
+				fieldMessage()),
 		}
 	} else {
 		opts = []minlog.Option{

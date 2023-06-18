@@ -7,6 +7,7 @@ replace github.com/michurin/minlog => ../minlog-next
 replace github.com/michurin/systemd-env-file => ../systemd-env-file
 
 require (
+	github.com/michurin/jsonpainter v0.0.0-20230617042058-19410576097e
 	github.com/michurin/minlog v0.0.0-00010101000000-000000000000
 	github.com/michurin/systemd-env-file v0.0.0-00010101000000-000000000000
 	github.com/stretchr/testify v1.8.3
