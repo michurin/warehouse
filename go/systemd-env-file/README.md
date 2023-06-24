@@ -88,5 +88,5 @@ install xenv /opt/bin # use your favorite options
 
 ## Links
 
-- `[parse_env_file_internal](https://github.com/systemd/systemd/blob/v253/src/basic/env-file.c#L22)` — `systemd` implementation
+- [`parse_env_file_internal`](https://github.com/systemd/systemd/blob/v253/src/basic/env-file.c#L22) — `systemd` implementation
 - Useful constants: [[1](https://github.com/systemd/systemd/blob/v253/src/basic/string-util.h#L13)], [[2](https://github.com/systemd/systemd/blob/v253/src/basic/escape.h#L15)]
