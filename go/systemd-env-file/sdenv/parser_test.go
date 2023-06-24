@@ -31,22 +31,22 @@ func TestParser_ok(t *testing.T) {
 			pairs: [][2]string{{"x", ""}},
 		},
 		{
-			name:  "novalueSpaces",
+			name:  "novalue_spaces",
 			data:  "\tx\t=\t\n",
 			pairs: [][2]string{{"x", ""}},
 		},
 		{
-			name:  "sQuoted",
+			name:  "single_quoted",
 			data:  "x = ' A \n B '",
 			pairs: [][2]string{{"x", " A \n B "}},
 		},
 		{
-			name:  "dQuoted",
+			name:  "double_quoted",
 			data:  "x = \" A \n B \"",
 			pairs: [][2]string{{"x", " A \n B "}},
 		},
 		{
-			name:  "dQuotedEscape", // i.e. it unescape only ", $, ` and \
+			name:  "double_quoted_escape", // i.e. it unescape only ", $, ` and \
 			data:  "x = \" \\\" \\\n \\$ \\x \"",
 			pairs: [][2]string{{"x", ` "  $ \x `}},
 		},

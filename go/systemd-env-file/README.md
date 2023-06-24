@@ -63,12 +63,27 @@ setting will override the earlier setting.
 
 ## Import
 
-```
+```sh
 go get github.com/michurin/systemd-env-file@latest
 ```
 
-```
+```go
 import "github.com/michurin/systemd-env-file/sdenv"
+```
+
+## Binagy
+
+Install in standard go way
+
+```sh
+go install github.com/michurin/systemd-env-file/cmd/xenv@latest
+```
+
+Build manually and install to custom place
+
+```sh
+go build ./cmd/...
+install xenv /opt/bin # use your favorite options
 ```
 
 ## Links
