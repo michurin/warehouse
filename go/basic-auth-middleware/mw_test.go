@@ -3,15 +3,21 @@ package basicauthmiddleware_test
 import (
 	"crypto/hmac"
 	"crypto/sha256"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"os"
 	"os/exec"
+	"strings"
 
 	basicauthmiddleware "github.com/michurin/warehouse/go/basic-auth-middleware"
 )
 
-func ExampleBasicAuth() {
+func ExampleAuthBasic() {
+	nakedHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		_, _ = w.Write([]byte("OK: user=" + basicauthmiddleware.UserName(r.Context())))
+	})
+
 	hmacKey := []byte{1, 2, 3, 4}
 	user := "one"
 	password := []byte("secret")
@@ -19,33 +25,36 @@ func ExampleBasicAuth() {
 		user: hmac.New(sha256.New, hmacKey).Sum(password),
 	}
 
-	h := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Write([]byte("OK: user=" + basicauthmiddleware.UserName(r.Context())))
-	})
+	checker := basicauthmiddleware.StaticAuth(passwd, hmacKey)
 
-	h = basicauthmiddleware.BasicAuth(h, passwd, hmacKey)
+	wrappedHandler := basicauthmiddleware.AuthBasic(nakedHandler, "test", checker)
 
-	s := httptest.NewServer(h)
-	defer s.Close()
+	server := httptest.NewServer(wrappedHandler)
+	defer server.Close()
 
-	curl("-qs", s.URL)
-	curl("-qs", s.URL, "-u", "on1:secret")
-	curl("-qs", s.URL, "-u", "one:secre1")
-	curl("-qs", s.URL, "-u", "one:secret")
+	url := server.URL
+	curl := func(args ...string) {
+		fmt.Println("curl " + strings.Join(append(args, "http://testserver/"), " "))
+		cmd := exec.Command("curl", append([]string{"-qs"}, append(args, url)...)...) //nolint:gosec // -q must be first arg
+		cmd.Stdout = os.Stdout
+		cmd.Stderr = os.Stderr
+		err := cmd.Run()
+		if err != nil {
+			panic(err)
+		}
+	}
+	curl()
+	curl("-u", "xxx:secret")
+	curl("-u", "one:xxxxxx")
+	curl("-u", "one:secret")
 
 	// output:
+	// curl http://testserver/
 	// Unauthorized
+	// curl -u xxx:secret http://testserver/
 	// Unauthorized
+	// curl -u one:xxxxxx http://testserver/
 	// Unauthorized
+	// curl -u one:secret http://testserver/
 	// OK: user=one
-}
-
-func curl(args ...string) {
-	cmd := exec.Command("curl", args...)
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	err := cmd.Run()
-	if err != nil {
-		panic(err)
-	}
 }
