@@ -514,6 +514,9 @@ highlight htmlH6              cterm=none ctermfg=231 ctermbg=236
 highlight markdownH6Delimiter cterm=none ctermfg=231 ctermbg=236
 highlight htmlLink            cterm=none ctermfg=81 ctermbg=none
 highlight markdownCodeBlock   cterm=none ctermfg=73 ctermbg=none
+highlight markdownStrike      cterm=strikethrough ctermfg=66 ctermbg=none
+highlight markdownItalic      cterm=italic ctermfg=231 ctermbg=none
+highlight def link markdownCode Delimiter
 
 " GO STUFF
 
