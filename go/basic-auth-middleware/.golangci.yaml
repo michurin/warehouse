@@ -1,0 +1,29 @@
+linters:
+  enable-all: true
+  disable:
+      # deprecated (v1.52.2)
+    - deadcode
+    - exhaustivestruct
+    - golint
+    - ifshort
+    - interfacer
+    - maligned
+    - nosnakecase
+    - scopelint
+    - structcheck
+    - varcheck
+
+      # project is too small to be such paranoiac
+    - depguard
+    - dupword
+    - nlreturn
+    - varnamelen
+    - wsl
+    - paralleltest
+
+linters-settings:
+  gci:
+    sections:
+      - standard
+      - default
+      - prefix(github.com/michurin/warehouse/go/basic-auth-middleware)
