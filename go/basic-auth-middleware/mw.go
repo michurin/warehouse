@@ -27,8 +27,6 @@ func StaticAuth(passwd map[string][]byte, hmacKey []byte) AuthChecker {
 	}
 }
 
-// valid chars
-// !#$%&'()*+,-./0123456789:;=?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[]_abcdefghijklmnopqrstuvwxyz~ .
 var realmCharMap = [4]uint64{ //nolint:gochecknoglobals
 	0b_101011111_1111111_11111111_11111010_00000000_00000000_00000000_00000000,
 	0b_01000111_11111111_11111111_11111110_10101111_11111111_11111111_11111111,

@@ -9,7 +9,7 @@ HTTP basic authentication middleware. Very simple, but 100% tested, stable, time
 - ~~`realm` customization~~ `[DONE]`
 - ~~`realm` validation~~ `[DONE]`
 - demo `main.go`
-- tests are `curl`-ish, does that really make them a bad?
-- test coverage
+- ~~tests are `curl`-ish, does that really make them a bad?~~ tests are not curlish anymore, however, examples are
+- ~~test coverage~~ `[100% coverage]`
 - usage in `README`
 - godoc
