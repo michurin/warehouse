@@ -4,8 +4,10 @@ The parser is borrowed from `systemd` `v253` as is. Despite the original parser 
 
 ## Motivation
 
-Common approach is to use environment variables to configure golang programs. And [systemd](https://systemd.io/) is the most widespread service manager.
-It is convenient to use literally the same file as environment holder at debugging time and right as `EnvironmentFile` in service-file.
+Common approach is to use environment variables to configure [`golang`](https://go.dev/) programs.
+And [`systemd`](https://systemd.io/) is the most widespread system and service manager.
+It is convenient to use literally the same file as environment holder at debugging time and
+right as [`EnvironmentFile`](https://www.freedesktop.org/software/systemd/man/systemd.exec.html#EnvironmentFile=) in `systemd` `.service`-file.
 
 ## Synopses
 
@@ -71,7 +73,9 @@ go get github.com/michurin/systemd-env-file@latest
 import "github.com/michurin/systemd-env-file/sdenv"
 ```
 
-## Binagy
+## Binary
+
+### Install
 
 Install in standard go way
 
@@ -79,11 +83,24 @@ Install in standard go way
 go install github.com/michurin/systemd-env-file/cmd/xenv@latest
 ```
 
+The binary will be installed in the directory named by the `GOBIN` environment variable,
+which defaults to `$GOPATH/bin` or `$HOME/go/bin` if the `GOPATH` environment variable is not set.
+
 Build manually and install to custom place
 
 ```sh
 go build ./cmd/...
 install xenv /opt/bin # use your favorite options
+```
+
+### Usage
+
+```sh
+echo 'TEST = "OK"' >xenv.env
+./xenv sh -c 'echo $TEST'
+OK
+./xenv env | grep TEST
+TEST=OK
 ```
 
 ## Links
