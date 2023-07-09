@@ -1,4 +1,4 @@
-package basicauthmiddleware_test
+package test_test
 
 import (
 	"crypto/hmac"
@@ -8,63 +8,15 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
-	"os"
-	"os/exec"
-	"strings"
 	"testing"
 
-	basicauthmiddleware "github.com/michurin/warehouse/go/basic-auth-middleware"
+	"github.com/michurin/warehouse/go/basic-auth-middleware/httpauthmw"
+	"github.com/michurin/warehouse/go/basic-auth-middleware/httpauthpasswd"
 )
-
-func ExampleAuthBasic() {
-	nakedHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		_, _ = w.Write([]byte("OK: user=" + basicauthmiddleware.UserName(r.Context())))
-	})
-
-	hmacKey := []byte{1, 2, 3, 4}
-	user := "one"
-	password := []byte("secret")
-	passwd := map[string][]byte{
-		user: hmac.New(sha256.New, hmacKey).Sum(password),
-	}
-
-	checker := basicauthmiddleware.StaticAuth(passwd, hmacKey)
-
-	wrappedHandler := basicauthmiddleware.AuthBasic(nakedHandler, "test", checker)
-
-	server := httptest.NewServer(wrappedHandler)
-	defer server.Close()
-
-	url := server.URL
-	curl := func(args ...string) {
-		fmt.Println("curl " + strings.Join(append(args, "http://testserver/"), " "))
-		cmd := exec.Command("curl", append([]string{"-qs"}, append(args, url)...)...) //nolint:gosec // -q must be first arg
-		cmd.Stdout = os.Stdout
-		cmd.Stderr = os.Stderr
-		err := cmd.Run()
-		if err != nil {
-			panic(err)
-		}
-	}
-	curl()
-	curl("-u", "xxx:secret")
-	curl("-u", "one:xxxxxx")
-	curl("-u", "one:secret")
-
-	// output:
-	// curl http://testserver/
-	// Unauthorized
-	// curl -u xxx:secret http://testserver/
-	// Unauthorized
-	// curl -u one:xxxxxx http://testserver/
-	// Unauthorized
-	// curl -u one:secret http://testserver/
-	// OK: user=one
-}
 
 func TestAuthBasic(t *testing.T) { //nolint:funlen,gocognit,cyclop
 	nakedHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		_, _ = w.Write([]byte("OK: user=" + basicauthmiddleware.UserName(r.Context())))
+		_, _ = w.Write([]byte("OK: user=" + httpauthmw.UserName(r.Context())))
 	})
 
 	hmacKey := []byte{1, 2, 3, 4}
@@ -74,11 +26,11 @@ func TestAuthBasic(t *testing.T) { //nolint:funlen,gocognit,cyclop
 		user: hmac.New(sha256.New, hmacKey).Sum(password),
 	}
 
-	checker := basicauthmiddleware.StaticAuth(passwd, hmacKey)
+	checker := httpauthpasswd.StaticAuth(passwd, hmacKey)
 
 	mux := http.NewServeMux()
-	mux.Handle("/test", basicauthmiddleware.AuthBasic(nakedHandler, "test", checker))
-	mux.Handle("/norealm", basicauthmiddleware.AuthBasic(nakedHandler, "", checker))
+	mux.Handle("/test", httpauthmw.AuthBasic(nakedHandler, "test", checker))
+	mux.Handle("/norealm", httpauthmw.AuthBasic(nakedHandler, "", checker))
 
 	server := httptest.NewServer(mux)
 	defer server.Close()
@@ -153,7 +105,7 @@ func TestRealmValidation(t *testing.T) {
 					validCahrs = append(validCahrs, byte(i))
 				}
 			}()
-			_ = basicauthmiddleware.AuthBasic(nakedHandler, fmt.Sprintf("test_%c", i), nil)
+			_ = httpauthmw.AuthBasic(nakedHandler, fmt.Sprintf("test_%c", i), nil)
 		}()
 	}
 	if string(validCahrs) != "!#$%&'()*+,-./0123456789:;=?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[]_abcdefghijklmnopqrstuvwxyz~" {
