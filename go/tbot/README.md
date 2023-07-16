@@ -150,6 +150,8 @@ tg_update_id=500000000
 
 ### Application structure
 
+(horrible ASCII art warning)
+
 ```
    Telegram infrastructure
              ^                             ............. crons
