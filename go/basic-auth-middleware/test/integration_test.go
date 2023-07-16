@@ -108,8 +108,8 @@ func TestRealmValidation(t *testing.T) {
 			_ = httpauthmw.AuthBasic(nakedHandler, fmt.Sprintf("test_%c", i), nil)
 		}()
 	}
-	if string(validCahrs) != "!#$%&'()*+,-./0123456789:;=?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[]_abcdefghijklmnopqrstuvwxyz~" {
-		t.Fail()
+	if string(validCahrs) != "\x20!#$%&'()*+,-./0123456789:;=?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[]_abcdefghijklmnopqrstuvwxyz~" {
+		t.Fatalf("Invalid set of valid chars: %q", string(validCahrs))
 	}
 }
 
