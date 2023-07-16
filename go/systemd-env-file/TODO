@@ -1,1 +1,4 @@
 go tool cover -func=coverage.out | perl -ae 'if (/total/) {print qq|{"cover":"$F[2]"}|}'
+
+golang cmd SysProcAttr Setsid
+https://golang.hotexamples.com/ru/examples/os.exec/Cmd/SysProcAttr/golang-cmd-sysprocattr-method-examples.html
