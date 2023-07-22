@@ -491,7 +491,7 @@ function! XFoldText()
     let line = getline(v:foldstart)
     let folded_line_num = v:foldend - v:foldstart
     let line_text = substitute(substitute(line, '^{\+[0-9]\+\s\+', '', 'g'), '^  ', '', 'g') " hackish way to remove two spaces and default marker
-    let fillcharcount = winwidth(0) - len(line_text) - len(folded_line_num) - 11
+    let fillcharcount = winwidth(0) - strchars(line_text) - len(folded_line_num) - 11
     return '⟫ ' . line_text . ' ' . repeat('╶', fillcharcount) . ' (' . folded_line_num . ')'
 endfunction
 set foldtext=XFoldText()
