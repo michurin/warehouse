@@ -1,0 +1,13 @@
+[Slice]
+AllowedCPUs=0-2
+MemoryHigh=4G
+
+# ~/.config/systemd/user/jeiled.slice
+# systemctl status
+#
+# Debugging:
+# systemd-cgls
+#
+# Examples:
+# systemd-run --user --slice=jeiled.slice --shell
+# systemd-run --user --slice=jeiled.slice --wait --pty -E XAUTHORITY=$XAUTHORITY -E DISPLAY=$DISPLAY deluge
