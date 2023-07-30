@@ -1,0 +1,7 @@
+pacman -S zbar oath-toolkit
+brew install oath-toolkit
+
+zbarimg qr-code.png
+link: QR-Code:otpauth://xxx:yyy@zzz?algorithm=SHA1&digits=6&issuer=x&period=30&secret=ZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ
+
+oathtool --totp --base32 ZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ
