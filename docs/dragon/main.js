@@ -5,16 +5,19 @@
 /*eslint no-var: "error"*/
 /*eslint one-var: ["error", "never"]*/
 /*eslint semi: ["error", "never"]*/
+/*eslint quotes: ["error", "single"]*/
+/*eslint prefer-arrow-callback: "error"*/
+/*eslint arrow-body-style: "error"*/
 
 // init --------------------------
 
 const base = parseInt((new URLSearchParams(window.location.search)).get('s') / 4.5) || 256
 
-const canvas = document.getElementById("a")
+const canvas = document.getElementById('a')
 canvas.width = Math.round(base * 4.5)
 canvas.height = Math.round(base * 3)
-const context = canvas.getContext("2d")
-context.fillStyle = "#000"
+const context = canvas.getContext('2d')
+context.fillStyle = '#000'
 context.fillRect(0, 0, canvas.width, canvas.height)
 context.lineWidth = 1
 context.strokeStyle = '#08f' // will be redefined later
