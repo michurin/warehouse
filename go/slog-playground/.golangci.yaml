@@ -1,0 +1,23 @@
+linters:
+  enable-all: true
+  disable:
+    - maligned
+    - deadcode
+    - scopelint
+    - interfacer
+    - exhaustivestruct
+    - structcheck
+    - ifshort
+    - golint
+    - nosnakecase
+    - varcheck
+    - gomodguard
+    - gomoddirectives
+    - nlreturn
+    - varnamelen
+    - wsl
+    - depguard
+    - exhaustruct
+    - gomnd
+    - lll
+    - gofumpt # Oh! Does not consider log/slog yet as std lib. Must be enabled ASAP
