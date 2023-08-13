@@ -14,7 +14,7 @@ type handler struct {
 	next slog.Handler
 }
 
-func NewHandler(next slog.Handler, sfx string) slog.Handler { //nolint:ireturn // slog.Handler is std interface like error or context.Context
+func Handler(next slog.Handler, sfx string) slog.Handler { //nolint:ireturn // slog.Handler is std interface like error or context.Context
 	pfx := ""
 	_, file, _, ok := runtime.Caller(1)
 	if ok {

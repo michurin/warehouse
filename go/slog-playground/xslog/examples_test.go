@@ -32,7 +32,7 @@ func ExampleHandler_usualUsecase() {
 
 	// Now you are able to setup global logger. You can setup lib-wide or application-wide logger using slog.SetDefault()
 
-	log := slog.New(xslog.NewHandler(baseHandler, thisFileName))
+	log := slog.New(xslog.Handler(baseHandler, thisFileName))
 
 	// You may have a chain of calls in you apps, let's say next two funcs.
 
@@ -71,7 +71,7 @@ func ExampleHandler_usualUsecase() {
 func ExampleHandler_howGroupsAndAttrsDoing() {
 	baseHandler := slog.Handler(slog.NewTextHandler(os.Stdout, &optsNoTimeNoSourceNoLevel))
 
-	log := slog.New(xslog.NewHandler(baseHandler, thisFileName))
+	log := slog.New(xslog.Handler(baseHandler, thisFileName))
 	log.Info("Message")
 	log.Info("Message-inline-attrs", "P", "Q")
 	log.InfoContext(xslog.Add(context.Background(), "V", "W"), "Message-1-ctx-attrs")
