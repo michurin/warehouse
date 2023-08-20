@@ -36,10 +36,15 @@ func ExampleHandler_usualUsecase() {
 
 	// You may have a chain of calls in you apps, let's say next two funcs.
 
+	funcContextFreeLogic := func() error {
+		return xslog.Errorf("initial error")
+	}
+
 	funcClient := func(ctx context.Context, arg int) error {
 		ctx = xslog.Add(ctx, "client", "clientLabel", "arg", arg)
-		if arg < 0 {
-			return xslog.Errorf(ctx, "client error: invalid arg")
+		err := funcContextFreeLogic()
+		if err != nil {
+			return xslog.Errorfx(ctx, "client error: %w", err)
 		}
 		return nil
 	}
@@ -48,7 +53,7 @@ func ExampleHandler_usualUsecase() {
 		ctx = xslog.Add(ctx, "component", "handlerLabel")
 		err := funcClient(ctx, input)
 		if err != nil {
-			return xslog.Errorf(ctx, "handler failure: %w", err)
+			return xslog.Errorfx(ctx, "handler failure: %w", err)
 		}
 		return nil
 	}
@@ -65,7 +70,7 @@ func ExampleHandler_usualUsecase() {
 	}
 
 	// output:
-	// level=ERROR msg=Error app=one source=xslog/examples_test.go:64 err_source=xslog/examples_test.go:42 err_msg="handler failure: client error: invalid arg" request_id=deadbeef component=handlerLabel client=clientLabel arg=-1
+	// level=ERROR msg=Error app=one source=xslog/examples_test.go:69 err_source=xslog/examples_test.go:40 err_msg="handler failure: client error: initial error" request_id=deadbeef component=handlerLabel client=clientLabel arg=-1
 }
 
 func ExampleHandler_howGroupsAndAttrsDoing() {
@@ -81,9 +86,9 @@ func ExampleHandler_howGroupsAndAttrsDoing() {
 	log.Info("Message-with-group")
 
 	// output:
-	// level=INFO msg=Message source=xslog/examples_test.go:75
-	// level=INFO msg=Message-inline-attrs source=xslog/examples_test.go:76 P=Q
-	// level=INFO msg=Message-1-ctx-attrs source=xslog/examples_test.go:77 V=W
-	// level=INFO msg=Message-with-attrs X=Y source=xslog/examples_test.go:79
-	// level=INFO msg=Message-with-group X=Y G.source=xslog/examples_test.go:81
+	// level=INFO msg=Message source=xslog/examples_test.go:80
+	// level=INFO msg=Message-inline-attrs source=xslog/examples_test.go:81 P=Q
+	// level=INFO msg=Message-1-ctx-attrs source=xslog/examples_test.go:82 V=W
+	// level=INFO msg=Message-with-attrs X=Y source=xslog/examples_test.go:84
+	// level=INFO msg=Message-with-group X=Y G.source=xslog/examples_test.go:86
 }
