@@ -12,6 +12,10 @@ import (
 )
 
 func main() {
+	if len(os.Args) < 2 {
+		fmt.Println(`Usage: pplog your_command arg arg arg...`)
+		return
+	}
 	args := os.Args[1:]
 	pplog := slogtotext.PPLog(
 		os.Stdout,
