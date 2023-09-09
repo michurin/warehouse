@@ -92,3 +92,27 @@ func ExampleHandler_howGroupsAndAttrsDoing() {
 	// level=INFO msg=Message-with-attrs X=Y source=xslog/examples_test.go:84
 	// level=INFO msg=Message-with-group X=Y G.source=xslog/examples_test.go:86
 }
+
+func ExampleHandler_indirectContextEnrichment() {
+	baseHandler := slog.Handler(slog.NewTextHandler(os.Stdout, &optsNoTimeNoSourceNoLevel))
+
+	log := slog.New(xslog.Handler(baseHandler, thisFileName))
+
+	// we populate context somewhere, for example in main.go; we are setting up high level context of logging
+	ctx := xslog.Add(context.Background(), "component", "A")
+
+	// now we want to create handler or factory, that will be used somewhere else and has to use attrs from this base context
+	handler := func(patch xslog.PatchAttrs) func(ctx context.Context) { // return handler func
+		return func(ctx context.Context) { // ctx here is a handle time context
+			ctx = xslog.ApplyPatch(ctx, patch) // populate ctx
+			log.InfoContext(ctx, "OK")         // here both handle time attr and factory initialization time attrs show up
+		}
+	}(xslog.Patch(ctx))
+
+	// somewhere our handler is called with some low level context
+	handlerContext := xslog.Add(context.Background(), "request_id", 99)
+	handler(handlerContext)
+
+	// output:
+	// level=INFO msg=OK source=xslog/examples_test.go:108 request_id=99 component=A
+}
