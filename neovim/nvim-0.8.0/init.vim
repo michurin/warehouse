@@ -256,8 +256,10 @@ for _, lsp in pairs(servers) do
     settings={
       gopls = { -- https://github.com/golang/tools/blob/master/gopls/doc/settings.md
         gofumpt = vim.api.nvim_eval('exists("g:nogofumpt_tweak")') == 0, -- true
+        experimentalPostfixCompletions = true,
         analyses = {
           unusedparams = true,
+          shadow = true,
         },
         staticcheck = true,
       },
@@ -598,9 +600,11 @@ autocmd FileType css    setlocal shiftwidth=2 tabstop=8 softtabstop=2
 autocmd FileType html   setlocal shiftwidth=2 tabstop=8 softtabstop=2
 autocmd FileType javascript setlocal shiftwidth=2 tabstop=8 softtabstop=2
 autocmd FileType json   setlocal shiftwidth=2 tabstop=8 softtabstop=2
+autocmd FileType xslt   setlocal shiftwidth=2 tabstop=8 softtabstop=2
 autocmd FileType yaml   setlocal shiftwidth=2 tabstop=2 softtabstop=2 foldmethod=indent
 autocmd FileType make   setlocal tabstop=8
 autocmd FileType tcl    setlocal shiftwidth=2 tabstop=8 softtabstop=2 foldmethod=indent
+autocmd FileType perl   setlocal noexpandtab
 
 " force json. Slightly ugly
 command! JSON :setlocal syntax=json foldmethod=syntax buftype=nofile | :echo ''
