@@ -34,13 +34,12 @@ type Config struct {
 func Cfg(ctx context.Context, osEnviron []string) map[string]Config { //nolint:gocognit
 	x := map[string]map[string]string{}
 	for _, pair := range osEnviron {
-		kv := strings.SplitN(pair, "=", 2)
-		if len(kv) != 2 {
+		ek, ev, ok := strings.Cut(pair, "=")
+		if !ok {
 			aw.Log(ctx, fmt.Errorf("skipping %q: cannot find `=`", pair))
 			continue
 		}
-		ek := strings.ToLower(kv[0])
-		ev := kv[1]
+		ek = strings.ToLower(ek)
 		if len(ev) == 0 {
 			aw.Log(ctx, fmt.Errorf("skipping %q: value is empty", pair))
 			continue
