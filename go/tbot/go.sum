@@ -2,8 +2,8 @@ github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/michurin/jsonpainter v0.0.0-20230617042058-19410576097e h1:ZvrxzBW4p+ZE5IiNr8Cn01ndIWhL1UQan1EFx545goo=
 github.com/michurin/jsonpainter v0.0.0-20230617042058-19410576097e/go.mod h1:lCCMVnIrELa+0dmj7PGxy+XBbAX9z+SJAwBRCwcHjFA=
-github.com/michurin/systemd-env-file v0.0.0-20230903054202-f8ae30f0d785 h1:/x/xA6uNPw2IMu/c+hCUegqaeeUie9jUyMxtUOtJI+A=
-github.com/michurin/systemd-env-file v0.0.0-20230903054202-f8ae30f0d785/go.mod h1:RVcoL6i1bfUtz3XK7NLCpeePKYq7UneaVb9hg1lsoUg=
+github.com/michurin/systemd-env-file v0.0.0-20230910041707-9d1ce560ed18 h1:kUC0WLtEfFyVJIleW+Av/vGm5ikBECXlo8TLDH7316g=
+github.com/michurin/systemd-env-file v0.0.0-20230910041707-9d1ce560ed18/go.mod h1:RVcoL6i1bfUtz3XK7NLCpeePKYq7UneaVb9hg1lsoUg=
 github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZbAQM=
 github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4=
 github.com/stretchr/testify v1.8.4 h1:CcVxjf3Q8PM0mHUKJCdn+eZZtm5yQwehR5yeSVQQcUk=
