@@ -51,21 +51,21 @@ func (pp *pplog) fin(p []byte) error {
 		return err
 	}
 	if pp.collecting {
+		if !json.Valid(pp.buff) { // Decode stops on success result not on end of data, so we have to check is whole buffer is valid, see json.Unmashal
+			err = pp.errline.Execute(pp.next, string(pp.buff[:len(pp.buff)-1])) // here in fin() we are sure that we have \n and the end of the buffer [fragile]
+			pp.buff = pp.buff[:0]
+			if err != nil {
+				return fmt.Errorf("errline template: %w", err)
+			}
+			return nil
+		}
 		// https://github.com/golang/go/issues/24963
 		data := any(nil)
 		d := json.NewDecoder(bytes.NewReader(pp.buff))
 		d.UseNumber()
 		err := d.Decode(&data)
 		if err != nil {
-			err = pp.errline.Execute(pp.next, string(pp.buff[:len(pp.buff)-1])) // here in fin() we are sure that we have \n and the end of the buffer [fragile]
-			pp.buff = pp.buff[:0]
-			if err != nil {
-				return err
-			}
-			if err != nil {
-				return nil
-			}
-			return nil
+			return fmt.Errorf("decode: %w", err) // impossible
 		}
 		pp.buff = pp.buff[:0]
 		mdata, ok := data.(map[string]any)
@@ -75,7 +75,7 @@ func (pp *pplog) fin(p []byte) error {
 		}
 		err = pp.logline.Execute(pp.next, data)
 		if err != nil {
-			return err
+			return fmt.Errorf("logline tempalte: %w", err)
 		}
 	}
 	pp.collecting = true
