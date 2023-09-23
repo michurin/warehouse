@@ -1,6 +1,7 @@
 package xcfg_test
 
 import (
+	"context"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -9,7 +10,7 @@ import (
 )
 
 func TestCfg(t *testing.T) {
-	cfg := xcfg.Cfg([]string{
+	cfg := xcfg.Cfg(context.Background(), []string{
 		"",
 		"x",
 		"x=",
