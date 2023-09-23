@@ -1,6 +1,6 @@
 module github.com/michurin/cnbot
 
-go 1.20
+go 1.21
 
 replace github.com/michurin/minlog => ../minlog-next
 
