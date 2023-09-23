@@ -43,7 +43,11 @@ func bot(ctx context.Context, eg *errgroup.Group, cfg xcfg.Config, build string)
 	}
 
 	eg.Go(func() error {
-		return xloop.Loop(minlog.Ctx(ctx, "comp", "loop"), bot, command)
+		err := xloop.Loop(minlog.Ctx(ctx, "comp", "loop"), bot, command)
+		if err != nil {
+			return minlog.Errorf(ctx, "polling loop: %w", err)
+		}
+		return nil
 	})
 
 	server := &http.Server{Addr: cfg.ControlAddr, Handler: xctrl.Handler(bot, commandLong, minlog.TakePatch(minlog.Ctx(ctx, "comp", "ctrl")))}
@@ -55,7 +59,11 @@ func bot(ctx context.Context, eg *errgroup.Group, cfg xcfg.Config, build string)
 	})
 
 	eg.Go(func() error {
-		return server.ListenAndServe()
+		err := server.ListenAndServe()
+		if err != nil {
+			return minlog.Errorf(ctx, "control server: %w", err)
+		}
+		return nil
 	})
 }
 
