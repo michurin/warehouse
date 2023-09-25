@@ -18,12 +18,12 @@ func main() {
 	app.SetupLogging()
 	cfg, err := app.LoadConfigs(os.Args[1:]...)
 	if err != nil {
-		aw.Log(ctx, err)
+		aw.L(ctx, err)
 		return
 	}
 	err = app.Application(ctx, cfg, Build)
 	if err != nil {
-		aw.Log(ctx, err)
+		aw.L(ctx, err)
 		return
 	}
 }

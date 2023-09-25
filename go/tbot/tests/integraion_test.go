@@ -10,10 +10,10 @@ import (
 	"testing"
 	"time"
 
-	xlog "github.com/michurin/minlog"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/michurin/cnbot/ctxlog"
 	"github.com/michurin/cnbot/tests/apiserver"
 	"github.com/michurin/cnbot/xbot"
 	"github.com/michurin/cnbot/xctrl"
@@ -298,7 +298,7 @@ func TestHttp(t *testing.T) {
 
 			bot := buildBot(tgURL)
 
-			h := xctrl.Handler(bot, nil, xlog.TakePatch(context.Background())) // we won't use second argument in this test
+			h := xctrl.Handler(bot, nil, ctxlog.Patch(context.Background())) // we won't use second argument in this test
 
 			s := httptest.NewServer(h)
 
@@ -337,7 +337,7 @@ func TestDownload(t *testing.T) {
 
 	bot := buildBot(tgURL)
 
-	h := xctrl.Handler(bot, nil, xlog.TakePatch(context.Background())) // we won't use second argument in this test
+	h := xctrl.Handler(bot, nil, ctxlog.Patch(context.Background())) // we won't use second argument in this test
 
 	s := httptest.NewServer(h)
 
@@ -374,7 +374,7 @@ func TestHttp_long(t *testing.T) { // CAUTION: test has sleep
 	bot := buildBot(tgURL)
 	command := buildCommand("scripts/longrunning.sh")
 
-	h := xctrl.Handler(bot, command, xlog.TakePatch(context.Background()))
+	h := xctrl.Handler(bot, command, ctxlog.Patch(context.Background()))
 
 	s := httptest.NewServer(h)
 

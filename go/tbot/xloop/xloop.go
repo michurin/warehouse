@@ -6,9 +6,8 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/michurin/minlog"
-
 	"github.com/michurin/cnbot/app/aw"
+	"github.com/michurin/cnbot/ctxlog"
 	"github.com/michurin/cnbot/xbot"
 	"github.com/michurin/cnbot/xjson"
 	"github.com/michurin/cnbot/xproc"
@@ -36,7 +35,7 @@ func Loop(ctx context.Context, bot *xbot.Bot, command *xproc.Cmd) error {
 			// TODO refactor: get env, get args, run command
 			req, err := processMessage(ctx, m, command)
 			if err != nil {
-				aw.Log(ctx, "Skip message", err)
+				aw.L(ctx, fmt.Errorf("skip message: %w", err))
 				continue
 			}
 			if req == nil {
@@ -44,7 +43,7 @@ func Loop(ctx context.Context, bot *xbot.Bot, command *xproc.Cmd) error {
 			}
 			_, err = bot.API(ctx, req)
 			if err != nil {
-				aw.Log(ctx, err) // TODO process error
+				aw.L(ctx, err) // TODO process error
 			}
 		}
 		offset++
@@ -54,16 +53,16 @@ func Loop(ctx context.Context, bot *xbot.Bot, command *xproc.Cmd) error {
 func getUpdates(ctx context.Context, bot *xbot.Bot, offset int64) ([]any, error) {
 	req, err := xbot.RequestStruct("getUpdates", map[string]any{"offset": offset, "timeout": 30})
 	if err != nil {
-		return nil, minlog.Errorf(ctx, "cannot build request")
+		return nil, ctxlog.Errorfx(ctx, "cannot build request")
 	}
 	bytes, err := bot.API(ctx, req)
 	if err != nil {
-		return nil, minlog.Errorf(ctx, "api: %w", err) // TODO all returns are too hard?
+		return nil, ctxlog.Errorfx(ctx, "api: %w", err) // TODO all returns are too hard?
 	}
 	data := any(nil)
 	err = json.Unmarshal(bytes, &data)
 	if err != nil {
-		return nil, minlog.Errorf(ctx, "unmarshal: %w", err)
+		return nil, ctxlog.Errorfx(ctx, "unmarshal: %w", err)
 	}
 	ok, err := xjson.Bool(data, "ok") // TODO xjson.True()?
 	if err != nil {
@@ -107,16 +106,16 @@ func userID(m any) (int64, error) { // TODO consider all types
 func processMessage(ctx context.Context, m any, command *xproc.Cmd) (*xbot.Request, error) {
 	userID, err := userID(m)
 	if err != nil {
-		return nil, minlog.Errorf(ctx, "no user id: %w", err)
+		return nil, ctxlog.Errorfx(ctx, "no user id: %w", err)
 	}
-	ctx = minlog.Ctx(ctx, "user", userID)
+	ctx = ctxlog.Add(ctx, "user", userID)
 	env, err := xjson.JSONToEnv(m)
 	if err != nil {
-		return nil, minlog.Errorf(ctx, "cannot create env: %w", err)
+		return nil, ctxlog.Errorfx(ctx, "cannot create env: %w", err)
 	}
 	text, err := xjson.String(m, "message", "text")
 	if err != nil {
-		aw.Log(ctx, err) // return nil, err // TODO callback_query...
+		aw.L(ctx, err) // return nil, err // TODO callback_query...
 	}
 	args := textToArgs(text)
 	data, err := command.Run(ctx, args, env)
@@ -125,10 +124,10 @@ func processMessage(ctx context.Context, m any, command *xproc.Cmd) (*xbot.Reque
 	}
 	req, err := xbot.RequestFromBinary(data, userID)
 	if err != nil {
-		return nil, minlog.Errorf(ctx, "invalid data: %w", err)
+		return nil, ctxlog.Errorfx(ctx, "invalid data: %w", err)
 	}
 	if req == nil { // TODO hmm... it happens?
-		return nil, minlog.Errorf(ctx, "cannot prepare request (nil): %w", err)
+		return nil, ctxlog.Errorfx(ctx, "cannot prepare request (nil): %w", err)
 	}
 	return req, nil
 }

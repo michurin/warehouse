@@ -5,4 +5,4 @@ package aw
 
 import "context"
 
-var Log = func(context.Context, ...any) {}
+var L = func(context.Context, any) {} // TODO atomic etc

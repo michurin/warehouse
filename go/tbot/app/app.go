@@ -6,10 +6,10 @@ import (
 	"path"
 	"time"
 
-	"github.com/michurin/minlog"
 	"golang.org/x/sync/errgroup"
 
 	"github.com/michurin/cnbot/app/aw"
+	"github.com/michurin/cnbot/ctxlog"
 	"github.com/michurin/cnbot/xbot"
 	"github.com/michurin/cnbot/xcfg"
 	"github.com/michurin/cnbot/xctrl"
@@ -43,14 +43,14 @@ func bot(ctx context.Context, eg *errgroup.Group, cfg xcfg.Config, build string)
 	}
 
 	eg.Go(func() error {
-		err := xloop.Loop(minlog.Ctx(ctx, "comp", "loop"), bot, command)
+		err := xloop.Loop(ctxlog.Add(ctx, "comp", "loop"), bot, command)
 		if err != nil {
-			return minlog.Errorf(ctx, "polling loop: %w", err)
+			return ctxlog.Errorfx(ctx, "polling loop: %w", err)
 		}
 		return nil
 	})
 
-	server := &http.Server{Addr: cfg.ControlAddr, Handler: xctrl.Handler(bot, commandLong, minlog.TakePatch(minlog.Ctx(ctx, "comp", "ctrl")))}
+	server := &http.Server{Addr: cfg.ControlAddr, Handler: xctrl.Handler(bot, commandLong, ctxlog.Patch(ctxlog.Add(ctx, "comp", "ctrl")))}
 	eg.Go(func() error {
 		<-ctx.Done()
 		cx, stop := context.WithTimeout(context.Background(), time.Second)
@@ -61,7 +61,7 @@ func bot(ctx context.Context, eg *errgroup.Group, cfg xcfg.Config, build string)
 	eg.Go(func() error {
 		err := server.ListenAndServe()
 		if err != nil {
-			return minlog.Errorf(ctx, "control server: %w", err)
+			return ctxlog.Errorfx(ctx, "control server: %w", err)
 		}
 		return nil
 	})
@@ -69,12 +69,12 @@ func bot(ctx context.Context, eg *errgroup.Group, cfg xcfg.Config, build string)
 
 func Application(rootCtx context.Context, bots map[string]xcfg.Config, build string) error {
 	if len(bots) == 0 {
-		return minlog.Errorf(rootCtx, "there is no configuration")
+		return ctxlog.Errorfx(rootCtx, "there is no configuration")
 	}
 	eg, ctx := errgroup.WithContext(rootCtx)
 	for name, cfg := range bots {
-		bot(minlog.Ctx(ctx, "bot", name), eg, cfg, build)
+		bot(ctxlog.Add(ctx, "bot", name), eg, cfg, build)
 	}
-	aw.Log(ctx, "Run. Build="+build)
+	aw.L(ctx, "Run. Build="+build)
 	return eg.Wait()
 }

@@ -2,11 +2,7 @@ module github.com/michurin/cnbot
 
 go 1.21
 
-replace github.com/michurin/minlog => ../minlog-next
-
 require (
-	github.com/michurin/jsonpainter v0.0.0-20230617042058-19410576097e
-	github.com/michurin/minlog v0.0.0-00010101000000-000000000000
 	github.com/michurin/systemd-env-file v0.0.0-20230917035718-832e601d8480
 	github.com/stretchr/testify v1.8.4
 	golang.org/x/sync v0.1.0

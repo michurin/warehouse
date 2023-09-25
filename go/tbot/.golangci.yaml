@@ -13,6 +13,7 @@ linters:
     - interfacer
 
       # TODO turn on
+    - depguard
     - gosec
     - forbidigo
     - typecheck

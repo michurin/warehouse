@@ -1,55 +1,32 @@
 package app
 
 import (
+	"context"
+	"fmt"
+	"log/slog"
 	"os"
 	"runtime"
-	"strings"
-
-	"github.com/michurin/jsonpainter"
-	"github.com/michurin/minlog"
+	"time"
 
 	"github.com/michurin/cnbot/app/aw"
+	"github.com/michurin/cnbot/ctxlog"
 )
 
-func fieldMessage() minlog.FieldFunc {
-	opts := []jsonpainter.Option{
-		jsonpainter.ClrKey(jsonpainter.Yellow),
-		jsonpainter.ClrCtl(jsonpainter.Green),
-		jsonpainter.ClrSpecStr(jsonpainter.Darkgreen),
-	}
-	return func(r minlog.Record) string {
-		return jsonpainter.String(r.Message, opts...)
-	}
-}
-
 func SetupLogging() {
-	_, file, _, _ := runtime.Caller(0)
-	pfx := strings.TrimSuffix(file, "app/log.go")
-	opts := []minlog.Option(nil)
-	o, _ := os.Stdout.Stat()
-	if (o.Mode() & os.ModeCharDevice) == os.ModeCharDevice {
-		opts = []minlog.Option{
-			minlog.WithFields(
-				minlog.Color(minlog.FieldLevel("", " ERR "), minlog.HiYellow, minlog.BgRed, minlog.Bold),
-				minlog.Color(minlog.FieldCaller(pfx), minlog.HiBlue),
-				minlog.Color(minlog.FieldErrorCaller(pfx), minlog.HiRed),
-				minlog.Color(minlog.FieldNamed("comp"), minlog.HiGreen),
-				minlog.Color(minlog.FieldNamed("bot"), minlog.Magenta),
-				minlog.Color(minlog.FieldNamed("api"), minlog.Cyan),
-				minlog.Color(minlog.FieldNamed("user"), minlog.HiGreen),
-				minlog.Prefix(minlog.Color(minlog.FieldNamed("pid"), minlog.HiYellow), "PID:"),
-				minlog.FieldFallbackKV("api", "bot", "comp", "pid", "user"),
-				fieldMessage()),
+	l := slog.New(ctxlog.Handler(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{}), "app/log.go"))
+	aw.L = func(ctx context.Context, a any) {
+		var pcs [1]uintptr
+		runtime.Callers(2, pcs[:]) // skip
+		r := slog.Record{}
+		switch v := a.(type) {
+		case error:
+			r = slog.NewRecord(time.Now(), slog.LevelError, "Error", pcs[0])
+			r.Add(v)
+		case string:
+			r = slog.NewRecord(time.Now(), slog.LevelInfo, v, pcs[0])
+		default:
+			r = slog.NewRecord(time.Now(), slog.LevelWarn, fmt.Sprintf("%[1]T: %#[1]v", a), pcs[0])
 		}
-	} else {
-		opts = []minlog.Option{
-			minlog.WithFields(
-				minlog.FieldLevel("[I]", "[E]"),
-				minlog.FieldCaller(pfx),
-				minlog.FieldErrorCaller(pfx),
-				minlog.FieldFallbackKV(),
-				minlog.FieldMessage()),
-		}
+		_ = l.Handler().Handle(ctx, r)
 	}
-	aw.Log = minlog.New(opts...).Log
 }

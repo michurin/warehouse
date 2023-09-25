@@ -14,9 +14,8 @@ import (
 	"strings"
 	"unicode/utf8"
 
-	"github.com/michurin/minlog"
-
 	"github.com/michurin/cnbot/app/aw"
+	"github.com/michurin/cnbot/ctxlog"
 )
 
 // --- TODO move Request
@@ -161,51 +160,51 @@ type Bot struct {
 }
 
 func (b *Bot) API(ctx context.Context, request *Request) ([]byte, error) {
-	ctx = minlog.Ctx(ctx, "api", request.Method)
+	ctx = ctxlog.Add(ctx, "api", request.Method)
 	err := error(nil)
 	req := (*http.Request)(nil)
 	resp := (*http.Response)(nil)
 	data := []byte(nil)
 	defer func() {
-		aw.Log(ctx, request.Body, data, err)
+		aw.L(ctx, fmt.Sprintf("%s %s %v", string(request.Body), string(data), err)) // TODO! error logging with INFO level!
 	}()
 	reqURL := b.APIOrigin + "/bot" + b.Token + "/" + request.Method
 	req, err = http.NewRequestWithContext(ctx, http.MethodPost, reqURL, bytes.NewReader(request.Body))
 	if err != nil {
-		return nil, minlog.Errorf(ctx, "request constructor: %w", err)
+		return nil, ctxlog.Errorfx(ctx, "request constructor: %w", err)
 	}
 	req.Header.Set("content-type", request.ContentType)
 	resp, err = b.Client.Do(req)
 	if err != nil {
-		return nil, minlog.Errorf(ctx, "client: %w", err)
+		return nil, ctxlog.Errorfx(ctx, "client: %w", err)
 	}
 	defer resp.Body.Close()           // we are skipping error here
 	data, err = io.ReadAll(resp.Body) // we have to read and close Body even for non-200 responses
 	if err != nil {
-		return nil, minlog.Errorf(ctx, "reading: %w", err)
+		return nil, ctxlog.Errorfx(ctx, "reading: %w", err)
 	}
 	return data, nil
 }
 
 func (b *Bot) Download(ctx context.Context, path string, stream io.Writer) error {
-	ctx = minlog.Ctx(ctx, "api", "x-download")
+	ctx = ctxlog.Add(ctx, "api", "x-download")
 	err := error(nil)
 	defer func() {
-		aw.Log(ctx, path, err)
+		aw.L(ctx, fmt.Sprintf("%s %v", path, err)) // TODO
 	}()
 	reqURL := b.APIOrigin + "/file/bot" + b.Token + "/" + path
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, reqURL, nil)
 	if err != nil {
-		return minlog.Errorf(ctx, "request constructor: %w", err)
+		return ctxlog.Errorfx(ctx, "request constructor: %w", err)
 	}
 	resp, err := b.Client.Do(req)
 	if err != nil {
-		return minlog.Errorf(ctx, "client: %w", err)
+		return ctxlog.Errorfx(ctx, "client: %w", err)
 	}
 	defer resp.Body.Close() // we are skipping error here
 	_, err = io.Copy(stream, resp.Body)
 	if err != nil {
-		return minlog.Errorf(ctx, "coping: %w", err)
+		return ctxlog.Errorfx(ctx, "coping: %w", err)
 	}
 	return nil
 }
