@@ -1,0 +1,17 @@
+#!/bin/sh
+#
+# https://yandex.ru/dev/disk/api/reference/upload.html
+
+for i in "$@"
+do
+
+tmpfile=/tmp/ya.backup.tmp
+token="$(cat "$0.tkn")"
+curl -H "Authorization: OAuth $token" -G "https://cloud-api.yandex.net/v1/disk/resources/upload" --data-urlencode "path=backup/$(basename "$i")" > "$tmpfile"
+
+url="$(jq -r .href <"$tmpfile")"
+method="$(jq -r .method <"$tmpfile")"
+echo $method $url
+curl -v -T "$i" "$url"
+
+done
