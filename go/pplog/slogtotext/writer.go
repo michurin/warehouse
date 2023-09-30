@@ -10,16 +10,15 @@ import (
 	"time"
 )
 
-const maxParsibleLen = 4096
-
 type pplog struct {
-	mx         *sync.Mutex
-	next       io.Writer
-	collecting bool
-	buff       []byte
-	logline    *template.Template
-	errline    *template.Template
-	knownKeys  map[string]any
+	mx             *sync.Mutex
+	next           io.Writer
+	collecting     bool
+	buff           []byte
+	logline        *template.Template
+	errline        *template.Template
+	knownKeys      map[string]any
+	maxParsibleLen int
 }
 
 func (pp *pplog) Write(p []byte) (int, error) {
@@ -75,7 +74,7 @@ func (pp *pplog) fin(p []byte) error {
 		}
 		err = pp.logline.Execute(pp.next, data)
 		if err != nil {
-			return fmt.Errorf("logline tempalte: %w", err)
+			return fmt.Errorf("logline template: %w", err)
 		}
 	}
 	pp.collecting = true
@@ -83,7 +82,7 @@ func (pp *pplog) fin(p []byte) error {
 }
 
 func (pp *pplog) acc(p []byte) error {
-	if len(pp.buff)+len(p) > maxParsibleLen {
+	if len(pp.buff)+len(p) > pp.maxParsibleLen {
 		pp.collecting = false
 		err := pp.flush()
 		if err != nil {
@@ -113,7 +112,14 @@ func (pp *pplog) flush() error { // TODO it is used in acc only
 	return nil
 }
 
-func PPLog(writer io.Writer, errlineTemplate, loglineTemplate string, knownKeys map[string]any, funcMap map[string]any) io.Writer {
+func PPLog(
+	writer io.Writer,
+	errlineTemplate,
+	loglineTemplate string,
+	knownKeys map[string]any,
+	funcMap map[string]any,
+	maxParsibleLen int,
+) io.Writer {
 	// TODO: validate knownKeys
 	fm := template.FuncMap{"tmf": func(from, to string, tm any) string {
 		ts, ok := tm.(string)
@@ -134,13 +140,17 @@ func PPLog(writer io.Writer, errlineTemplate, loglineTemplate string, knownKeys 
 	}
 	ll := template.Must(template.New("l").Option("missingkey=zero").Funcs(fm).Parse(loglineTemplate + "\n"))
 	el := template.Must(template.New("e").Option("missingkey=zero").Funcs(fm).Parse(errlineTemplate + "\n"))
+	if maxParsibleLen <= 0 {
+		maxParsibleLen = 4098
+	}
 	return &pplog{
-		mx:         new(sync.Mutex),
-		next:       writer,
-		collecting: true,
-		buff:       make([]byte, 0, maxParsibleLen),
-		logline:    ll,
-		errline:    el,
-		knownKeys:  knownKeys,
+		mx:             new(sync.Mutex),
+		next:           writer,
+		collecting:     true,
+		buff:           make([]byte, 0, maxParsibleLen),
+		logline:        ll,
+		errline:        el,
+		knownKeys:      knownKeys,
+		maxParsibleLen: maxParsibleLen,
 	}
 }

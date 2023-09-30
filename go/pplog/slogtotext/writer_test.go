@@ -25,6 +25,7 @@ func ExamplePPLog_dealingWithUnknownKeysAndInvalidData() {
 			"time": struct{}{},
 		},
 		nil,
+		0,
 	)
 	w.Write([]byte(`
 [{ "invalid json" ]}
@@ -59,17 +60,16 @@ func nthPerm[T any](n int, a []T) []T {
 }
 
 func TestPPLog_parts(t *testing.T) {
-	longLen := 4100 // TODO parametrize it
 	inputX := [][]byte{
 		[]byte(`[{ "invalid json" ]}`),
-		[]byte(`{"time": "2009-11-10T23:00:00Z", "pid": 11, "msg": "begin", "unknown": "xx"}`),
-		bytes.Repeat([]byte{'A'}, longLen),
+		[]byte(`{"time": "2009-11-10T23:00:00Z", "pid": 11, "msg": "xxxxxxxxxxxxxxxxxxxxxxxxxxx"}`), // 80 bytes
+		[]byte(`{"time": "2009-11-10T23:00:00Z", "pid": 11, "msg": "begin", "unknown": "xx"}`),      // 75 bytes
 		[]byte(`{"time": "2009-11-10T23:00:00Z", "pid": 11, "msg": "end"}`),
 	}
 	outputX := []string{
 		`INVALID JSON: "[{ \"invalid json\" ]}"`,
+		string(inputX[1]), // too long string wont be formatted
 		"23:00:00 [11] begin unknown=xx",
-		strings.Repeat("A", longLen),
 		"23:00:00 [11] end",
 	}
 	for n := 0; n < 24; n++ {
@@ -83,6 +83,7 @@ func TestPPLog_parts(t *testing.T) {
 				`{{.time | tmf "2006-01-02T15:04:05Z" "15:04:05" }} [{{.pid}}] {{.msg}}{{range .UNKNOWN}} {{.K}}={{.V}}{{end}}`,
 				map[string]any{"msg": struct{}{}, "pid": struct{}{}, "time": struct{}{}},
 				nil,
+				77, // consider as JSON strings up to 77 bytes long
 			)
 			w.Write(input[:i])
 			w.Write(input[i:])

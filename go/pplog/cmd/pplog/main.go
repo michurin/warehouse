@@ -57,6 +57,7 @@ func main() {
 				return "\033[97m" + x + "\033[0m"
 			},
 		},
+		16384,
 	)
 	cmd := exec.Command(args[0], args[1:]...)
 	cmd.Stdout = pplog
