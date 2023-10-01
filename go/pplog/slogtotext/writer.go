@@ -7,6 +7,7 @@ import (
 	"io"
 	"sync"
 	"text/template"
+	"text/template/parse"
 	"time"
 )
 
@@ -140,6 +141,22 @@ func PPLog(
 	}
 	ll := template.Must(template.New("l").Option("missingkey=zero").Funcs(fm).Parse(loglineTemplate + "\n"))
 	el := template.Must(template.New("e").Option("missingkey=zero").Funcs(fm).Parse(errlineTemplate + "\n"))
+	if knownKeys == nil {
+		knownKeys = map[string]any{}
+		for _, x := range ll.Root.Nodes {
+			if n, ok := x.(*parse.ActionNode); ok {
+				for _, c := range n.Pipe.Cmds {
+					for _, a := range c.Args {
+						if b, ok := a.(*parse.FieldNode); ok {
+							if len(b.Ident) > 0 {
+								knownKeys[b.Ident[0]] = struct{}{}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
 	if maxParsibleLen <= 0 {
 		maxParsibleLen = 0x4000 // 16k
 	}
