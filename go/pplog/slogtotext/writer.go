@@ -141,7 +141,7 @@ func PPLog(
 	ll := template.Must(template.New("l").Option("missingkey=zero").Funcs(fm).Parse(loglineTemplate + "\n"))
 	el := template.Must(template.New("e").Option("missingkey=zero").Funcs(fm).Parse(errlineTemplate + "\n"))
 	if maxParsibleLen <= 0 {
-		maxParsibleLen = 4098
+		maxParsibleLen = 0x4000 // 16k
 	}
 	return &pplog{
 		mx:             new(sync.Mutex),
