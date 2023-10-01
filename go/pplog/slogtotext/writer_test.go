@@ -11,7 +11,16 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-// TODO just the simplest case
+func ExamplePPLog_justShowingIdea() {
+	w := slogtotext.PPLog(os.Stdout, "", `{{.time}} [{{.pid}}] {{.message}}`, nil, nil, 0)
+	w.Write([]byte(`{"time":"12:00", "pid":11, "message":"OK"}` + "\n"))
+	// output:
+	// 12:00 [11] OK
+}
+
+// TODO remove fields, using known keys
+// TODO invalid json
+// TODO format dates
 // TODO just example how to avoid <no value>
 
 func ExamplePPLog_dealingWithUnknownKeysAndInvalidData() {
