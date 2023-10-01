@@ -9,6 +9,7 @@ import (
 	"pplog/slogtotext"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func ExamplePPLog_justShowingIdea() {
@@ -94,8 +95,12 @@ func TestPPLog_parts(t *testing.T) {
 				nil,
 				77, // consider as JSON strings up to 77 bytes long
 			)
-			w.Write(input[:i])
-			w.Write(input[i:])
+			n, err := w.Write(input[:i])
+			require.NoError(t, err)
+			assert.Equal(t, i, n)
+			n, err = w.Write(input[i:])
+			require.NoError(t, err)
+			assert.Equal(t, len(input)-i, n)
 			assert.Equal(t, output, out.String())
 		}
 	}
