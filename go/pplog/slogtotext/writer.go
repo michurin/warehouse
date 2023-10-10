@@ -1,3 +1,4 @@
+// Package slogtotext provides wrapper for io.Writer interface to reshape JSON structured logs according text/template-templates.
 package slogtotext
 
 import (
