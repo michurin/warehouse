@@ -140,6 +140,9 @@ func PPLog(
 	if len(errlineTemplate) == 0 {
 		errlineTemplate = `INVALID JSON: {{. | printf "%q"}}`
 	}
+	if len(loglineTemplate) == 0 {
+		loglineTemplate = `{{.time}} [{{.level}}] {{.msg}}{{range .UNKNOWN}} {{.K}}={{.V}}{{end}}`
+	}
 	ll := template.Must(template.New("l").Option("missingkey=zero").Funcs(fm).Parse(loglineTemplate + "\n"))
 	el := template.Must(template.New("e").Option("missingkey=zero").Funcs(fm).Parse(errlineTemplate + "\n"))
 	if knownKeys == nil {
