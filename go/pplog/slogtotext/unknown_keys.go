@@ -41,9 +41,13 @@ func unknowPairs(prefix string, knownKeys any, data any) []unknownPair {
 		if knownKeys == nil {
 			res = append(res, unknownPair{K: prefix, V: data.String()})
 		}
+	case bool:
+		if knownKeys == nil {
+			res = append(res, unknownPair{K: prefix, V: boolString(data)})
+		}
 	case nil:
 		if knownKeys == nil {
-			res = append(res, unknownPair{K: prefix, V: "nil"})
+			res = append(res, unknownPair{K: prefix, V: "null"})
 		}
 	default:
 		res = append(res, unknownPair{K: prefix, V: fmt.Sprintf("UNKNOWN TYPE %T", data)}) // impossible
@@ -52,4 +56,11 @@ func unknowPairs(prefix string, knownKeys any, data any) []unknownPair {
 		sort.Slice(res, func(i, j int) bool { return res[i].K < res[j].K })
 	}
 	return res
+}
+
+func boolString(x bool) string {
+	if x {
+		return "true"
+	}
+	return "false"
 }
