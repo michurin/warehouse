@@ -58,3 +58,23 @@ func TestUnknownPairs_types(t *testing.T) {
 func TestUnknownPairs_invalidType(t *testing.T) {
 	assert.Equal(t, []unknownPair{{K: "k", V: "UNKNOWN TYPE int8"}}, unknowPairs("k", nil, int8(1)))
 }
+
+func TestUnknownPairs_order(t *testing.T) {
+	assert.Equal(t, []unknownPair{
+		{K: "k.0", V: "a"},
+		{K: "k.1", V: "b"},
+		{K: "k.2", V: "c"},
+		{K: "k.3", V: "d"},
+		{K: "k.4", V: "e"},
+		{K: "k.5", V: "f"},
+		{K: "k.6", V: "g"},
+		{K: "k.7", V: "h"},
+		{K: "k.8", V: "i"},
+		{K: "k.9", V: "j"},
+		{K: "k.10", V: "k"},
+	}, unknowPairs(
+		"", // has to be empty
+		nil,
+		map[string]any{"k": []any{"a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k"}}),
+	)
+}

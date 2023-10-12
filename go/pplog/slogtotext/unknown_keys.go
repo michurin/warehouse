@@ -19,12 +19,12 @@ func unknowPairs(prefix string, knownKeys any, data any) []unknownPair {
 		if len(prefix) > 0 {
 			prefix += "."
 		}
-		for k, v := range data {
+		for _, k := range orderedKeys(data) {
 			kk := any(nil)
 			if p, ok := knownKeys.(map[string]any); ok {
 				kk = p[k]
 			}
-			res = append(res, unknowPairs(prefix+k, kk, v)...)
+			res = append(res, unknowPairs(prefix+k, kk, data[k])...)
 		}
 	case []any:
 		if len(prefix) > 0 {
@@ -52,9 +52,6 @@ func unknowPairs(prefix string, knownKeys any, data any) []unknownPair {
 	default:
 		res = append(res, unknownPair{K: prefix, V: fmt.Sprintf("UNKNOWN TYPE %T", data)}) // impossible
 	}
-	if len(prefix) == 0 { // as we collecting all the keys
-		sort.Slice(res, func(i, j int) bool { return res[i].K < res[j].K })
-	}
 	return res
 }
 
@@ -63,4 +60,13 @@ func boolString(x bool) string {
 		return "true"
 	}
 	return "false"
+}
+
+func orderedKeys(data map[string]any) []string {
+	kk := make([]string, 0, len(data))
+	for k := range data {
+		kk = append(kk, k)
+	}
+	sort.Strings(kk)
+	return kk
 }
