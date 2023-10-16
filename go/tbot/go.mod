@@ -3,9 +3,9 @@ module github.com/michurin/cnbot
 go 1.21
 
 require (
-	github.com/michurin/systemd-env-file v0.0.0-20230917035718-832e601d8480
+	github.com/michurin/systemd-env-file v0.0.0-20231015043805-d4251ab89f72
 	github.com/stretchr/testify v1.8.4
-	golang.org/x/sync v0.1.0
+	golang.org/x/sync v0.4.0
 )
 
 require (
