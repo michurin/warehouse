@@ -11,7 +11,7 @@
 
 # -- initialization -----------------------------------------------------
 
-# It is good place to set up $PATH, $CURL_HOME etc
+# It is good place to set up $PATH, $LANG, $CURL_HOME etc
 
 # -- current working directory ------------------------------------------
 # you have to do it before any dowloading
