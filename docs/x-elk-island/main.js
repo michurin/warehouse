@@ -40,8 +40,7 @@ function handler(obj, rightClick) {
     const y = obj.j
     log('click', x, y, rightClick)
     if (rightClick) {
-      log(arena[y][x].flag, !arena[y][x].flag)
-      arena[y][x].flag = !arena[y][x].flag
+      arena[y][x].flag = !arena[y][x].flag // .flag is not correlate to .open
     } else {
       open(x, y)
       collapse() // ugly: collapse only if opened; return if no more collapsing
@@ -170,7 +169,7 @@ function render() {
     for (let i = 0; i < p.length; i++) {
       const q = p[i]
       const e = q.element
-      if (!q.open) {
+      if (!q.open && !q.flag) {
         e.cont.innerText = ''
         e.div.style.backgroundColor = '#555'
         // hack
@@ -179,11 +178,12 @@ function render() {
         // /hack
         continue
       }
-      e.div.style.backgroundColor = '#ccc'
-      if (q.mine) {
-        e.div.style.color = '#000'
-        e.cont.innerText = 'M'
+      if (q.flag) {
+        e.div.style.backgroundColor = '#555'
+        e.div.style.color = '#f00'
+        e.cont.innerText = 'F'
       } else {
+        e.div.style.backgroundColor = '#ccc'
         const nb = sumMines(neighbours(i, j))
         e.div.style.color = ['#ddd', '#009', '#060', '#a00', '#909', '#600', '#099', '#000', '#fff'][nb]
         e.cont.innerText = nb

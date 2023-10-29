@@ -24,6 +24,7 @@ body {
 
 #game div span {
   font-size: 3vmin;
+  font-weight: bold;
   padding: 0;
   margin: 0;
   position: absolute;
