@@ -6,8 +6,8 @@ body {
 
 #game {
   position: relative;
-  width: 90vw;
-  height: 90vw;
+  width: calc(16 * 4vw);
+  height: calc(20 * 4vw);
   border-collapse: collapse;
   cursor: pointer;
   border: 1px solid #000;
@@ -16,14 +16,14 @@ body {
 }
 
 #game div {
-  width: 8vw;
-  height: 8vw;
+  width: calc(4vw - 3px);
+  height: calc(4vw - 3px);
   border: 1px solid #000;
   position: absolute;
 }
 
 #game div span {
-  font-size: 5vw;
+  font-size: 3vw;
   padding: 0;
   margin: 0;
   position: absolute;

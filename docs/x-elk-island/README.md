@@ -27,6 +27,7 @@
 - Refactoring: factory for cells
 - Personal offline score table
 - Online score table
+- Levels? Different sizes? Density?
 - Delayed clicks? (when clicks are locked)
 
 ## Log

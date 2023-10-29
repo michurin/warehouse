@@ -88,7 +88,7 @@ function evaporate_remove(k, step) {
   for (let j = 0; j < k; j++) {
     const v = j + step / 10
     for (let i = 0; i < arena[j].length; i++) {
-      arena[j][i].element.div.style.top = `calc(${v} * (8vw + 3px))` // spaces are important
+      arena[j][i].element.div.style.top = `calc(${v} * 4vw)` // spaces are important
     }
   }
   if (step < 10) {
@@ -194,8 +194,8 @@ function initLine(table, j, w) {
   for (let i = 0; i < w; i++) {
     const o = {}
     const cdiv = document.createElement('div')
-    cdiv.style.top = `calc(${j} * (8vw + 3px))` // spaces are important
-    cdiv.style.left = `calc(${i} * (8vw + 3px))`
+    cdiv.style.top = `calc(${j} * 4vw)` // spaces are important
+    cdiv.style.left = `calc(${i} * 4vw)`
     cdiv.addEventListener('click', handler(o, false), false)
     cdiv.addEventListener('contextmenu', handler(o, true), false)
     const cspan = document.createElement('span')
@@ -221,5 +221,5 @@ function init(w, h) {
   render() // TODO remove it
 }
 
-init(8, 10)
+init(16, 20)
 log('start', Date())
