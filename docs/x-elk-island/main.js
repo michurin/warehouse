@@ -170,13 +170,24 @@ function render() {
     for (let i = 0; i < p.length; i++) {
       const q = p[i]
       const e = q.element
+      if (!q.open) {
+        e.cont.innerText = ''
+        e.div.style.backgroundColor = '#555'
+        // hack
+        e.div.style.color = '#333'
+        if (q.mine) { e.cont.innerText = 'M' }
+        // /hack
+        continue
+      }
+      e.div.style.backgroundColor = '#ccc'
       if (q.mine) {
+        e.div.style.color = '#000'
         e.cont.innerText = 'M'
       } else {
-        e.cont.innerText = sumMines(neighbours(i, j))
+        const nb = sumMines(neighbours(i, j))
+        e.div.style.color = ['#ddd', '#009', '#060', '#a00', '#909', '#600', '#099', '#000', '#fff'][nb]
+        e.cont.innerText = nb
       }
-      e.div.style.backgroundColor = q.open ? '#fff' : '#ccc' // TODO debug
-      e.cont.style.color = (q.mine && !q.flag) ? '#fff' : (q.flag ? '#c00' : '#000') // TODO debug
     }
   }
 }
