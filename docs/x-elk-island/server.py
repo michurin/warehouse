@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+
+import sys
 from http import server
 
 class MyHTTPRequestHandler(server.SimpleHTTPRequestHandler):
@@ -9,4 +11,9 @@ class MyHTTPRequestHandler(server.SimpleHTTPRequestHandler):
         server.SimpleHTTPRequestHandler.end_headers(self)
 
 if __name__ == '__main__':
-    server.HTTPServer(('', 9999), MyHTTPRequestHandler).serve_forever()
+    if len(sys.argv) == 2:
+        port = int(sys.argv[1])
+    else:
+        port = 9999
+    print(f'Starting at :{port}')
+    server.HTTPServer(('', port), MyHTTPRequestHandler).serve_forever()
