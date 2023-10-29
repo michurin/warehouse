@@ -6,8 +6,8 @@ body {
 
 #game {
   position: relative;
-  width: calc(16 * 4vw);
-  height: calc(20 * 4vw);
+  width: calc(16 * 4vmin);
+  height: calc(20 * 4vmin);
   border-collapse: collapse;
   cursor: pointer;
   border: 1px solid #000;
@@ -16,14 +16,14 @@ body {
 }
 
 #game div {
-  width: calc(4vw - 3px);
-  height: calc(4vw - 3px);
+  width: calc(4vmin - 3px);
+  height: calc(4vmin - 3px);
   border: 1px solid #000;
   position: absolute;
 }
 
 #game div span {
-  font-size: 3vw;
+  font-size: 3vmin;
   padding: 0;
   margin: 0;
   position: absolute;
@@ -35,11 +35,11 @@ body {
 /* DEBUGING */
 
 button {
-  font-size: 4vw;
+  font-size: 3vmin;
 }
 
 #debug div {
-  font-size: 4vw;
+  font-size: 3vmin;
   padding: 1px;
   border-style: solid;
   border-color: #777;
