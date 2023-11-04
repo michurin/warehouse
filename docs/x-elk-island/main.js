@@ -96,7 +96,7 @@ function collapse() {
       f = f && (q.mine || q.open)
     })
     if (f) {
-      evaporate(j)
+      delayed(1, evaporate, j) // we must delay it to avoid double rendering
       return // without unlocking
     }
   }
@@ -104,12 +104,17 @@ function collapse() {
 }
 
 function evaporate(k) {
-  let tmp = k // TODO REMOVE it
   for (let i = 0; i < arena[k].length; i++) {
-    arena[k][i].element.div.style.borderColor = '#0f0'
-    tmp = `${tmp} /${arena[k][i].open ? 'O' : ''}${arena[k][i].mine ? 'M' : ''}`
+    const q = arena[k][i]
+    q.flag = q.mine // just show all mines
   }
-  log('evaporate', tmp)
+  render() // double rendering: one in handler, and one here
+  for (let i = 0; i < arena[k].length; i++) {
+    const q = arena[k][i]
+    if (!q.flag) {
+      q.element.div.style.backgroundColor = '#fff'
+    }
+  }
   delayed(1000, evaporate_remove, k, 0)
 }
 
