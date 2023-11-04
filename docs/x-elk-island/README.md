@@ -8,19 +8,22 @@
 
 ## Main priorities (before publish)
 
-- Hide closed
-- Flags
-- Field size
++ Hide closed
+- Hide mines
+- Title
+- Favicon.ico
+- Remove debugging
++ Flags
++ Field size
 - Mines density
 - Colors
-- Layout (css/min/max; mobile friendly)
-- Count of lives
-- Count of lines
-- Save state (on render)
-- Restore state (on load)
-- Event handling (onmousedown/up, check on firefox, no safari)
++ Layout (css/min/max; mobile friendly)
+- Count of lines and opens
++ Save state (on render)
+- Save score
++ Restore state (on load)
 - Gameover state
-- "locked" badge
++ "locked" badge ("wait" cursor shape)
 
 ## Second priority (after first release and announcement)
 
@@ -29,6 +32,9 @@
 - Online score table
 - Levels? Different sizes? Density?
 - Delayed clicks? (when clicks are locked)
+- Multitab
+- Event handling (onmousedown/up, check on firefox, no safari)
+- Countdown of lives
 
 ## Log
 

@@ -1,4 +1,4 @@
-/*global document:readable, setTimeout:readable*/
+/*global document:readable, setTimeout:readable, localStorage:readable*/
 /*eslint-env es6*/
 /*eslint indent: ["error", 2]*/
 /*eslint eqeqeq: ["error", "always"]*/
@@ -12,32 +12,52 @@
 /*eslint arrow-body-style: "error"*/
 
 function log() {
-  let t = ''
+  const t = []
+  const s = []
   for (let i = 0; i < arguments.length; i++) {
-    if (t !== '') {
-      t += ' '
+    t.push(arguments[i])
+    if (arguments[i].stack) {
+      s.push(arguments[i].stack)
     }
-    t += arguments[i]
   }
   const h = document.getElementById('debug')
   const e = document.createElement('div')
-  e.innerText = t
+  e.innerText = t.join(' ')
   h.prepend(e)
+  s.forEach((x) => {
+    const e = document.createElement('pre')
+    e.innerText = x
+    h.prepend(e)
+  })
 }
 
 const arena = [] // it has to be split: data (mutable), pointers to DOM (immutable)
-let locked = false
 
-function handler(obj, rightClick) {
+const [lock, unlock, locked] = (() => {
+  let l = false
+  return [
+    () => {
+      l = true
+      document.getElementById('game').style.cursor = 'wait'
+    },
+    () => {
+      l = false
+      document.getElementById('game').style.cursor = 'pointer'
+    },
+    () => l,
+  ]
+})()
+
+function handler(o, rightClick) { // we must to use o instead (x, y) to manage shifted lines
   return (ev) => {
     ev.stopPropagation()
     ev.preventDefault()
-    if (locked) {
+    if (locked()) {
       log('LOCKED')
       return
     }
-    const x = obj.i
-    const y = obj.j
+    const x = o.i
+    const y = o.j
     log('click', x, y, rightClick)
     if (rightClick) {
       arena[y][x].flag = !arena[y][x].flag // .flag is not correlate to .open
@@ -51,7 +71,7 @@ function handler(obj, rightClick) {
 }
 
 function collapse() {
-  locked = true
+  lock()
   for (let j = arena.length - 1; j >= 0; j--) {
     let f = true
     arena[j].forEach((q) => {
@@ -62,7 +82,7 @@ function collapse() {
       return // without unlocking
     }
   }
-  locked = false // unlock if nothing more to do
+  unlock() // unlock if nothing more to do
 }
 
 function evaporate(k) {
@@ -100,7 +120,7 @@ function evaporate_remove(k, step) {
     }
   }
   arena.splice(k, 1)
-  arena.unshift(initLine(document.getElementById('game'), 0, arena[0].length)) // getElementById — ugly; it has to be factory
+  arena.unshift(initLine())
   render()
   delayed(500, evaporate_open)
 }
@@ -190,6 +210,7 @@ function render() {
       }
     }
   }
+  persistSave()
 }
 
 function delayed(timeout, f) {
@@ -200,36 +221,120 @@ function delayed(timeout, f) {
   setTimeout(g, timeout)
 }
 
-function initLine(table, j, w) {
+function initCell(o, table, i, j) { // side effects!
+  const cdiv = document.createElement('div')
+  cdiv.style.top = `calc(${j} * 4vmin)` // spaces are important
+  cdiv.style.left = `calc(${i} * 4vmin)`
+  cdiv.addEventListener('click', handler(o, false), false)
+  cdiv.addEventListener('contextmenu', handler(o, true), false)
+  const cspan = document.createElement('span')
+  cdiv.appendChild(cspan)
+  table.appendChild(cdiv)
+  o.i = i
+  o.j = j
+  o.element = { div: cdiv, cont: cspan }
+}
+
+function newCellObj() {
+  return {
+    mine: Math.random() < .1,
+    open: false,
+    flag: false,
+  }
+}
+
+function initLine() {
+  const table = document.getElementById('game')
   const b = []
+  const w = arena[0].length
   for (let i = 0; i < w; i++) {
-    const o = {}
-    const cdiv = document.createElement('div')
-    cdiv.style.top = `calc(${j} * 4vmin)` // spaces are important
-    cdiv.style.left = `calc(${i} * 4vmin)`
-    cdiv.addEventListener('click', handler(o, false), false)
-    cdiv.addEventListener('contextmenu', handler(o, true), false)
-    const cspan = document.createElement('span')
-    cdiv.appendChild(cspan)
-    table.appendChild(cdiv)
-    o.i = i // ugly: it has to be factory of objects with convenient interface or functions to manipulate with
-    o.j = j
-    o.mine = Math.random() < .1
-    o.element = { div: cdiv, cont: cspan }
-    o.open = false
-    o.flag = false
+    const o = newCellObj()
+    initCell(o, table, i, 0)
     b.push(o)
   }
   return b
 }
 
 function init(w, h) {
-  arena.length = 0
-  const table = document.getElementById('game')
-  for (let j = 0; j < h; j++) {
-    arena.push(initLine(table, j, w))
+  const data = persistRestore(w, h)
+  if (!data) {
+    log('new data')
+    arena.length = 0
+    for (let j = 0; j < h; j++) {
+      const y = []
+      for (let i = 0; i < w; i++) {
+        y.push(newCellObj())
+      }
+      arena.push(y)
+    }
+  } else {
+    log('restored data')
+    arena.length = 0
+    for (let j = 0; j < h; j++) {
+      arena.push(data[j])
+    }
   }
-  render() // TODO remove it
+  const table = document.getElementById('game')
+  for (let j = 0; j < arena.length; j++) {
+    const a = arena[j]
+    for (let i = 0; i < a.length; i++) {
+      initCell(a[i], table, i, j)
+    }
+  }
+  render() // TODO remove it?
+}
+
+function persistSave() {
+  try {
+    const x = []
+    for (let j = 0; j < arena.length; j++) {
+      const y = []
+      const b = arena[j]
+      for (let i = 0; i < b.length; i++) {
+        const c = b[i]
+        y.push({
+          m: c.mine ? 1 : 0,
+          o: c.open ? 1 : 0,
+          f: c.flag ? 1 : 0,
+        })
+      }
+      x.push(y)
+    }
+    localStorage.setItem('x', JSON.stringify({ x: x }))
+  } catch (e) {
+    log(e)
+  }
+}
+
+function persistRestore(w, h) {
+  try {
+    const d = JSON.parse(localStorage.getItem('x'))
+    const a = []
+    const x = d.x
+    if (x.length !== h) {
+      throw new Error(`invalid h: ${x.length}`)
+    }
+    for (let j = 0; j < x.length; j++) {
+      const y = x[j]
+      if (y.length !== w) {
+        return new Error(`invalid w: ${y.length} (j=${j})`)
+      }
+      const b = []
+      for (let i = 0; i < y.length; i++) {
+        const q = y[i]
+        b.push({
+          mine: q.m > 0,
+          open: q.o > 0,
+          flag: q.f > 0,
+        })
+      }
+      a.push(b)
+    }
+    return a
+  } catch (e) {
+    log(e)
+  }
+  return undefined
 }
 
 init(16, 20)
