@@ -11,6 +11,23 @@
 /*eslint prefer-arrow-callback: "error"*/
 /*eslint arrow-body-style: "error"*/
 
+const debug = function() {
+  let d = false
+  document.body.onkeyup = function(e) {
+    if (e.key === '\x20') {
+      d = !d
+      document.getElementById('debug').style.display = d ? 'block' : 'none'
+      render()
+    }
+  }
+  return (v) => {
+    if (v !== undefined) {
+      d = v
+    }
+    return d
+  }
+}()
+
 function log() {
   const t = []
   const s = []
@@ -20,7 +37,7 @@ function log() {
       s.push(arguments[i].stack)
     }
   }
-  const h = document.getElementById('debug')
+  const h = document.getElementById('log')
   const e = document.createElement('div')
   e.innerText = t.join(' ')
   h.prepend(e)
@@ -62,6 +79,7 @@ function handler(o, rightClick) { // we must to use o instead (x, y) to manage s
     if (rightClick) {
       arena[y][x].flag = !arena[y][x].flag // .flag is not correlate to .open
     } else {
+      // TODO check boom
       open(x, y)
       collapse() // ugly: collapse only if opened; return if no more collapsing
     }
@@ -192,10 +210,10 @@ function render() {
       if (!q.open && !q.flag) {
         e.cont.innerText = ''
         e.div.style.backgroundColor = '#555'
-        // hack
-        e.div.style.color = '#333'
-        if (q.mine) { e.cont.innerText = 'M' }
-        // /hack
+        if (debug()) {
+          e.div.style.color = '#333'
+          if (q.mine) { e.cont.innerText = 'M' }
+        }
         continue
       }
       if (q.flag) {
@@ -203,6 +221,13 @@ function render() {
         e.div.style.color = '#f00'
         e.cont.innerText = 'F'
       } else {
+        if (q.mine) { // oh. hackish
+          e.div.style.backgroundColor = '#500'
+          e.div.style.color = '#ff0'
+          e.cont.innerText = 'M'
+          e.div.title = 'BOOM!'
+          continue
+        }
         e.div.style.backgroundColor = '#ccc'
         const nb = sumMines(neighbours(i, j))
         e.div.style.color = ['#ddd', '#009', '#060', '#a00', '#909', '#600', '#099', '#000', '#fff'][nb]

@@ -11,9 +11,11 @@
   <body>
     <div id="game"></div>
     <!-- DEBUG -->
-    <button onclick="collapse(); render()">collapse</button>
-    <button onclick="localStorage.clear(); location.reload()">reset</button>
-    <div id="debug"></div>
+    <div id="debug">
+      <button onclick="collapse(); render()">collapse</button>
+      <button onclick="localStorage.clear(); location.reload()">reset</button>
+      <div id="log"></div>
+    </div>
     <!-- /DEBUG -->
     <script src="main.js"></script>
   </body>
