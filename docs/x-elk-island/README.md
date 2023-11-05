@@ -18,12 +18,12 @@
 - Mines density
 + Colors
 + Layout (css/min/max; mobile friendly)
-- Count of lines and opens
++ Count of lines and opens
 + Save state (on render)
-- Save score
++ Save score
 + Restore state (on load)
 - Gameover state
-- Force new game button
++ Force new game button
 + "locked" badge ("wait" cursor shape)
 
 ## Ask community after pulish

@@ -54,6 +54,11 @@ function log() {
 }
 
 const arena = [] // it has to be split: data (mutable), pointers to DOM (immutable)
+const gameState = {
+  lines: 0,
+  opens: 0,
+  booms: 0,
+}
 
 const [lock, unlock, locked] = (() => {
   let l = false
@@ -138,15 +143,17 @@ function evaporate_remove(k, step) {
       arena[j][i].element.div.style.top = `calc(${v} * 4vmin)` // spaces are important
     }
   }
-  if (step < 10) {
+  if (step < 10) { // continue movement
     delayed(20, evaporate_remove, k, step + 1)
     return
   }
+  // finishing movement
   for (let j = 0; j < k; j++) {
     for (let i = 0; i < arena[j].length; i++) {
       arena[j][i].j++
     }
   }
+  gameState.lines++
   arena.splice(k, 1)
   arena.unshift(initLine())
   render()
@@ -154,7 +161,7 @@ function evaporate_remove(k, step) {
 }
 
 function evaporate_open() {
-  for (let j = 0; j < arena.length; j++) {
+  for (let j = 0; j < arena.length; j++) { // touching every open cell to force zero-neighbors-propagation
     for (let i = 0; i < arena[j].length; i++) {
       if (arena[j][i].open) {
         open(i, j) // can be optimized
@@ -166,6 +173,12 @@ function evaporate_open() {
 }
 
 function open(x, y) {
+  if (!arena[y][x].open) { // slightly hackish extra check
+    gameState.opens++
+    if (arena[y][x].mine) {
+      gameState.booms++
+    }
+  }
   arena[y][x].open = true
   if (arena[y][x].mine) {
     return // TODO boom
@@ -211,7 +224,7 @@ function sumMines(n) {
   return c
 }
 
-function render() {
+function render() { // updates all the UI world: arena and scores
   for (let j = 0; j < arena.length; j++) {
     const p = arena[j]
     for (let i = 0; i < p.length; i++) {
@@ -245,6 +258,10 @@ function render() {
       }
     }
   }
+  const v = document.getElementsByClassName('value')
+  v[0].innerText = gameState.lines
+  v[1].innerText = gameState.opens
+  v[2].innerText = gameState.booms
   persistSave()
 }
 
@@ -335,7 +352,12 @@ function persistSave() {
       }
       x.push(y)
     }
-    localStorage.setItem('x', JSON.stringify({ x: x }))
+    localStorage.setItem('x', JSON.stringify({
+      arena: x,
+      lines: gameState.lines,
+      opens: gameState.opens,
+      booms: gameState.booms,
+    }))
   } catch (e) {
     log(e)
   }
@@ -345,7 +367,7 @@ function persistRestore(w, h) {
   try {
     const d = JSON.parse(localStorage.getItem('x'))
     const a = []
-    const x = d.x
+    const x = d.arena
     if (x.length !== h) {
       throw new Error(`invalid h: ${x.length}`)
     }
@@ -365,6 +387,9 @@ function persistRestore(w, h) {
       }
       a.push(b)
     }
+    gameState.lines = d.lines || 0 // ugly side effect
+    gameState.opens = d.opens || 0 // ugly side effect
+    gameState.booms = d.booms || 0 // ugly side effect
     return a
   } catch (e) {
     log(e)
@@ -373,4 +398,8 @@ function persistRestore(w, h) {
 }
 
 init(16, 20)
+document.getElementById('reset').onclick = () => { // ugly way to restart
+  localStorage.clear()
+  location.reload() // eslint-disable-line no-undef
+}
 log('start', Date())
