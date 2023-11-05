@@ -11,7 +11,7 @@
 + Hide closed
 + Hide mines
 - Title
-- Favicon.ico
++ Favicon.ico
 + Remove debugging
 + Flags
 + Field size
