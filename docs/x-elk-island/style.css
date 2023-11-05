@@ -46,6 +46,7 @@ div {
 #score {
   border: 1px solid #000;
   min-width: 20vmin;
+  width: fit-content;
   margin: 0 0 2vmin 2vmin;
   padding: 2vmin;
   background-color: #ccc;
@@ -63,10 +64,10 @@ div {
 
 #reset {
   border: 1px solid #000;
-  float: left;
-  margin: 0 0 0 2vmin;
+  margin: 0 0 2vmin 2vmin;
   padding: 2vmin;
   min-width: 20vmin;
+  width: fit-content;
   background-color: #ccc;
   font-size: 2vmin;
   font-weight: bold;
@@ -75,6 +76,15 @@ div {
 
 #reset:hover {
   background-color: #eee;
+}
+
+#info {
+  border: 1px dotted #000;
+  margin: 0 0 0 2vmin;
+  padding: 2vmin;
+  min-width: 20vmin;
+  width: fit-content;
+  font-size: 1vmin;
 }
 
 /* DEBUGING */

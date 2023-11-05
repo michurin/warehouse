@@ -25,6 +25,11 @@
 - Gameover state
 + Force new game button
 + "locked" badge ("wait" cursor shape)
+- Description
+
+## Right before publishing
+
+- Unique storage key
 
 ## Ask community after pulish
 
