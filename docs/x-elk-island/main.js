@@ -13,6 +13,11 @@
 
 const debug = function() {
   let d = false
+  window.addEventListener('keydown', (e) => { // eslint-disable-line no-undef
+    if (e.key === '\x20' && e.target === document.body) {
+      e.preventDefault()
+    }
+  })
   document.body.onkeyup = function(e) {
     if (e.key === '\x20') {
       d = !d

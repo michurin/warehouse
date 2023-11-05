@@ -9,21 +9,28 @@
 ## Main priorities (before publish)
 
 + Hide closed
-- Hide mines
++ Hide mines
 - Title
 - Favicon.ico
-- Remove debugging
++ Remove debugging
 + Flags
 + Field size
 - Mines density
-- Colors
++ Colors
 + Layout (css/min/max; mobile friendly)
 - Count of lines and opens
 + Save state (on render)
 - Save score
 + Restore state (on load)
 - Gameover state
+- Force new game button
 + "locked" badge ("wait" cursor shape)
+
+## Ask community after pulish
+
+- is it ok neighbors recalculation?
+- the area has to be wider?
+- do any suggestions on click on opened places?
 
 ## Second priority (after first release and announcement)
 
