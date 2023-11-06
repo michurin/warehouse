@@ -245,8 +245,8 @@ function render() { // updates all the UI world: arena and scores
         e.cont.innerText = 'F'
       } else {
         if (q.mine) { // oh. hackish
-          e.div.style.backgroundColor = '#500'
-          e.div.style.color = '#ff0'
+          e.div.style.backgroundColor = '#000'
+          e.div.style.color = '#f00'
           e.cont.innerText = 'M'
           e.div.title = 'BOOM!'
           continue

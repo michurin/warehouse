@@ -41,50 +41,47 @@ div {
 #panel {
   float: left;
   cursor: default;
+  width: 30vmin;
 }
 
-#score {
+#panel #score {
   border: 1px solid #000;
-  min-width: 20vmin;
-  width: fit-content;
   margin: 0 0 2vmin 2vmin;
   padding: 2vmin;
   background-color: #ccc;
 }
 
-#score .value {
+#panel #score .value {
   font-size: 3vmin;
   font-weight: bold;
 }
 
-#score .title {
+#panel #score .title {
+  color: #555;
   font-size: 2vmin;
   font-weight: bold;
 }
 
-#reset {
+#panel #reset {
   border: 1px solid #000;
   margin: 0 0 2vmin 2vmin;
   padding: 2vmin;
-  min-width: 20vmin;
-  width: fit-content;
   background-color: #ccc;
   font-size: 2vmin;
   font-weight: bold;
   cursor: pointer;
 }
 
-#reset:hover {
-  background-color: #eee;
+#panel #reset:hover {
+  background-color: #f00;
+  color: #fff;
 }
 
-#info {
+#panel #info {
   border: 1px dotted #000;
   margin: 0 0 0 2vmin;
   padding: 2vmin;
-  min-width: 20vmin;
-  width: fit-content;
-  font-size: 1vmin;
+  font-size: 1.1vmin;
 }
 
 /* DEBUGING */
