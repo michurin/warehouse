@@ -25,16 +25,18 @@
 - Gameover state
 + Force new game button
 + "locked" badge ("wait" cursor shape)
-- Description
++ Description
 
 ## Right before publishing
 
 - Unique storage key
+- Setup GA
 
 ## Ask community after pulish
 
 - is it ok neighbors recalculation?
 - the area has to be wider?
+- lives have to be limited?
 - do any suggestions on click on opened places?
 
 ## Second priority (after first release and announcement)
@@ -47,6 +49,9 @@
 - Multitab
 - Event handling (onmousedown/up, check on firefox, no safari)
 - Countdown of lives
+- Open graph meta
+- 128x128 icon
+- Add addthis.com
 
 ## Log
 
