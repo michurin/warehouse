@@ -116,12 +116,12 @@ function collapse() {
 function evaporate(k) {
   for (let i = 0; i < arena[k].length; i++) {
     const q = arena[k][i]
-    q.flag = q.mine // just show all mines
+    q.flag = q.mine && !q.open // just show all mines
   }
   render() // double rendering: one in handler, and one here
   for (let i = 0; i < arena[k].length; i++) {
     const q = arena[k][i]
-    if (!q.flag) {
+    if (!q.flag && !q.mine) {
       q.element.div.style.backgroundColor = '#fff'
     }
   }
