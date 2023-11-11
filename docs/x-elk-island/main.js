@@ -298,7 +298,7 @@ function initCell(o, table, i, j) { // side effects!
 
 function newCellObj() {
   return {
-    mine: Math.random() < .1,
+    mine: Math.random() < 0.22, // .33 max
     open: false,
     flag: false,
   }

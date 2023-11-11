@@ -15,7 +15,7 @@
 + Remove debugging
 + Flags
 + Field size
-- Mines density
++ Mines density
 + Colors
 + Layout (css/min/max; mobile friendly)
 + Count of lines and opens
