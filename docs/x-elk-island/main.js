@@ -11,7 +11,7 @@
 /*eslint prefer-arrow-callback: "error"*/
 /*eslint arrow-body-style: "error"*/
 
-const debug = function() {
+const debug = (function() {
   let d = false
   window.addEventListener('keydown', (e) => { // eslint-disable-line no-undef
     if (e.key === '\x20' && e.target === document.body) {
@@ -31,7 +31,7 @@ const debug = function() {
     }
     return d
   }
-}()
+})()
 
 function log() {
   const t = []
@@ -53,12 +53,21 @@ function log() {
   })
 }
 
+const localStorageKey = 'x-elk-island-2023-10-17'
 const arena = [] // it has to be split: data (mutable), pointers to DOM (immutable)
 const gameState = {
   lines: 0,
   opens: 0,
   booms: 0,
 }
+
+try { // MIGRATION
+  const q = localStorage.getItem('x')
+  if (q) {
+    localStorage.removeItem('x')
+    localStorage.setItem(localStorageKey, q)
+  }
+} catch (e) { }
 
 const [lock, unlock, locked] = (() => {
   let l = false
@@ -352,7 +361,7 @@ function persistSave() {
       }
       x.push(y)
     }
-    localStorage.setItem('x', JSON.stringify({
+    localStorage.setItem(localStorageKey, JSON.stringify({
       arena: x,
       lines: gameState.lines,
       opens: gameState.opens,
@@ -365,7 +374,7 @@ function persistSave() {
 
 function persistRestore(w, h) {
   try {
-    const d = JSON.parse(localStorage.getItem('x'))
+    const d = JSON.parse(localStorage.getItem(localStorageKey))
     const a = []
     const x = d.arena
     if (x.length !== h) {

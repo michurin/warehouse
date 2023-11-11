@@ -22,15 +22,15 @@
 + Save state (on render)
 + Save score
 + Restore state (on load)
-- Gameover state
 + Force new game button
 + "locked" badge ("wait" cursor shape)
 + Description
 
 ## Right before publishing
 
-- Unique storage key
++ Unique storage key
 - Setup GA
+- Remove migration code
 
 ## Ask community after pulish
 
@@ -42,6 +42,7 @@
 ## Second priority (after first release and announcement)
 
 - Refactoring: factory for cells
+- Gameover state
 - Personal offline score table
 - Online score table
 - Levels? Different sizes? Density?
