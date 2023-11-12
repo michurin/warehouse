@@ -252,7 +252,7 @@ function render() { // updates all the UI world: arena and scores
         }
         continue
       }
-      if (q.flag) {
+      if (q.flag && !q.open) {
         e.div.style.backgroundColor = '#555'
         e.div.style.color = '#f00'
         e.cont.innerText = 'F'
