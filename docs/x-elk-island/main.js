@@ -63,11 +63,15 @@ const gameState = {
 
 try { // MIGRATION
   const q = localStorage.getItem('x')
+  log(`q(x)=${q}`)
   if (q) {
+    log('removing x')
     localStorage.removeItem('x')
     localStorage.setItem(localStorageKey, q)
   }
-} catch (e) { }
+} catch (e) {
+  log(`migration error: ${e}`)
+}
 
 const [lock, unlock, locked] = (() => {
   let l = false
@@ -374,9 +378,19 @@ function persistSave() {
 
 function persistRestore(w, h) {
   try {
-    const d = JSON.parse(localStorage.getItem(localStorageKey))
+    const s = localStorage.getItem(localStorageKey)
+    if (!s) {
+      throw new Error('no data')
+    }
+    const d = JSON.parse(s)
+    if (!d) {
+      throw new Error('no parsed data')
+    }
     const a = []
     const x = d.arena
+    if (!x) {
+      throw new Error('no arena')
+    }
     if (x.length !== h) {
       throw new Error(`invalid h: ${x.length}`)
     }
