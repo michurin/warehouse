@@ -415,6 +415,9 @@ function persistRestore(w, h) {
     gameState.booms = d.booms || 0 // ugly side effect
     return a
   } catch (e) {
+    for (let i = 0; i < localStorage.length; i++) {
+      log('STORAGE:', i, localStorage.key(i), localStorage.getItem(localStorage.key(i)))
+    }
     log(e)
   }
   return undefined
