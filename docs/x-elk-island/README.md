@@ -10,7 +10,7 @@
 
 + Hide closed
 + Hide mines
-- Title
++ Title
 + Favicon.ico
 + Remove debugging
 + Flags
