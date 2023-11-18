@@ -45,8 +45,9 @@
 - Gameover state
 - Personal offline score table
 - Online score table
+- Safe start (preopen)
 - Levels? Different sizes? Density?
-- Delayed clicks? (when clicks are locked)
+- Locking: delayed clicks (when clicks are locked)? no locking?
 - Multitab
 - Event handling (onmousedown/up, check on firefox, no safari)
 - Countdown of lives
@@ -57,3 +58,4 @@
 ## Log
 
 - Tuesday 17 October 2023 — Elk Island — Paper road — First idea came
+- Tuesday 14 November 2023 — Reddit — `https://www.reddit.com/r/Minesweeper/comments/17v42hp/let_me_introduce_my_brand_new_crazy_idea_the/`
