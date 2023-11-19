@@ -331,6 +331,7 @@ func updateMikrotik() {
 		"dc85ded80a77": "asusLaptop",
 		"e89309fe3a08": "J1",
 		"f21aa397a964": "A22",
+		"14f5f91655b8": "VK",
 		"7c23022a5290": "known1", // 2023-04-14
 		"9ed3fd55950f": "known2", // 2023-04-29 02:57
 	}
