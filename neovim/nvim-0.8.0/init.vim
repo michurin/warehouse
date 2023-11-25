@@ -93,11 +93,12 @@ nnoremap <space>fh <cmd>lua require('telescope.builtin').help_tags()<cr>
 nnoremap <space>f/ <cmd>lua require('telescope.builtin').current_buffer_fuzzy_find()<cr>
 " z=
 nnoremap z= <cmd>lua require('telescope.builtin').spell_suggest()<cr>
-" m — method, d — diagnostics, l — language, t — tests
+" m — method, d — diagnostics, l — language, t — tests, c — relative to current buffer dir
 nnoremap <space>fm <cmd>lua require('telescope.builtin').grep_string()<cr>
 nnoremap <space>fd <cmd>lua require('telescope.builtin').diagnostics()<cr>
 nnoremap <space>fl <cmd>lua require('telescope.builtin').live_grep({additional_args=ft_args, wrap_results=true})<cr>
 nnoremap <space>ft <cmd>lua require('telescope.builtin').live_grep({additional_args=ft_alt_args, wrap_results=true})<cr>
+nnoremap <space>fc <cmd>lua require('telescope.builtin').live_grep({["search_dirs"]={vim.fn.expand("%:p")}, wrap_results=true})<cr>
 " resume
 nnoremap <space>fr <cmd>lua require('telescope.builtin').resume()<cr>
 " std LSP
