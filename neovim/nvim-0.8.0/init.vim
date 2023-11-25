@@ -582,7 +582,7 @@ function org_imports(wait_ms)
 end
 EOF
 
-autocmd FileType go autocmd BufWritePre *.go lua org_imports(5000)
+" autocmd FileType go autocmd BufWritePre *.go lua org_imports(5000)
 " looking nice alternative, however won't work in some cases
 " autocmd FileType go autocmd BufWritePre *.go lua vim.lsp.buf.code_action({ context = { only = { "source.organizeImports" } }, apply = true })
 
