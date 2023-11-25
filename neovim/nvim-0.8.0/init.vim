@@ -446,6 +446,7 @@ highlight Todo cterm=none ctermfg=142 ctermbg=58 " ctermfg=0 ctermbg=236
 
 let g:netrw_winsize = 30
 let g:netrw_banner = 0
+let g:netrw_keepdir = 0
 
 function! ToggleNetrw()
   let f = 1
