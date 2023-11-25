@@ -245,7 +245,7 @@ local on_attach = function(client, bufnr)
   buf_set_keymap('n', '<space>e', '<cmd>lua vim.diagnostic.open_float({source="if_many"})<CR>', opts)
 end
 
-local servers = {'gopls', 'intelephense', 'pyright', 'tsserver'}
+local servers = {'gopls', 'intelephense', 'pyright', 'tsserver', 'ccls'}
 local capabilities = require('cmp_nvim_lsp').default_capabilities(vim.lsp.protocol.make_client_capabilities())
 for _, lsp in pairs(servers) do
   require('lspconfig')[lsp].setup {
