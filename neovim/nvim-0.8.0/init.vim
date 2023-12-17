@@ -563,7 +563,7 @@ command! GP :lgetexpr system("pbpaste | sed -n '/^[[:space:]]/ {s/^[[:space:]]*/
 
 " https://github.com/neovim/nvim-lspconfig/issues/115#issuecomment-1128949874
 lua <<EOF
-function org_imports(wait_ms)
+function org_imports()
   local clients = vim.lsp.buf_get_clients()
   for _, client in pairs(clients) do
     local params = vim.lsp.util.make_range_params(nil, client.offset_encoding)
@@ -582,11 +582,11 @@ function org_imports(wait_ms)
 end
 EOF
 
-" autocmd FileType go autocmd BufWritePre *.go lua org_imports(5000)
 " looking nice alternative, however won't work in some cases
 " autocmd FileType go autocmd BufWritePre *.go lua vim.lsp.buf.code_action({ context = { only = { "source.organizeImports" } }, apply = true })
 
-autocmd FileType go autocmd BufWritePre *.go lua vim.lsp.buf.format()
+autocmd FileType go autocmd BufWritePre *.go lua vim.lsp.buf.format({async=false})
+autocmd FileType go autocmd BufWritePre *.go lua org_imports()
 
 " NON-GO
 
