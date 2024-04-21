@@ -15,6 +15,7 @@ call plug#begin() " https://github.com/junegunn/vim-plug +PlugInstall
   Plug 'nvim-treesitter/nvim-treesitter-refactor'
 
   Plug 'mfussenegger/nvim-dap'
+  Plug 'nvim-neotest/nvim-nio' " required by nvim-dap-ui
   Plug 'rcarriga/nvim-dap-ui'
   Plug 'leoluz/nvim-dap-go' " go install github.com/go-delve/delve/cmd/dlv@latest
   Plug 'nvim-telescope/telescope-dap.nvim' " require('telescope').load_extension('dap') after require('telescope').setup()
@@ -524,7 +525,7 @@ highlight def link markdownCode Delimiter
 
 " GO STUFF
 
-autocmd bufenter *.go syntax keyword goTodo contained TODO FIXME XXX BUG todo fixme xxx bug
+autocmd bufenter *.go syntax keyword goTodo contained ACHTUNG TODO FIXME XXX BUG todo fixme xxx bug
 
 function! s:GoAlt(cmd)
   let l:cf = expand('%:p')
