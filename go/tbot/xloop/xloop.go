@@ -3,7 +3,6 @@ package xloop
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"strings"
 
 	"github.com/michurin/cnbot/app/aw"
@@ -12,6 +11,15 @@ import (
 	"github.com/michurin/cnbot/xjson"
 	"github.com/michurin/cnbot/xproc"
 )
+
+var consideringMessageTypes = []string{ // TODO it has to be tunable
+	"callback_query",   // this strings are using in two places:
+	"inline_query",     // in getUpdate and
+	"message",          // in parsing function
+	"message_reaction", // we assume we can get userID from any types using the same way. I'm not sure it works
+	"poll",
+	"poll_answer",
+}
 
 func Loop(ctx context.Context, bot *xbot.Bot, command *xproc.Cmd) error {
 	offset := int64(0)
@@ -35,7 +43,7 @@ func Loop(ctx context.Context, bot *xbot.Bot, command *xproc.Cmd) error {
 			// TODO refactor: get env, get args, run command
 			req, err := processMessage(ctx, m, command)
 			if err != nil {
-				aw.L(ctx, fmt.Errorf("skip message: %w", err))
+				aw.L(ctx, ctxlog.Errorf("skip message: %w", err))
 				continue
 			}
 			if req == nil {
@@ -51,7 +59,11 @@ func Loop(ctx context.Context, bot *xbot.Bot, command *xproc.Cmd) error {
 }
 
 func getUpdates(ctx context.Context, bot *xbot.Bot, offset int64) ([]any, error) {
-	req, err := xbot.RequestStruct("getUpdates", map[string]any{"offset": offset, "timeout": 30})
+	req, err := xbot.RequestStruct("getUpdates", map[string]any{
+		"offset":          offset,
+		"timeout":         30,
+		"allowed_updates": consideringMessageTypes,
+	})
 	if err != nil {
 		return nil, ctxlog.Errorfx(ctx, "cannot build request")
 	}
@@ -69,7 +81,7 @@ func getUpdates(ctx context.Context, bot *xbot.Bot, offset int64) ([]any, error)
 		return nil, err
 	}
 	if !ok {
-		return nil, fmt.Errorf("response is not ok: %#v", data)
+		return nil, ctxlog.Errorf("response is not ok: %#v", data)
 	}
 	result, err := xjson.Slice(data, "result")
 	if err != nil {
@@ -78,29 +90,44 @@ func getUpdates(ctx context.Context, bot *xbot.Bot, offset int64) ([]any, error)
 	return result, nil
 }
 
-func message(m any) (any, error) { // TODO remove!
-	for _, k := range []string{"message", "callback_query"} {
-		val, ok, err := xjson.Any(m, k)
+func userID(m any) (int64, error) { // TODO consider all types
+	for _, bodyKey := range consideringMessageTypes { // TODO we are thinking all messages has the same structure related userID
+		body, ok, err := xjson.Any(m, bodyKey)
 		if err != nil {
-			return nil, err // TODO wrap, mention k in err message
+			return 0, err // TODO wrap, mention k in err message
 		}
 		if ok {
-			return val, nil
+			path := []string{"from", "id"}
+			if bodyKey == "message_reaction" { // hakish
+				path = []string{"user", "id"}
+			}
+			userID, err := xjson.Int(body, path...)
+			if err != nil {
+				return 0, ctxlog.Errorf("user not found: key=%s, path=%v: %w", bodyKey, path, err)
+			}
+			return userID, nil
 		}
 	}
-	return nil, fmt.Errorf("payload for userID not found")
+	return 0, ctxlog.Errorf("body not found: consider %v", consideringMessageTypes)
 }
 
-func userID(m any) (int64, error) { // TODO consider all types
-	val, err := message(m)
-	if err != nil {
-		return 0, err
+func userText(m any) (string, error) { // TODO consider all types
+	for _, bodyKey := range consideringMessageTypes { // TODO we are thinking all messages has the same structure related userID
+		body, ok, err := xjson.Any(m, bodyKey)
+		if err != nil {
+			return "", err // TODO wrap, mention k in err message
+		}
+		if ok {
+			if bodyKey == "message" { // hakish
+				return xjson.String(body, "text")
+			}
+			if bodyKey == "callback_query" {
+				return xjson.String(body, "data")
+			}
+			return bodyKey, nil
+		}
 	}
-	userID, err := xjson.Int(val, "from", "id")
-	if err != nil {
-		return 0, err
-	}
-	return userID, nil
+	return "", ctxlog.Errorf("body not found: consider %v", consideringMessageTypes)
 }
 
 func processMessage(ctx context.Context, m any, command *xproc.Cmd) (*xbot.Request, error) {
@@ -113,7 +140,7 @@ func processMessage(ctx context.Context, m any, command *xproc.Cmd) (*xbot.Reque
 	if err != nil {
 		return nil, ctxlog.Errorfx(ctx, "cannot create env: %w", err)
 	}
-	text, err := xjson.String(m, "message", "text")
+	text, err := userText(m)
 	if err != nil {
 		aw.L(ctx, err) // return nil, err // TODO callback_query...
 	}

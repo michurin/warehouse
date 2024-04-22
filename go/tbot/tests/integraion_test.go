@@ -53,7 +53,7 @@ func TestAPI_justCall(t *testing.T) {
 	assert.JSONEq(t, `{"response":1}`, string(body))
 }
 
-func TestLoop(t *testing.T) {
+func TestMethods(t *testing.T) {
 	/* cases
 	tg        bots loop
 	|         |
@@ -66,22 +66,119 @@ func TestLoop(t *testing.T) {
 	|<--req---| (call for update)
 	|---resp->|
 	|<--req---| (and send response from script)
-	|---resp->| (the order of update and send doesn't metter)
+	|---resp->| (the order of update and send doesn't meter)
+	*/
+	for _, cs := range []struct {
+		name           string
+		updateResponse string
+		sendRequest    string
+	}{
+		{
+			name: "message",
+			updateResponse: `{"ok": true, "result": [{"update_id": 500, "message": {
+"message_id": 100,
+"from": {"id": 1500, "is_bot": false, "first_name": "Alex", "last_name": "Morn", "username": "AlexMorn", "language_code": "en"},
+"chat": {"id": 1501, "first_name": "Alex", "last_name": "Morn", "username": "AlexMorn", "type": "private"},
+"date": 1682222222,
+"text": "word"}}]}`,
+			sendRequest: `{"chat_id": 1500, "text": "word [n=1]"}`,
+		},
+		{
+			name: "message_reaction",
+			updateResponse: `{"ok": true, "result": [{"update_id": 500, "message_reaction": {
+"message_id": 100,
+"user": {"id": 1500, "is_bot": false, "first_name": "Alex", "last_name": "Morn", "username": "AlexMorn", "language_code": "en"},
+"chat": {"id": 1501, "first_name": "Alex", "last_name": "Morn", "username": "AlexMorn", "type": "private"},
+"date": 1682222222,
+"old_reaction": [],
+"new_reaction": [{"type":"emoji","emoji":"\ud83e\udd1d"}]}}]}`,
+			sendRequest: `{"chat_id": 1500, "text": "message_reaction [n=1]"}`,
+		},
+		{
+			name: "callback_query",
+			updateResponse: `{"ok": true, "result": [{"update_id": 500, "callback_query": {
+"id": "333333333333333333",
+"from": {"id": 1500, "is_bot": false, "first_name": "Alex", "last_name": "Morn", "username": "AlexMorn", "language_code": "en"},
+"chat": {"id": 1501, "first_name": "Alex", "last_name": "Morn", "username": "AlexMorn", "type": "private"},
+"message": {
+ "message_id": 90,
+ "from": {"id": 1600, "is_bot": true, "first_name": "BOT", "username":"BOT_bot"},
+ "date": 1682222222,
+ "text": "OK",
+ "reply_markup": {"inline_keyboard": [[{"text": "button_text", "callback_data": "button_data (in message)"}]]}},
+"chat_instance": "4444444444444444444",
+"data": "button_data"}}]}`,
+			sendRequest: `{"chat_id": 1500, "text": "button_data [n=1]"}`,
+		},
+	} {
+		cs := cs
+		t.Run(cs.name, func(t *testing.T) {
+			ctx, cancel := context.WithCancel(context.Background())
+			defer cancel()
+
+			tgURL, tgClose := apiserver.APIServer(t, cancel, map[string][]apiserver.APIAct{
+				"/botMORN/getUpdates": {
+					{
+						IsJSON:   true,
+						Request:  `{"offset":0,"timeout":30,"allowed_updates":["callback_query","inline_query","message","message_reaction","poll","poll_answer"]}`,
+						Response: []byte(cs.updateResponse),
+					},
+					{
+						IsJSON:   true,
+						Request:  `{"offset":501,"timeout":30,"allowed_updates":["callback_query","inline_query","message","message_reaction","poll","poll_answer"]}`,
+						Response: nil,
+					},
+				},
+				"/botMORN/sendMessage": {
+					{
+						IsJSON:   true,
+						Request:  cs.sendRequest,
+						Response: []byte(`{"ok": true, "result": {}}`),
+					},
+				},
+			})
+			defer tgClose()
+
+			bot := buildBot(tgURL)
+
+			command := buildCommand("scripts/show_args.sh")
+
+			err := xloop.Loop(ctx, bot, command)
+			require.Error(t, err)
+			require.Contains(t, err.Error(), "context canceled") // like "api: client: Post \"http://127.0.0.1:34241/botMORN/getUpdates\": context canceled"
+		})
+	}
+}
+
+func TestScriptOutputTypes(t *testing.T) {
+	/* cases
+	tg        bots loop
+	|         |
+	|<--req---| (call for update)
+	|---resp->|
+	|         |
+	|         |--exec-->| script
+	|         |<-stdout-|
+	|         |
+	|<--req---| (call for update)
+	|---resp->|
+	|<--req---| (and send response from script)
+	|---resp->| (the order of update and send doesn't meter)
 	*/
 	simpleUpdates := []apiserver.APIAct{
 		{
 			IsJSON:  true,
-			Request: `{"offset":0,"timeout":30}`,
+			Request: `{"offset":0,"timeout":30,"allowed_updates":["callback_query","inline_query","message","message_reaction","poll","poll_answer"]}`,
 			Response: []byte(`{"ok": true, "result": [{"update_id": 500, "message": {
 "message_id": 100,
 "from": {"id": 1500, "is_bot": false, "first_name": "Alex", "last_name": "Morn", "username": "AlexMorn", "language_code": "en"},
-"chat": {"id": 1500, "first_name": "Alex", "last_name": "Morn", "username": "AlexMorn", "type": "private"},
+"chat": {"id": 1501, "first_name": "Alex", "last_name": "Morn", "username": "AlexMorn", "type": "private"},
 "date": 1682222222,
 "text": "word"}}]}`),
 		},
 		{
 			IsJSON:   true,
-			Request:  `{"offset":501,"timeout":30}`,
+			Request:  `{"offset":501,"timeout":30,"allowed_updates":["callback_query","inline_query","message","message_reaction","poll","poll_answer"]}`,
 			Response: nil,
 		},
 	}
