@@ -45,6 +45,12 @@ func returnFunc() func() int {
 	return f
 }
 
+func localChan() chan (int) {
+	c := make(chan (int), 100000000) // stack; `c` itself, but not underlying buffers
+	c <- 1
+	return c
+}
+
 func main() { // go run -gcflags="-m -l" main.go
 	_ = returnValue() // consume funcs
 	_ = *returnPointer()
@@ -54,4 +60,5 @@ func main() { // go run -gcflags="-m -l" main.go
 	_ = returnArray()
 	_ = largeArray()
 	_ = returnFunc()()
+	_ = localChan()
 }
