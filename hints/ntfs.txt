@@ -1,0 +1,28 @@
+Problems:
+
+Disk mounted correctly, and it is readable, except one dir.
+
+dmesg says:
+
+[14787.161815] ntfs3: 16825 callbacks suppressed
+[14787.161824] ntfs3: sda1: ino=67f5c, "zzzz" Looks like your dir is corrupt
+[13483.518750] ntfs3: sda1: It is recommened to use chkdsk.
+[13483.622888] ntfs3: sda1: volume is dirty and "force" flag is not set!
+
+Solution:
+
+1. Mount ntfs3 rw
+2. Do `stat zzzz` to ensure ino is the same
+3. Do this for you own risk
+
+timeout 1 sudo strace -o q -v ls zzzz || grep getdents64 q | head | tail -1 | sed 's|.*d_name="|sudo rm -rf zzzz/|;s|".*||' | sh -ex
+
+Repeat step 3 until it gets ok.
+
+In fact, we are trying ls corrupted dir. Ls hangs. We find line in strace like that:
+
+getdents64(3, [{d_ino=436712, d_off=17600, d_reclen=88, d_type=DT_DIR, d_name="qqqq"}], 32768) = 88
+
+and remove dir zzzz/qqqq.
+
+Caution:
