@@ -5,7 +5,8 @@ go build ./...
 ```ini
 [Unit]
 Description=Netpunch client
-After=network.target
+After=network-online.target
+Wants=network-online.target
 
 [Service]
 Type=simple
