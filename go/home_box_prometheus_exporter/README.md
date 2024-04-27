@@ -222,7 +222,8 @@ Minimal `/etc/systemd/system/home-box-prometheus-exporter.service`
 ```ini
 [Unit]
 Description=Home box Prometheus exporter
-After=network.target
+After=network-online.target
+Wants=network-online.target
 
 [Service]
 Type=simple
