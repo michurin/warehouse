@@ -1,0 +1,23 @@
+#!/bin/sh
+# https://github.com/NikushaKalatozi/MacOS-Big-Sur-Sharing-Host-VPN-with-Guest/blob/main/vpn_tunnel.sh
+date
+utunid=$(ifconfig | awk -F ":" '/^u/ {intface=$1; next} /10.*--/ {print intface}')
+bridge100ip=$(ifconfig bridge100 | awk '/inet / {printf "%s/24",  $2}')
+test -z "$bridge100ip" && exit
+for tu in en0 $utunid
+do
+    echo "$bridge100ip -> $utunid"
+    /usr/bin/sudo pfctl -a com.apple.internet-sharing/shared_v4 -s nat 2>/dev/null > newrules.conf
+    cat newrules.conf
+    ln="nat on $utunid inet from $bridge100ip to any -> ($utunid) round-robin extfilter ei"
+    echo 'LINE:'
+    echo "$ln"
+    if grep -a "$ln" newrules.conf
+    then
+        echo ADDING
+        echo "$ln" >>newrules.conf
+    else
+        echo SKIP
+    fi
+done
+/usr/bin/sudo pfctl -a com.apple.internet-sharing/shared_v4 -N -f newrules.conf 2>/dev/null
