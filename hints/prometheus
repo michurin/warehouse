@@ -1,0 +1,7 @@
+list all metrics:
+
+curl -svG 'http://localhost:9090/api/v1/series' --data-urlencode 'match[]={__name__!=""}' | jq
+
+curl -svG 'http://localhost:9090/api/v1/series' --data-urlencode 'match[]={__name__!=""}' | jq .data[].__name__ | sort | uniq -c | sort -n
+
+curl -s 'http://localhost:9090/api/v1/status/runtimeinfo' | jq
