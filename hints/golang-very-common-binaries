@@ -4,7 +4,9 @@ go install github.com/gojuno/minimock/v3/cmd/minimock@latest
 
 go install golang.org/x/tools/cmd/...@latest
 go install golang.org/x/tools/gopls@latest
-go install github.com/go-delve/delve/cmd/dlv@latest
+
+# go install golang.org/x/tools/cmd/present@latest
+# go install golang.org/x/tools/cmd/godoc@latest # godoc -http :8888
 
 go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
 go install mvdan.cc/gofumpt@latest
@@ -17,3 +19,6 @@ go install github.com/poloxue/modv@latest # go mod graph | modv | dot -T png >dp
 # go install github.com/fogleman/primitive@latest
 
 go install github.com/michurin/systemd-env-file/cmd/xenv@latest
+go install github.com/michurin/human-readable-json-logging/cmd/...@latest
+
+go install github.com/charmbracelet/freeze@latest
