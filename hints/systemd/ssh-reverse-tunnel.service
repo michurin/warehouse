@@ -1,6 +1,7 @@
 [Unit]
 Description=MICHURIN: Reverse tunnel from michurin.net
-After=network.target
+After=network-online.target
+Wants=network-online.target
 
 [Service]
 Type=simple
