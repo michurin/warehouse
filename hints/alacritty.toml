@@ -1,0 +1,72 @@
+[colors]
+draw_bold_text_with_bright_colors = false
+
+[colors.bright]
+black = "#666666"
+blue = "#4186be"
+cyan = "#71bebe"
+green = "#c5f779"
+magenta = "#cf9ebe"
+red = "#cf6171"
+white = "#ffffff"
+yellow = "#fff796"
+
+[colors.normal]
+black = "#000000"
+blue = "#414171"
+cyan = "#418179"
+green = "#aece92"
+magenta = "#963c59"
+red = "#9e1828"
+white = "#bebebe"
+yellow = "#968a38"
+
+[colors.primary]
+background = "#000000"
+foreground = "#bebebe"
+
+[env]
+TERM = "xterm-256color"
+
+[font]
+size = 14.0
+
+[font.bold]
+family = "JetBrains Mono"
+style = "Bold"
+
+[font.bold_italic]
+family = "JetBrains Mono"
+style = "Bold Italic"
+
+[font.italic]
+family = "JetBrains Mono"
+style = "Light Italic"
+
+[font.normal]
+family = "JetBrains Mono"
+style = "Light"
+
+[selection]
+semantic_escape_chars = ",│`|\"' ()[]{}<>\t▹·"
+
+[window]
+startup_mode = "SimpleFullscreen" # MacOS only, use "Fullscreen" for others
+dynamic_title = false
+decorations = "Buttonless"
+opacity = 0.8
+blur = true
+option_as_alt = "Both"
+
+[window.dimensions]
+columns = 120
+lines = 40
+
+[window.padding]
+x = 3
+y = 3
+
+[[keyboard.bindings]]
+key = "Enter"
+mods = "Option"
+action = "ToggleSimpleFullscreen"
