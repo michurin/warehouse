@@ -44,11 +44,11 @@ func (logHandler) Handle(_ context.Context, r slog.Record) error {
 	return nil
 }
 
-func (h logHandler) WithAttrs(attrs []slog.Attr) slog.Handler {
+func (h logHandler) WithAttrs(_ []slog.Attr) slog.Handler {
 	panic("NOT IMPLEMENTED")
 }
 
-func (logHandler) WithGroup(name string) slog.Handler {
+func (logHandler) WithGroup(_ string) slog.Handler {
 	panic("NOT IMPLEMENTED")
 }
 

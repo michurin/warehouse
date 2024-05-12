@@ -61,7 +61,7 @@ func bot(ctx context.Context, eg *errgroup.Group, cfg xcfg.Config, build string)
 	eg.Go(func() error {
 		err := server.ListenAndServe()
 		if err != nil {
-			return ctxlog.Errorfx(ctx, "control server: %w", err)
+			return ctxlog.Errorfx(ctx, "control server listener: %w", err)
 		}
 		return nil
 	})

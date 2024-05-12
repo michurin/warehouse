@@ -14,7 +14,7 @@ type handler struct {
 	next slog.Handler
 }
 
-func Handler(next slog.Handler, sfx string) slog.Handler { //nolint:ireturn // slog.Handler is std interface like error or context.Context
+func Handler(next slog.Handler, sfx string) slog.Handler {
 	pfx := ""
 	_, file, _, ok := runtime.Caller(1)
 	if ok {
@@ -91,14 +91,14 @@ func (h *handler) Handle(ctx context.Context, ro slog.Record) error {
 	return h.next.Handle(ctx, r) //nolint:wrapcheck // this error will be ignored at log/slog/logger.log()
 }
 
-func (h *handler) WithAttrs(attrs []slog.Attr) slog.Handler { //nolint:ireturn
+func (h *handler) WithAttrs(attrs []slog.Attr) slog.Handler {
 	return &handler{
 		pfx:  h.pfx,
 		next: h.next.WithAttrs(attrs),
 	}
 }
 
-func (h *handler) WithGroup(name string) slog.Handler { //nolint:ireturn
+func (h *handler) WithGroup(name string) slog.Handler {
 	return &handler{
 		pfx:  h.pfx,
 		next: h.next.WithGroup(name),

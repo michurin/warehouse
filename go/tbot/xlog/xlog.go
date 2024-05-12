@@ -11,7 +11,7 @@ import (
 
 var defaultLogger atomic.Pointer[slog.Logger]
 
-func init() {
+func init() { //nolint:gochecknoinits
 	defaultLogger.Store(slog.Default())
 }
 
