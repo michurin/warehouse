@@ -34,7 +34,7 @@ func Errorfx(ctx context.Context, format string, a ...any) error {
 				attrs = a
 			}
 		}
-		return &wrapError{err: x.err, attrs: attrs, pc: x.pc} // new message (Error()), but attrs and pc from wrapped error
+		return &wrapError{err: err, attrs: attrs, pc: x.pc} // new message (Error()), but attrs and pc from wrapped error
 	}
 	var pcs [1]uintptr
 	runtime.Callers(2, pcs[:])
