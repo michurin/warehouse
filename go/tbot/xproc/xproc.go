@@ -9,8 +9,8 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/michurin/cnbot/app/aw"
 	"github.com/michurin/cnbot/ctxlog"
+	"github.com/michurin/cnbot/xlog"
 )
 
 type Cmd struct {
@@ -27,12 +27,12 @@ func killGrp(ctx context.Context, pid int, sig syscall.Signal) {
 	// For example you can get ESRCH (0x3) that doesn't support by syscall.Errno.Is().
 	pgid, err := syscall.Getpgid(pid) // not cmd.SysProcAttr.Pgid
 	if err != nil {
-		aw.L(ctx, fmt.Errorf("kill: getpgid: %w", err))
+		xlog.L(ctx, fmt.Errorf("kill: getpgid: %w", err))
 		return
 	}
 	err = syscall.Kill(-pgid, sig) // minus
 	if err != nil {
-		aw.L(ctx, fmt.Errorf("kill: kill %d: %w", -pgid, err))
+		xlog.L(ctx, fmt.Errorf("kill: kill %d: %w", -pgid, err))
 		return
 	}
 }
@@ -59,7 +59,7 @@ func (c *Cmd) Run(
 	var errBuffer bytes.Buffer
 	cmd.Stderr = &errBuffer
 
-	aw.L(ctx, fmt.Sprintf("starting %s %v", c.Command, args)) // TODO put command to context?
+	xlog.L(ctx, fmt.Sprintf("starting %s %v", c.Command, args)) // TODO put command to context?
 
 	err := cmd.Start() // start command synchronously
 	if err != nil {
@@ -81,7 +81,7 @@ func (c *Cmd) Run(
 			case <-done: // it has to appear before kill sections to catch stat errors
 				return
 			case <-ctx.Done(): // urgent exit, we doesn't even wait for process finalization
-				aw.L(ctx, "Exec terminated by context")
+				xlog.L(ctx, "Exec terminated by context")
 				killGrp(ctx, cmd.Process.Pid, syscall.SIGKILL)
 				return
 			case <-intBound.C:
@@ -103,7 +103,7 @@ func (c *Cmd) Run(
 	}
 	errStr := errBuffer.String()
 	if errStr != "" {
-		aw.L(ctx, fmt.Errorf("stderr: %s", errStr)) // TODO consider as error?
+		xlog.L(ctx, fmt.Errorf("stderr: %s", errStr)) // TODO consider as error?
 		// errMsg = append(errMsg, fmt.Sprintf("stderr: %q", errStr))
 	}
 	outBytes := outBuffer.Bytes()

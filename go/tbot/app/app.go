@@ -8,11 +8,11 @@ import (
 
 	"golang.org/x/sync/errgroup"
 
-	"github.com/michurin/cnbot/app/aw"
 	"github.com/michurin/cnbot/ctxlog"
 	"github.com/michurin/cnbot/xbot"
 	"github.com/michurin/cnbot/xcfg"
 	"github.com/michurin/cnbot/xctrl"
+	"github.com/michurin/cnbot/xlog"
 	"github.com/michurin/cnbot/xloop"
 	"github.com/michurin/cnbot/xproc"
 )
@@ -75,6 +75,6 @@ func Application(rootCtx context.Context, bots map[string]xcfg.Config, build str
 	for name, cfg := range bots {
 		bot(ctxlog.Add(ctx, "bot", name), eg, cfg, build)
 	}
-	aw.L(ctx, "Run. Build="+build)
+	xlog.L(ctx, "Run. Build="+build)
 	return eg.Wait()
 }

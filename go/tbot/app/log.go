@@ -4,12 +4,10 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
-	"runtime"
 	"sort"
-	"time"
 
-	"github.com/michurin/cnbot/app/aw"
 	"github.com/michurin/cnbot/ctxlog"
+	"github.com/michurin/cnbot/xlog"
 )
 
 // logHandler implements interface slog.Handler
@@ -42,7 +40,7 @@ func (logHandler) Handle(_ context.Context, r slog.Record) error {
 	for _, a := range ekeys {
 		nstd += fmt.Sprintf(" %s=%v", a, kv[a])
 	}
-	fmt.Printf("%s%s%s %s\n", r.Time.Format("2006-01-02 15:04:05"), std, nstd, r.Message)
+	fmt.Printf("%s [%s]%s%s %s\n", r.Time.Format("2006-01-02 15:04:05"), r.Level.String(), std, nstd, r.Message)
 	return nil
 }
 
@@ -56,19 +54,5 @@ func (logHandler) WithGroup(name string) slog.Handler {
 
 func SetupLogging() {
 	l := slog.New(ctxlog.Handler(logHandler{}, "app/log.go"))
-	aw.L = func(ctx context.Context, a any) {
-		var pcs [1]uintptr
-		runtime.Callers(2, pcs[:]) // skip
-		r := slog.Record{}
-		switch v := a.(type) {
-		case error:
-			r = slog.NewRecord(time.Now(), slog.LevelError, "Error", pcs[0])
-			r.Add(v)
-		case string:
-			r = slog.NewRecord(time.Now(), slog.LevelInfo, v, pcs[0])
-		default:
-			r = slog.NewRecord(time.Now(), slog.LevelWarn, fmt.Sprintf("%[1]T: %#[1]v", a), pcs[0])
-		}
-		_ = l.Handler().Handle(ctx, r)
-	}
+	xlog.SetDefault(l)
 }

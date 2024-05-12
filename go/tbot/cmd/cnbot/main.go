@@ -6,7 +6,7 @@ import (
 	"os/signal"
 
 	"github.com/michurin/cnbot/app"
-	"github.com/michurin/cnbot/app/aw"
+	"github.com/michurin/cnbot/xlog"
 )
 
 var Build = "development"
@@ -18,12 +18,12 @@ func main() {
 	app.SetupLogging()
 	cfg, err := app.LoadConfigs(os.Args[1:]...)
 	if err != nil {
-		aw.L(ctx, err)
+		xlog.L(ctx, err)
 		return
 	}
 	err = app.Application(ctx, cfg, Build)
 	if err != nil {
-		aw.L(ctx, err)
+		xlog.L(ctx, err)
 		return
 	}
 }

@@ -14,8 +14,8 @@ import (
 	"strings"
 	"unicode/utf8"
 
-	"github.com/michurin/cnbot/app/aw"
 	"github.com/michurin/cnbot/ctxlog"
+	"github.com/michurin/cnbot/xlog"
 )
 
 // --- TODO move Request
@@ -166,7 +166,9 @@ func (b *Bot) API(ctx context.Context, request *Request) ([]byte, error) {
 	resp := (*http.Response)(nil)
 	data := []byte(nil)
 	defer func() {
-		aw.L(ctx, fmt.Sprintf("%s %s %v", string(request.Body), string(data), err)) // TODO! error logging with INFO level!
+		// TODO! error logging with INFO level!
+		// TODO replace empty stings by dash?
+		xlog.L(ctx, fmt.Sprintf("%s %s %v", string(request.Body), string(data), err))
 	}()
 	reqURL := b.APIOrigin + "/bot" + b.Token + "/" + request.Method
 	req, err = http.NewRequestWithContext(ctx, http.MethodPost, reqURL, bytes.NewReader(request.Body))
@@ -190,7 +192,7 @@ func (b *Bot) Download(ctx context.Context, path string, stream io.Writer) error
 	ctx = ctxlog.Add(ctx, "api", "x-download")
 	err := error(nil)
 	defer func() {
-		aw.L(ctx, fmt.Sprintf("%s %v", path, err)) // TODO
+		xlog.L(ctx, fmt.Sprintf("%s %v", path, err)) // TODO
 	}()
 	reqURL := b.APIOrigin + "/file/bot" + b.Token + "/" + path
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, reqURL, nil)

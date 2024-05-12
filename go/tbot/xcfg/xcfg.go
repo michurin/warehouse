@@ -6,7 +6,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/michurin/cnbot/app/aw"
+	"github.com/michurin/cnbot/xlog"
 )
 
 var (
@@ -36,12 +36,12 @@ func Cfg(ctx context.Context, osEnviron []string) map[string]Config { //nolint:g
 	for _, pair := range osEnviron {
 		ek, ev, ok := strings.Cut(pair, "=")
 		if !ok {
-			aw.L(ctx, fmt.Errorf("skipping %q: cannot find `=`", pair))
+			xlog.L(ctx, fmt.Errorf("skipping %q: cannot find `=`", pair))
 			continue
 		}
 		ek = strings.ToLower(ek)
 		if len(ev) == 0 {
-			aw.L(ctx, fmt.Errorf("skipping %q: value is empty", pair))
+			xlog.L(ctx, fmt.Errorf("skipping %q: value is empty", pair))
 			continue
 		}
 		if !strings.HasPrefix(ek, varPrefix) {
@@ -60,7 +60,7 @@ func Cfg(ctx context.Context, osEnviron []string) map[string]Config { //nolint:g
 					t = map[string]string{}
 				}
 				if x, ok := t[sfx]; ok {
-					aw.L(ctx, fmt.Errorf("overriding %q by %q: %q", x, ev, pair))
+					xlog.L(ctx, fmt.Errorf("overriding %q by %q: %q", x, ev, pair))
 				}
 				t[sfx] = ev
 				x[k] = t
@@ -68,13 +68,13 @@ func Cfg(ctx context.Context, osEnviron []string) map[string]Config { //nolint:g
 			}
 		}
 		if sfxNotFound {
-			aw.L(ctx, fmt.Errorf("skipping %q: has TB prefix, but wrong suffix. Allowed: %s", pair, varAllowedSfxs))
+			xlog.L(ctx, fmt.Errorf("skipping %q: has TB prefix, but wrong suffix. Allowed: %s", pair, varAllowedSfxs))
 		}
 	}
 	res := map[string]Config{}
 	for k, v := range x {
 		if len(v) != 4 {
-			aw.L(ctx, fmt.Errorf("skipping bot name %q: incomplete set of options", k))
+			xlog.L(ctx, fmt.Errorf("skipping bot name %q: incomplete set of options", k))
 			continue
 		}
 		c := Config{
@@ -86,7 +86,7 @@ func Cfg(ctx context.Context, osEnviron []string) map[string]Config { //nolint:g
 		if strings.HasPrefix(c.Token, "@") {
 			x, err := os.ReadFile(c.Token[1:])
 			if err != nil {
-				aw.L(ctx, fmt.Errorf("skipping bot name %q: cannot get token from file: %q: %w", k, c.Token, err))
+				xlog.L(ctx, fmt.Errorf("skipping bot name %q: cannot get token from file: %q: %w", k, c.Token, err))
 				continue
 			}
 			c.Token = strings.TrimSpace(string(x))
