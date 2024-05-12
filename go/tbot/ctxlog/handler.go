@@ -48,7 +48,7 @@ func (h *handler) Handle(ctx context.Context, ro slog.Record) error {
 	if ro.PC != 0 {
 		r.AddAttrs(slog.Any(slog.SourceKey, h.fname(ro.PC)))
 	}
-	lastErr := (*wrapError)(nil)
+	lastErr := (*wrapError)(nil) // not thread safe code; h.Attrs doing consequently
 	ro.Attrs(func(a slog.Attr) bool {
 		v := a.Value.Any()
 		if err, ok := v.(error); ok {
