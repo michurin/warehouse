@@ -128,7 +128,7 @@ func Bool(x any, k ...string) (bool, error) {
 
 func Any(x any, k ...string) (any, bool, error) {
 	if len(k) == 0 {
-		panic("no key")
+		panic("no key") // invalid function usage; panic is reasonable
 	}
 	kv, ok := x.(map[string]any)
 	if !ok {
