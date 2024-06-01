@@ -203,7 +203,7 @@ func TestScriptOutputTypes(t *testing.T) {
 			},
 		},
 		{
-			name:   "simple_text",
+			name:   "preformatted_text",
 			script: "scripts/preformatted_ok.sh",
 			api: map[string][]apiserver.APIAct{
 				"/botMORN/getUpdates": simpleUpdates,
@@ -211,6 +211,20 @@ func TestScriptOutputTypes(t *testing.T) {
 					{
 						IsJSON:   true,
 						Request:  `{"chat_id": 1500, "text": "ok", "entities": [{"type": "pre", "offset": 0, "length": 2}]}`,
+						Response: sendMessageResponseJSON,
+					},
+				},
+			},
+		},
+		{
+			name:   "preformatted_complex_text",
+			script: "scripts/preformatted_complex_ok.sh", // one unicode char, however it is two utf16 words and length=2
+			api: map[string][]apiserver.APIAct{
+				"/botMORN/getUpdates": simpleUpdates,
+				"/botMORN/sendMessage": {
+					{
+						IsJSON:   true,
+						Request:  `{"chat_id": 1500, "text": "⚒️", "entities": [{"type": "pre", "offset": 0, "length": 2}]}`,
 						Response: sendMessageResponseJSON,
 					},
 				},

@@ -12,6 +12,7 @@ import (
 	"net/textproto"
 	"strconv"
 	"strings"
+	"unicode/utf16"
 	"unicode/utf8"
 
 	"github.com/michurin/cnbot/ctxlog"
@@ -139,12 +140,13 @@ func checkTextLen(x []byte) (string, int, error) {
 	if len(x) == 0 {
 		return "", 0, fmt.Errorf("empty text")
 	}
-	r := []rune(string(x))
-	l := len(r)
-	if l > 4096 {
+	s := string(x)
+	r := []rune(s)
+	l := len(utf16.Encode(r)) // according to telegram bot API, considering length in term of utf16
+	if len(r) > 4096 {        // according to telegram bot API documentation, limits are applied after parsing
 		return "", 0, fmt.Errorf("text too long: %d chars: %s...%s", l, string(r[:10]), string(r[len(r)-10:]))
 	}
-	return string(r), l, nil
+	return s, l, nil
 }
 
 // --- /TODO
