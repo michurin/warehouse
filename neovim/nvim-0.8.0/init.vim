@@ -21,6 +21,9 @@ call plug#begin() " https://github.com/junegunn/vim-plug +PlugInstall
   Plug 'nvim-telescope/telescope-dap.nvim' " require('telescope').load_extension('dap') after require('telescope').setup()
 call plug#end()
 
+" HACKS
+colorscheme vim " LEGACY MODE // before any highlight
+
 lua <<DAP
 require('dap-go').setup()
 require('dapui').setup({
@@ -282,8 +285,8 @@ LSP_AND_COMPLETION_SETTINTS
 
 set completeopt=menu,menuone,noselect
 
-highlight Pmenu ctermfg=153 ctermbg=234
-highlight PmenuSel ctermfg=153 ctermbg=240
+highlight Pmenu ctermfg=153 ctermbg=234 guifg=153 guibg=234
+highlight PmenuSel ctermfg=153 ctermbg=240 guifg=153 guibg=240
 
 highlight LspDiagnosticsDefaultHint ctermfg=64 ctermbg=234
 highlight LspDiagnosticsDefaultInformation ctermfg=31 ctermbg=234
@@ -294,8 +297,9 @@ lua <<TREESITTER_CONTEXT
 require'treesitter-context'.setup{
   enable = true, -- autocmd VimEnter * TSContextEnable
   throttle = true, -- may improve performance
-  max_lines = 0, -- no limit
+  max_lines = 10, -- no limit
   mode = 'cursor', -- 'topline', 'cursor',
+  -- separator = '┄',
   patterns = { -- lua print(vim.inspect(require'nvim-treesitter.ts_utils'.get_node_at_cursor():type()))
     default = {'class', 'function', 'method', 'for', 'while', 'if', 'switch', 'case'},
     yaml = {'block_mapping_pair'},
@@ -427,8 +431,9 @@ set isfname-=# " TODO: do it for YAML only?
 set guicursor=n-c-sm:block,i-ci-ve:ver25,r-cr-o-v:hor20
 
 highlight Whitespace term=none cterm=none ctermfg=DarkGray gui=none guifg=DarkGray ctermbg=none
+highlight NonText term=none cterm=none ctermfg=DarkGray gui=none guifg=DarkGray ctermbg=none
 highlight EndOfBuffer term=none cterm=none ctermfg=DarkGray gui=none guifg=DarkGray ctermbg=none
-highlight LineNr ctermfg=grey
+highlight LineNr ctermfg=grey guifg=grey
 highlight StatusLineNC cterm=none ctermbg=238 ctermfg=0
 highlight StatusLine cterm=none ctermbg=238 ctermfg=15
 highlight VertSplit cterm=none ctermbg=none ctermfg=238
