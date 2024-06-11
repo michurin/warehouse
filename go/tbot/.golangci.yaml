@@ -2,16 +2,10 @@ linters:
   enable-all: true
   disable:
       # deprecated
-    - exhaustivestruct
-    - maligned
-    - scopelint
-    - varcheck
-    - deadcode
-    - golint
-    - structcheck
-    - ifshort
-    - interfacer
-
+    - execinquery
+      # disabled because the Go version (1.21)
+    - copyloopvar
+    - intrange
       # TODO turn on
     - depguard
     - gosec
@@ -31,9 +25,13 @@ linters:
     - wsl
     - lll
     - nlreturn
-    - nosnakecase
     - wastedassign
-    - goerr113
+    - err113
+    - mnd
+    - testifylint
+    - nestif
+    - perfsprint
+    - inamedparam
 linters-settings:
   gci:
     sections:

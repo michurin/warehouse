@@ -43,10 +43,10 @@ func APIServer(t *testing.T, cancel context.CancelFunc, api map[string][]APIAct)
 			return
 		}
 		if a.IsJSON {
-			assert.Equal(t, "application/json", r.Header.Get("content-type"))
+			assert.Equal(t, "application/json", r.Header.Get("Content-Type"))
 			assert.JSONEq(t, a.Request, body)
 		} else {
-			ctype := r.Header.Get("content-type")
+			ctype := r.Header.Get("Content-Type")
 			assert.Contains(t, ctype, "multipart/form-data")
 			idx := strings.Index(ctype, "boundary=")
 			assert.Greater(t, idx, -1, "ctype="+ctype)

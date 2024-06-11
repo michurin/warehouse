@@ -53,7 +53,7 @@ func (c *Cmd) Run(
 		Setpgid: true,
 	}
 	cmd.Dir = c.Cwd
-	cmd.Env = append(env, c.Env...)
+	cmd.Env = append(env, c.Env...) //nolint:gocritic // looks like false positive
 	var outBuffer bytes.Buffer
 	cmd.Stdout = &outBuffer
 	var errBuffer bytes.Buffer

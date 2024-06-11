@@ -72,7 +72,7 @@ func Handler(bot *xbot.Bot, cmd *xproc.Cmd, loggingPatch ctxlog.PatchAttrs) http
 				return
 			}
 		case http.MethodPost:
-			ct := r.Header.Get("content-type")
+			ct := r.Header.Get("Content-Type")
 			sct, _, err := mime.ParseMediaType(ct)
 			if err != nil {
 				xlog.L(ctx, err) // TODO response!
@@ -117,7 +117,7 @@ func Handler(bot *xbot.Bot, cmd *xproc.Cmd, loggingPatch ctxlog.PatchAttrs) http
 			}
 			ctx := ctxlog.Add(ctx, "user", to)
 			logCtxPatch := ctxlog.Patch(ctx)
-			go func() { // TODO: limit concurrency
+			go func() { //nolint:contextcheck // TODO: limit concurrency
 				ctx := ctxlog.ApplyPatch(context.Background(), logCtxPatch)
 				// TODO refactor. it is similar to processMessage
 				body, err := cmd.Run(ctx, q["a"], []string{"tg_x_to=" + strconv.FormatInt(to, 10)})

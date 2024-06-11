@@ -177,7 +177,7 @@ func (b *Bot) API(ctx context.Context, request *Request) ([]byte, error) {
 	if err != nil {
 		return nil, ctxlog.Errorfx(ctx, "request constructor: %w", err)
 	}
-	req.Header.Set("content-type", request.ContentType)
+	req.Header.Set("Content-Type", request.ContentType)
 	resp, err = b.Client.Do(req)
 	if err != nil {
 		return nil, ctxlog.Errorfx(ctx, "client: %w", err)

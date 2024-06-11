@@ -66,7 +66,7 @@ func ExampleHandler_usualUsecase() {
 
 	err := funcHandler(ctx, -1) // -1 will cause error
 	if err != nil {
-		log.Error("Error", err)
+		log.Error("Error", err) //nolint:govet // handler does magic with err
 	}
 
 	// output:
