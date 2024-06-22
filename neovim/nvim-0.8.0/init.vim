@@ -19,7 +19,23 @@ call plug#begin() " https://github.com/junegunn/vim-plug +PlugInstall
   Plug 'rcarriga/nvim-dap-ui'
   Plug 'leoluz/nvim-dap-go' " go install github.com/go-delve/delve/cmd/dlv@latest
   Plug 'nvim-telescope/telescope-dap.nvim' " require('telescope').load_extension('dap') after require('telescope').setup()
+
+  Plug 'codota/tabnine-nvim', { 'do': './dl_binaries.sh' }
 call plug#end()
+
+lua <<TAB9
+require('tabnine').setup({
+  disable_auto_comment=false, -- true,
+  accept_keymap="<Tab>",
+  dismiss_keymap = "<C-]>",
+  debounce_ms = 100, -- 800,
+  suggestion_color = {gui = "#80ff80", cterm = 120},
+  codelens_color = {gui = "#80ff80", cterm = 120},
+  codelens_enabled = true,
+  exclude_filetypes = {"TelescopePrompt", "NvimTree"},
+  log_file_path = nil, -- absolute path to Tabnine log file
+})
+TAB9
 
 " HACKS
 colorscheme vim " LEGACY MODE // before any highlight
@@ -153,8 +169,8 @@ require('telescope').setup{
 require('telescope').load_extension('dap')
 TELESCOPE_SETTINGS
 
-highlight TelescopeNormal ctermfg=7
-highlight TelescopeMatching cterm=none ctermfg=none ctermbg=23
+highlight TelescopeNormal ctermfg=7 guifg=#c0c0c0
+highlight TelescopeMatching cterm=none ctermbg=23 ctermfg=none gui=none guibg=#005f5f guifg=none
 
 if filereadable(getcwd() . "/.nogofumpt") " Oh, too hackish. vim.lsp.buf.list_workspace_folders() or util.root_pattern?
   let g:nogofumpt_tweak = 1
@@ -171,6 +187,17 @@ cmp.setup({
       vim.fn["vsnip#anonymous"](args.body)
     end,
   },
+  view = {
+    docs = {
+      auto_open = true,
+    },
+  },
+  window = {
+    completion = cmp.config.window.bordered({
+      winhighlight = 'CmpItemKindDefault:Comment,CmpItemAbbrDefault:Normal,CmpItemAbbrMatchDefault:Search',
+    }),
+    documentation = cmp.config.window.bordered(),
+  },
   mapping = cmp.mapping.preset.insert({
     ['<C-b>'] = cmp.mapping(cmp.mapping.scroll_docs(-4), { 'i', 'c' }),
     ['<C-f>'] = cmp.mapping(cmp.mapping.scroll_docs(4), { 'i', 'c' }),
@@ -183,10 +210,9 @@ cmp.setup({
     ['<CR>'] = cmp.mapping.confirm({ select = true }), -- Accept currently selected item. Set `select` to `false` to only confirm explicitly selected items.
   }),
   sources = cmp.config.sources({
-    { name = 'nvim_lsp' },
-    { name = 'vsnip' },
-  }, {
-    { name = 'buffer' },
+    { name = 'nvim_lsp', group_index = 1 },
+    { name = 'vsnip', group_index = 2 },
+    { name = 'buffer', group_index = 3 },
   })
 })
 
@@ -264,6 +290,8 @@ for _, lsp in pairs(servers) do
         experimentalPostfixCompletions = true,
         analyses = {
           unusedparams = true,
+          unusedwrite = true,
+          useany = true,
           shadow = true,
         },
         staticcheck = true,
@@ -285,19 +313,19 @@ LSP_AND_COMPLETION_SETTINTS
 
 set completeopt=menu,menuone,noselect
 
-highlight Pmenu ctermfg=153 ctermbg=234 guifg=153 guibg=234
-highlight PmenuSel ctermfg=153 ctermbg=240 guifg=153 guibg=240
+highlight Pmenu ctermbg=234 ctermfg=153 guibg=#1c1c1c guifg=#afd7ff
+highlight PmenuSel ctermbg=240 ctermfg=153 guibg=#585858 guifg=#afd7ff
 
-highlight LspDiagnosticsDefaultHint ctermfg=64 ctermbg=234
-highlight LspDiagnosticsDefaultInformation ctermfg=31 ctermbg=234
-highlight LspDiagnosticsDefaultWarning ctermfg=137 ctermbg=234
-highlight LspDiagnosticsDefaultError ctermfg=124 ctermbg=234
+highlight LspDiagnosticsDefaultHint ctermbg=234 ctermfg=64 guibg=#1c1c1c guifg=#5f8700
+highlight LspDiagnosticsDefaultInformation ctermbg=234 ctermfg=31 guibg=#1c1c1c guifg=#0087af
+highlight LspDiagnosticsDefaultWarning ctermbg=234 ctermfg=137 guibg=#1c1c1c guifg=#af875f
+highlight LspDiagnosticsDefaultError ctermbg=234 ctermfg=124 guibg=#1c1c1c guifg=#af0000
 
 lua <<TREESITTER_CONTEXT
 require'treesitter-context'.setup{
   enable = true, -- autocmd VimEnter * TSContextEnable
   throttle = true, -- may improve performance
-  max_lines = 10, -- no limit
+  max_lines = 10, -- 0 — no limit
   mode = 'cursor', -- 'topline', 'cursor',
   -- separator = '┄',
   patterns = { -- lua print(vim.inspect(require'nvim-treesitter.ts_utils'.get_node_at_cursor():type()))
@@ -310,8 +338,8 @@ require'treesitter-context'.setup{
   },
 }
 TREESITTER_CONTEXT
-highlight TreesitterContext ctermbg=238
-highlight TreesitterContextLineNumber ctermbg=238 ctermfg=200
+highlight TreesitterContext ctermbg=238 guibg=#444444
+highlight TreesitterContextLineNumber ctermbg=238 ctermfg=200 guibg=#444444 guifg=#ff00d7
 
 lua <<TREESITTER_SETTINGS
 require'nvim-treesitter.configs'.setup {
@@ -430,24 +458,24 @@ set isfname-=# " TODO: do it for YAML only?
 
 set guicursor=n-c-sm:block,i-ci-ve:ver25,r-cr-o-v:hor20
 
-highlight Whitespace term=none cterm=none ctermfg=DarkGray gui=none guifg=DarkGray ctermbg=none
-highlight NonText term=none cterm=none ctermfg=DarkGray gui=none guifg=DarkGray ctermbg=none
-highlight EndOfBuffer term=none cterm=none ctermfg=DarkGray gui=none guifg=DarkGray ctermbg=none
+highlight Whitespace cterm=none ctermbg=none ctermfg=DarkGray gui=none guibg=none guifg=#555555 term=none
+highlight NonText cterm=none ctermbg=none ctermfg=DarkGray gui=none guibg=none guifg=#555555 term=none
+highlight EndOfBuffer cterm=none ctermbg=none ctermfg=DarkGray gui=none guibg=none guifg=DarkGray term=none
 highlight LineNr ctermfg=grey guifg=grey
-highlight StatusLineNC cterm=none ctermbg=238 ctermfg=0
-highlight StatusLine cterm=none ctermbg=238 ctermfg=15
-highlight VertSplit cterm=none ctermbg=none ctermfg=238
-highlight TabLine cterm=none ctermbg=238 ctermfg=0
-highlight TabLineSel cterm=bold ctermbg=238 ctermfg=15
-highlight TabLineFill cterm=none ctermbg=238
-highlight CursorLine cterm=none ctermbg=242
-highlight CursorLineNr cterm=none ctermbg=242
-highlight CursorColumn cterm=none ctermbg=242
-highlight Normal cterm=none ctermfg=none ctermbg=none
-highlight NormalFloat cterm=none ctermfg=none ctermbg=none
-highlight FloatBorder cterm=none ctermfg=DarkGray ctermbg=none
-highlight Search cterm=none ctermfg=none ctermbg=23
-highlight IncSearch cterm=bold ctermfg=none ctermbg=58
+highlight StatusLineNC cterm=none ctermbg=238 ctermfg=0 gui=none guibg=#444444 guifg=#000000
+highlight StatusLine cterm=none ctermbg=238 ctermfg=15 gui=none guibg=#444444 guifg=#ffffff
+highlight VertSplit cterm=none ctermbg=none ctermfg=238 gui=none guibg=none guifg=#444444
+highlight TabLine cterm=none ctermbg=238 ctermfg=0 gui=none guibg=#444444 guifg=#000000
+highlight TabLineSel cterm=bold ctermbg=238 ctermfg=15 gui=bold guibg=#444444 guifg=#ffffff
+highlight TabLineFill cterm=none ctermbg=238 gui=none guibg=#444444
+highlight CursorLine cterm=none ctermbg=242 gui=none guibg=#6c6c6c
+highlight CursorLineNr cterm=none ctermbg=242 gui=none guibg=#6c6c6c
+highlight CursorColumn cterm=none ctermbg=242 gui=none guibg=#6c6c6c
+highlight Normal cterm=none ctermbg=none ctermfg=none gui=none guibg=none guifg=none
+highlight NormalFloat cterm=none ctermbg=none ctermfg=none gui=none guibg=none guifg=none
+highlight FloatBorder cterm=none ctermbg=none ctermfg=DarkGray gui=none guibg=none guifg=DarkGray
+highlight Search cterm=none ctermbg=23 ctermfg=none gui=none guibg=#005f5f guifg=none
+highlight IncSearch cterm=bold ctermbg=58 ctermfg=none gui=bold guibg=#5f5f00 guifg=none
 highlight Todo cterm=none ctermfg=142 ctermbg=58 " ctermfg=0 ctermbg=236
 
 let g:netrw_winsize = 30
@@ -490,10 +518,10 @@ set spell spelllang=en_us,ru_yo spelloptions=camel spellcapcheck=
 
 syntax match UrlNoSpell 'https\?:\/\/[^[:space:]]\+' contains=@NoSpell
 
-highlight SpellBad term=none cterm=underline ctermfg=none gui=bold guifg=none ctermbg=none
-highlight SpellCap term=none cterm=underline ctermfg=none gui=bold guifg=none ctermbg=none
-highlight SpellRare term=none cterm=underline ctermfg=none gui=bold guifg=none ctermbg=none
-highlight SpellLocal term=none cterm=underline ctermfg=none gui=bold guifg=none ctermbg=none
+highlight SpellBad cterm=underline ctermbg=none ctermfg=none gui=underline guibg=none guifg=none term=underline
+highlight SpellCap cterm=underline ctermbg=none ctermfg=none gui=underline guibg=none guifg=none term=underline
+highlight SpellRare cterm=underline ctermbg=none ctermfg=none gui=underline guibg=none guifg=none term=underline
+highlight SpellLocal cterm=underline ctermbg=none ctermfg=none gui=underline guibg=none guifg=none term=underline
 
 " FOLDING
 
@@ -505,27 +533,27 @@ function! XFoldText()
     return '⟫ ' . line_text . ' ' . repeat('╶', fillcharcount) . ' (' . folded_line_num . ')'
 endfunction
 set foldtext=XFoldText()
-highlight Folded ctermfg=155 ctermbg=235
+highlight Folded ctermbg=235 ctermfg=155 guibg=#262626 guifg=#afff5f
 " it is useful modeline: vi:fdm=marker:foldlevel=0
 
 " Markdown and HTML
 
-highlight htmlH1              cterm=none ctermfg=231 ctermbg=236
-highlight markdownH1Delimiter cterm=none ctermfg=231 ctermbg=236
-highlight htmlH2              cterm=none ctermfg=226 ctermbg=236
-highlight markdownH2Delimiter cterm=none ctermfg=226 ctermbg=236
-highlight htmlH3              cterm=none ctermfg=82 ctermbg=236
-highlight markdownH3Delimiter cterm=none ctermfg=82 ctermbg=236
-highlight htmlH4              cterm=none ctermfg=45 ctermbg=236
-highlight markdownH4Delimiter cterm=none ctermfg=45 ctermbg=236
-highlight htmlH5              cterm=none ctermfg=213 ctermbg=236
-highlight markdownH5Delimiter cterm=none ctermfg=213 ctermbg=236
-highlight htmlH6              cterm=none ctermfg=231 ctermbg=236
-highlight markdownH6Delimiter cterm=none ctermfg=231 ctermbg=236
-highlight htmlLink            cterm=none ctermfg=81 ctermbg=none
-highlight markdownCodeBlock   cterm=none ctermfg=73 ctermbg=none
-highlight markdownStrike      cterm=strikethrough ctermfg=66 ctermbg=none
-highlight markdownItalic      cterm=italic ctermfg=231 ctermbg=none
+highlight htmlH1 cterm=none ctermbg=236 ctermfg=231 gui=none guibg=#303030 guifg=#ffffff
+highlight markdownH1Delimiter cterm=none ctermbg=236 ctermfg=231 gui=none guibg=#303030 guifg=#ffffff
+highlight htmlH2 cterm=none ctermbg=236 ctermfg=226 gui=none guibg=#303030 guifg=#ffff00
+highlight markdownH2Delimiter cterm=none ctermbg=236 ctermfg=226 gui=none guibg=#303030 guifg=#ffff00
+highlight htmlH3 cterm=none ctermbg=236 ctermfg=82 gui=none guibg=#303030 guifg=#5fff00
+highlight markdownH3Delimiter cterm=none ctermbg=236 ctermfg=82 gui=none guibg=#303030 guifg=#5fff00
+highlight htmlH4 cterm=none ctermbg=236 ctermfg=45 gui=none guibg=#303030 guifg=#00d7ff
+highlight markdownH4Delimiter cterm=none ctermbg=236 ctermfg=45 gui=none guibg=#303030 guifg=#00d7ff
+highlight htmlH5 cterm=none ctermbg=236 ctermfg=213 gui=none guibg=#303030 guifg=#ff87ff
+highlight markdownH5Delimiter cterm=none ctermbg=236 ctermfg=213 gui=none guibg=#303030 guifg=#ff87ff
+highlight htmlH6 cterm=none ctermbg=236 ctermfg=231 gui=none guibg=#303030 guifg=#ffffff
+highlight markdownH6Delimiter cterm=none ctermbg=236 ctermfg=231 gui=none guibg=#303030 guifg=#ffffff
+highlight htmlLink cterm=none ctermbg=none ctermfg=81 gui=none guibg=none guifg=#5fd7ff
+highlight markdownCodeBlock cterm=none ctermbg=none ctermfg=73 gui=none guibg=none guifg=#5fafaf
+highlight markdownStrike cterm=strikethrough ctermbg=none ctermfg=66 gui=strikethrough guibg=none guifg=#5f8787
+highlight markdownItalic cterm=italic ctermbg=none ctermfg=231 gui=italic guibg=none guifg=#ffffff
 highlight def link markdownCode Delimiter
 
 " GO STUFF
