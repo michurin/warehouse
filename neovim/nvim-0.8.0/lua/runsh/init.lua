@@ -34,13 +34,21 @@ set fdm=expr
 
 function check_stop_line(r)
   local ln = vim.api.nvim_buf_get_lines(0, r-1, r, false)[1]
-  return not ln or ln == "" or string.sub(ln, 1, 1) == '#' or string.sub(ln, 1, 2) == '--' or string.sub(ln, 1, 3) == '{{{'
+  return not ln or ln == "" -- or string.sub(ln, 1, 1) == '#' or string.sub(ln, 1, 2) == '--' or string.sub(ln, 1, 3) == '{{{'
 end
 
+--[[
+vim.keymap.set('v', '<space>www', function()
+  local vstart = vim.fn.getpos("'<")
+  local vend = vim.fn.getpos("'>")
+  local lstart = vstart[2]
+  local lend = vend[2]
+  local command = vim.fn.getline(lstart, lend)
+  print(command)
+end)
+]]
+
 vim.keymap.set('n', '<space>www', function()
-
-  -- TODO local command = vim.fn.getreg('*')
-
   local pos = vim.api.nvim_win_get_cursor(0)
   local ri = pos[1]
   local rj = pos[1]
@@ -66,11 +74,11 @@ vim.keymap.set('n', '<space>www', function()
   local win = vim.api.nvim_open_win(buf, true, {
     relative='editor',
     width=vim.api.nvim_get_option('columns')-2,
-    height=vim.api.nvim_get_option('lines')-2,
+    height=vim.api.nvim_get_option('lines')-3,
     col=1,
     row=1,
     style='minimal',
-    border='single',
+    border='rounded',
     noautocmd=1,
   })
 
