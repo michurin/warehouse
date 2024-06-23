@@ -91,25 +91,27 @@ Name it `mybot.sh` and mention it in configuration variable `tb_mybot_script=./m
 It will reply to you something like that:
 
 ```
-Args: hello bot!
-Environment:
-tg_message_chat_first_name=Alexey
-tg_message_chat_id=153333328
-tg_message_chat_last_name=Michurin
-tg_message_chat_type=private
-tg_message_chat_username=AlexeyMichurin
-tg_message_date=1717171717
-tg_message_from_first_name=Alexey
-tg_message_from_id=153333328
-tg_message_from_is_bot=false
-tg_message_from_language_code=en
-tg_message_from_last_name=Michurin
-tg_message_from_username=AlexeyMichurin
-tg_message_message_id=4554
-tg_message_text=Hello bot!
-tg_update_id=513333387
-tg_x_build=development (devel)
-tg_x_ctrl_addr=:9999
+╭─────────────────────────────────────────╮
+│ Args: hello bot!                        │
+│ Environment:                            │
+│ tg_message_chat_first_name=Alexey       │
+│ tg_message_chat_id=153333328            │
+│ tg_message_chat_last_name=Michurin      │
+│ tg_message_chat_type=private            │
+│ tg_message_chat_username=AlexeyMichurin │
+│ tg_message_date=1717171717              │
+│ tg_message_from_first_name=Alexey       │
+│ tg_message_from_id=153333328            │
+│ tg_message_from_is_bot=false            │
+│ tg_message_from_language_code=en        │
+│ tg_message_from_last_name=Michurin      │
+│ tg_message_from_username=AlexeyMichurin │
+│ tg_message_message_id=4554              │
+│ tg_message_text=Hello bot!              │
+│ tg_update_id=513333387                  │
+│ tg_x_build=development (devel)          │
+│ tg_x_ctrl_addr=:9999                    │
+╰─────────────────────────────────────────╯
 ```
 
 You can see that your message has been put to arguments in convenient normalized form, and you have a bunch of useful variables
@@ -277,6 +279,8 @@ esac
 
 ## Advanced topics
 
+### Arguments details
+
 ### Process management: concurrency, timeouts, signals, long-running tasks
 
 ### Uploading and downloading
@@ -332,7 +336,7 @@ esac
 }
 ```
 
-```sh
+```ini
 tg_message_caption=Hi!
 tg_message_chat_first_name=Alexey
 tg_message_chat_id=150000000
@@ -370,6 +374,8 @@ tg_update_id=500000000
 #### System variables
 
 ### Working directory
+
+## Installation
 
 ## Running
 
