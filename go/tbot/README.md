@@ -25,13 +25,21 @@ This bot engine has proven itself in monitoring, alerting system monitoring and 
 
 ### Run simplest one-line bot
 
-Let's start our firs bot. First things first, you need to create bot and get it's token.
+#### Prepare
+
+First things first, you need to create bot and get it's token.
 It is free, just follow [instructions](https://core.telegram.org/bots#how-do-i-create-a-bot).
+
+#### Build
+
+TODO: `go install final_path`, hint: `GOBIN=$(pwd)`
+
+#### Run
 
 Just run one command to invoke the simplest bot:
 
 ```sh
-tb_mybot_token='TOKEN' tb_mybot_script=/usr/bin/echo tb_mybot_long_running_script=/usr/bin/echo tb_mybot_ctrl_addr=:9999 go run ./cmd/cnbot/...
+tb_mybot_token='TOKEN' tb_mybot_script=/usr/bin/echo tb_mybot_long_running_script=/usr/bin/echo tb_mybot_ctrl_addr=:9999 cnbot
 ```
 
 Don't worry, we will use configuration file further. The engine is able to use both files and direct environment variables.
@@ -59,7 +67,7 @@ tb_mybot_ctrl_addr=:9999
 Now just start bot like this:
 
 ```sh
-go run ./cmd/cnbot/... config.env
+cnbot config.env
 ```
 
 ### Drive multiply bots
@@ -87,7 +95,7 @@ echo "Environment:"
 env | sort | grep tg_
 ```
 
-Name it `mybot.sh` and mention it in configuration variable `tb_mybot_script=./mybot.sh`. Restart the bot and say to it `Hellp bot!`.
+Name it `mybot.sh` and mention it in configuration variable `tb_mybot_script=./mybot.sh`. Restart the bot and say to it `Hello bot!`.
 It will reply to you something like that:
 
 ```
@@ -187,7 +195,8 @@ You will receive message with two clickable buttons:
 
 Do not forget to change `user_id`.
 
-> Please note that you can use any prefixes in URLs.
+> [!NOTE]
+> You can use any prefixes in URLs.
 > URLs `http://localhost:9999/sendMessage` and `http://localhost:9999/ANITHING/sendMessage` are equal.
 > It allows you to put engine's API behind prefix.
 
@@ -205,6 +214,7 @@ However, it will send you image:
 curl -qs https://github.githubassets.com/favicons/favicon.png | curl -qs http://localhost:9999/?to=153333328 --data-binary '@-'
 ```
 
+> [!IMPORTANT]
 > Please use the `--data-binary` option for binary data. Option `-d` corrupts EOLs.
 
 ### Formatted text and putting all together: script, that considers commands
@@ -277,9 +287,13 @@ Known commands:
 esac
 ```
 
+> [!NOTE]
+> Please note when you are modifying script, all changes takes effect immediately. You don't need to restart the bot engine.
+> You have to restart the bot engine if you want to change its environment variables only.
+
 ## Advanced topics
 
-### Arguments details
+### Arguments processing
 
 ### Process management: concurrency, timeouts, signals, long-running tasks
 
@@ -369,7 +383,7 @@ tg_update_id=500000000
 
 - `tg_x_build`
 - `tg_x_ctrl_addr`
-- `tg_x_to`
+- `tg_x_to` (long-running)
 
 #### System variables
 
@@ -380,13 +394,13 @@ tg_update_id=500000000
 ## Running
 
 The process itself does not try to be immortal. It dies on fatal issues that can not be solved by process itself. Like network problems.
-It is believed that the process will be restart by systemd or stuff like that according the proper way with timeouts, logging, notifications, alerting.
+It is believed that the process will be restart by `systemd` or stuff like that according the proper way with timeouts, logging, notifications, alerting.
 
 TODO: example of systemd file
 
 ## Known issues
 
-- It wasn't tested on MS Windows and FreeBSD
+- It hasn't been tested on MS Windows and FreeBSD
 
 ## Develop
 
