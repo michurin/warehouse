@@ -92,7 +92,7 @@ Let's look at the script, that shows its arguments and environment variables:
 
 echo "Args: $@"
 echo "Environment:"
-env | sort | grep tg_
+env | grep tg_ | sort
 ```
 
 Name it `mybot.sh` and mention it in configuration variable `tb_mybot_script=./mybot.sh`. Restart the bot and say to it `Hello bot!`.
@@ -200,7 +200,7 @@ Do not forget to change `user_id`.
 > URLs `http://localhost:9999/sendMessage` and `http://localhost:9999/ANITHING/sendMessage` are equal.
 > It allows you to put engine's API behind prefix.
 
-### Lets play with images (synchronously and asynchronously; our second script)
+### Sending images
 
 Bot recognizes media type of input. It will send text:
 
@@ -217,60 +217,127 @@ curl -qs https://github.githubassets.com/favicons/favicon.png | curl -qs http://
 > [!IMPORTANT]
 > Please use the `--data-binary` option for binary data. Option `-d` corrupts EOLs.
 
-### Formatted text and putting all together: script, that considers commands
+### Formatted text
+
+```sh
+(echo '%!PRE'; echo 'Hello!') | curl -qs http://localhost:9999/?to=153812628 --data-binary '@-'
+```
+
+## Big picture
+
+### Prepare playground
 
 Let's extend our `mybot.sh` like that:
 
 ```sh
 #!/bin/sh
 
-LOG=/dev/null
+LOG=log # /dev/null
 
 CTRL="http://localhost$tg_x_ctrl_addr"
 FROM="$tg_message_from_id"
 
-crl() {
+API() {
+    API_STDOUT "$@" >>"$LOG"
+}
+
+API_STDOUT() {
     url="http://localhost$tg_x_ctrl_addr/$1"
     shift
-    echo "====== calling $url $@" >>$LOG
-    curl -qs "$url" "$@" >>$LOG 2>&1
-    echo >>$LOG
-    echo >>$LOG
+    echo "====== curl $url $@" >>"$LOG"
+    curl -qs "$url" "$@" 2>>"$LOG"
+    echo >>"$LOG"
+    echo >>"$LOG"
 }
+
+(
+    echo '==================='
+    echo "Args: $@"
+    echo "Environment:"
+    env | grep tg_ | sort
+    echo '...................'
+) >>"$LOG"
 
 case "$1" in
     debug)
         echo '%!PRE'
         echo "Args: $@"
         echo "Environment:"
-        env | sort | grep tg_
+        env | grep tg_ | sort
         echo "CTRL=$CTRL"
         echo "FROM=$FROM"
         echo "LOG=$LOG"
         ;;
     about)
         echo '%!PRE'
-        curl -qs http://localhost:9999/method/getMe | jq
+        API_STDOUT getMe | jq
         ;;
     two)
-        crl ?to=$FROM -d 'OK ONE!'
-        crl ?to=$FROM -d 'OK TWO!!'
+        API "?to=$FROM" -d 'OK ONE!'
+        API "?to=$FROM" -d 'OK TWO!!'
+        echo 'OK NATIVE'
         ;;
     buttons)
-        crl sendMessage \
+        API sendMessage \
             -F chat_id=$FROM \
             -F text='Select search engine' \
             -F reply_markup='{"inline_keyboard":[[{"text":"Google","url":"https://www.google.com/"},{"text":"DuckDuckGo","url":"https://duckduckgo.com/"}]]}'
         ;;
     image)
-        curl -qs https://github.com/fluidicon.png |
-            crl ?to=$FROM --data-binary '@-'
+        curl -qs https://github.com/fluidicon.png
+        ;;
+    invert)
+        wm=0
+        fid=''
+        for x in $tg_message_photo # finding the biggest image but ignoring too big ones
+        do
+            v=${x}_file_size
+            s=${!v}
+            if test $s -gt 102400; then continue; fi # skipping too big files
+            v=${x}_width
+            w=${!v}
+            v=${x}_file_id
+            f=${!v}
+            if test $w -gt $wm; then wm=$w; fid=$f; fi
+        done
+        if test -n "$fid"
+        then
+            API_STDOUT '' -G --data-urlencode "file_id=$fid" -o - | magick - -flip -flop png:-
+        else
+            echo "attache not found (maybe it was skipped due to enormous size)"
+        fi
         ;;
     reaction)
-        crl setMessageReaction -F chat_id=$FROM -F message_id=$tg_message_message_id -F reaction='[{"type":"emoji","emoji":"👾"}]'
+        API setMessageReaction -F chat_id=$FROM -F message_id=$tg_message_message_id -F reaction='[{"type":"emoji","emoji":"👾"}]'
+        ;;
+    menu)
+        mShowEnv='{"text":"show environment","callback_data":"menu-debug"}'
+        mLikeIt='{"text":"like it","callback_data":"menu-like"}'
+        mUnlikeIt='{"text":"unlike it","callback_data":"menu-unlike"}'
+        mDelete='{"text":"delete this message","callback_data":"menu-delete"}'
+        mLayout="[[$mShowEnv],[$mLikeIt,$mUnlikeIt],[$mDelete]]"
+        API sendMessage \
+            -F chat_id=$FROM \
+            -F text='Actions' \
+            -F reply_markup='{"inline_keyboard":'"$mLayout"'}'
+        ;;
+    run)
+        API "?to=$FROM&a=reactions&a=$tg_message_message_id" -X RUN
+        echo "I'll show you long run"
+        ;;
+    edit)
+        API "?to=$FROM&a=editing" -X RUN
+        ;;
+    id)
+        echo '%!PRE'
+        id 2>&1
+        ;;
+    hostname)
+        echo '%!PRE'
+        hostname 2>&1
         ;;
     help)
-        crl sendMessage -F chat_id=$FROM -F text='
+        API sendMessage -F chat_id=$FROM -F parse_mode=Markdown -F text='
 Known commands:
 
 - `debug` — show args, environment and vars
@@ -278,18 +345,134 @@ Known commands:
 - `two` — one request, two responses
 - `buttons` — message with buttons
 - `image` — show image
+- `invert` (as capture to image) — returns flipped flopped image
 - `reaction` — show reaction
-' -F parse_mode=Markdown
+- `menu` — scripted buttons
+- `run` — long-run example (long sequence of reactions)
+- `edit` — long-run example (editing)
+- `id` — check user who script runs from
+- `hostname` — check hostname where script runs
+- `help` — show this message
+'
         ;;
     *)
-        crl sendMessage -F chat_id=$FROM -F text='Invalid command. Say `help`.' -F parse_mode=Markdown
+        if test -n "$tg_callback_query_data"
+        then
+            case "$1" in
+                menu-debug)
+                    API answerCallbackQuery -F callback_query_id="$tg_callback_query_id"
+                    echo '%!PRE'
+                    echo "Environment:"
+                    env | grep tg_ | sort
+                    ;;
+                menu-like)
+                    API answerCallbackQuery -F callback_query_id="$tg_callback_query_id" -F "text=Like it"
+                    API setMessageReaction -F chat_id=$tg_callback_query_message_chat_id \
+                        -F message_id=$tg_callback_query_message_message_id \
+                        -F reaction='[{"type":"emoji","emoji":"👾"}]'
+                    ;;
+                menu-unlike)
+                    API answerCallbackQuery -F callback_query_id="$tg_callback_query_id" -F "text=Don't like it"
+                    API setMessageReaction -F chat_id=$tg_callback_query_message_chat_id \
+                        -F message_id=$tg_callback_query_message_message_id \
+                        -F reaction='[]'
+                    ;;
+                menu-delete)
+                    API answerCallbackQuery -F callback_query_id="$tg_callback_query_id"
+                    API deleteMessage -F chat_id=$tg_callback_query_message_chat_id \
+                        -F message_id=$tg_callback_query_message_message_id
+                    ;;
+            esac
+        else
+            API sendMessage -F chat_id=$FROM -F text='Invalid command. Say `help`.' -F parse_mode=Markdown
+        fi
         ;;
 esac
+```
+
+Let's add script for long-running tasks `mybot_long.sh`:
+
+```sh
+#!/bin/sh
+
+LOG=log # /dev/null
+
+CTRL="http://localhost$tg_x_ctrl_addr"
+FROM="$tg_x_to"
+
+API() {
+    API_STDOUT "$@" >>"$LOG"
+}
+
+API_STDOUT() {
+    url="http://localhost$tg_x_ctrl_addr/$1"
+    shift
+    echo "====== curl $url $@" >>"$LOG"
+    curl -qs "$url" "$@" 2>>"$LOG"
+    echo >>"$LOG"
+    echo >>"$LOG"
+}
+
+case "$1" in
+    reactions)
+        MESSAGE_ID="$2"
+        for e in "👾" "🤔" "😎"
+        do
+            API setMessageReaction -F chat_id=$FROM -F message_id=$MESSAGE_ID -F reaction='[{"type":"emoji","emoji":"'"$e"'"}]'
+            sleep 1
+        done
+        API setMessageReaction -F chat_id=$FROM -F message_id=$MESSAGE_ID -F reaction='[]'
+        ;;
+    editing)
+        MESSAGE_ID="$(API_STDOUT sendMessage -F chat_id=$FROM -F text='Starting...' | jq .result.message_id)"
+        if test -n "$MESSAGE_ID"
+        then
+            for i in 2 4 6 8
+            do
+                sleep 1
+                API editMessageText -F chat_id=$FROM -F message_id="$MESSAGE_ID" -F text="Doing... ${i}0% complete..."
+            done
+            sleep 1
+            API editMessageText -F chat_id=$FROM -F message_id="$MESSAGE_ID" -F text='Done.'
+        else
+            echo "cannot obtain message id"
+        fi
+        ;;
+    *)
+        echo 'invalid mode'
+        ;;
+esac
+```
+
+Restart bot with this configuration (`mybot.env`):
+
+```ini
+tb_mybot_token               = 'TOKEN'
+tb_mybot_script              = ./mybot.sh
+tb_mybot_long_running_script = ./mybot_long.sh
+tb_mybot_ctrl_addr           = :9999
+```
+
+Like that:
+
+```sh
+# if you install it
+cnbot mybot.env
+# if you start it without installing, just from sources
+go run ./cmd/cnbot/... mybot.env
 ```
 
 > [!NOTE]
 > Please note when you are modifying script, all changes takes effect immediately. You don't need to restart the bot engine.
 > You have to restart the bot engine if you want to change its environment variables only.
+
+Try to talk to your bot. Now it recognizes commands and shows you many different possibilities.
+
+Let me explain what is happening in this examples step by step.
+
+### Helpers overview
+
+TODO
 
 ## Advanced topics
 
@@ -297,7 +480,9 @@ esac
 
 ### Process management: concurrency, timeouts, signals, long-running tasks
 
-### Uploading and downloading
+### Uploading and downloading example
+
+### Inline keyboard example
 
 ### Environment details
 
@@ -400,7 +585,10 @@ TODO: example of systemd file
 
 ## Known issues
 
-- It hasn't been tested on MS Windows and FreeBSD
+- Some engine API methods are using both body and query parameters. It's against standards. However I haven't invented something more convenient and standard yet.
+- Engine doesn't retry any requests to Telegram API. Looks like issue. However, Telegram API doesn't provide any idempotency keys, and engine doesn't save state between restarts. It seems you have to solve this issue somehow else.
+- It hasn't been tested on MS Windows and FreeBSD.
+- The engine doesn't support persistent storage. You have to save state if you need by yourself.
 
 ## Develop
 
