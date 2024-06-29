@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"strings"
+	"unicode/utf8"
 
 	"github.com/michurin/cnbot/ctxlog"
 	"github.com/michurin/cnbot/xbot"
@@ -118,8 +119,12 @@ func userText(m any) (string, error) { // TODO consider all types
 			return "", err // TODO wrap, mention k in err message
 		}
 		if ok {
-			if bodyKey == "message" { // hakish
-				return xjson.String(body, "text")
+			if bodyKey == "message" { // TODO very hakish
+				x, e := xjson.String(body, "text")
+				if e != nil {
+					x, e = xjson.String(body, "caption")
+				}
+				return x, e
 			}
 			if bodyKey == "callback_query" {
 				return xjson.String(body, "data")
@@ -159,14 +164,36 @@ func processMessage(ctx context.Context, m any, command *xproc.Cmd) (*xbot.Reque
 	return req, nil
 }
 
-func textToArgs(text string) []string {
+// valid chars:
+// - %+,-.^_{}~
+// - digits: 0123456789
+// - letters: a-zA-Z will be converted to lower case
+var asciiSpaceAndUnsafe = [256]uint8{
+	'\x00': 1, '\x01': 1, '\x02': 1, '\x03': 1, '\x04': 1, '\x05': 1, '\x06': 1, '\x07': 1,
+	'\x08': 1, '\x09': 1, '\x0a': 1, '\x0b': 1, '\x0c': 1, '\x0d': 1, '\x0e': 1, '\x0f': 1,
+	'\x10': 1, '\x11': 1, '\x12': 1, '\x13': 1, '\x14': 1, '\x15': 1, '\x16': 1, '\x17': 1,
+	'\x18': 1, '\x19': 1, '\x1a': 1, '\x1b': 1, '\x1c': 1, '\x1d': 1, '\x1e': 1, '\x1f': 1, '\x20': 1,
+	'"': 1, '\\': 1, '`': 1, '$': 1, // systemd SHELL_NEED_ESCAPE
+	'*': 1, '?': 1, '[': 1, ']': 1, // systemd GLOB_CHARS
+	'\'': 1, '(': 1, ')': 1, '<': 1, '>': 1, '|': 1, '&': 1, ';': 1, '!': 1, // systemd SHELL_NEED_QUOTES
+	'/': 1, ':': 1, // to glue paths
+	'=': 1, '#': 1, '@': 1, // extra
+}
+
+func textToArgs(text string) []string { // TODO tests; move to package or file before?
+	if !utf8.ValidString(text) { // just drop invalid strings
+		return nil
+	}
 	a := strings.Fields(strings.ToLower(text))
 	b := make([]string, len(a))
 	for i, v := range a {
-		if len(v) > 0 && v[0] == '/' {
-			v = v[1:]
+		r := []byte(v)
+		for j, q := range r {
+			if asciiSpaceAndUnsafe[q] > 0 {
+				r[j] = '_'
+			}
 		}
-		b[i] = v
+		b[i] = string(r)
 	}
 	return b
 }
