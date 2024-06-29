@@ -278,10 +278,12 @@ case "$1" in
         echo 'OK NATIVE'
         ;;
     buttons)
+        bGoogle='{"text":"Google","url":"https://www.google.com/"}'
+        bDuck='{"text":"DuckDuckGo","url":"https://duckduckgo.com/"}'
         API sendMessage \
             -F chat_id=$FROM \
             -F text='Select search engine' \
-            -F reply_markup='{"inline_keyboard":[[{"text":"Google","url":"https://www.google.com/"},{"text":"DuckDuckGo","url":"https://duckduckgo.com/"}]]}'
+            -F reply_markup='{"inline_keyboard":[['"$bGoogle,$bDuck"']]}'
         ;;
     image)
         curl -qs https://github.com/fluidicon.png
@@ -308,7 +310,10 @@ case "$1" in
         fi
         ;;
     reaction)
-        API setMessageReaction -F chat_id=$FROM -F message_id=$tg_message_message_id -F reaction='[{"type":"emoji","emoji":"👾"}]'
+        API setMessageReaction \
+            -F chat_id=$FROM \
+            -F message_id=$tg_message_message_id \
+            -F reaction='[{"type":"emoji","emoji":"👾"}]'
         ;;
     menu)
         mShowEnv='{"text":"show environment","callback_data":"menu-debug"}'
