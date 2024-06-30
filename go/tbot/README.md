@@ -234,7 +234,6 @@ Let's extend our `mybot.sh` like that:
 
 LOG=log # /dev/null
 
-CTRL="http://localhost$tg_x_ctrl_addr"
 FROM="$tg_message_from_id"
 
 API() {
@@ -264,7 +263,6 @@ case "$1" in
         echo "Args: $@"
         echo "Environment:"
         env | grep tg_ | sort
-        echo "CTRL=$CTRL"
         echo "FROM=$FROM"
         echo "LOG=$LOG"
         ;;
@@ -402,7 +400,6 @@ Let's add script for long-running tasks `mybot_long.sh`:
 
 LOG=log # /dev/null
 
-CTRL="http://localhost$tg_x_ctrl_addr"
 FROM="$tg_x_to"
 
 API() {
@@ -475,9 +472,25 @@ Try to talk to your bot. Now it recognizes commands and shows you many different
 
 Let me explain what is happening in this examples step by step.
 
+### Script structure
+
+You wouldn't be mistaken for thinking that this script is slightly awkward. It is written that way
+to be more splittable. We will consider better structure further.
+
 ### Helpers overview
 
-TODO
+Let's briefly touch on two helpers functions we are using in this scripts.
+
+Both of them helps you to call bot engine API (not Telegram API, but bot engine).
+
+`API_STDOUT()` takes it's first argument as a tail of API URL and consider all the rest of arguments
+as `curl`'s arguments. For example, `API_STDOUT getMe` means literally
+`curl -qs "http://localhost$tg_x_ctrl_addr/getMe"`.
+
+`API_STDOUT()` throws it's output to `stdout`, `API()` doesn't though.
+`API "?to=$FROM" -d 'OK'` means `curl -qs "http://localhost$tg_x_ctrl_addr/?to=$FROM -d 'OK'`
+
+Both of them logs their output to `$LOG` file.
 
 ## Advanced topics
 
@@ -579,6 +592,67 @@ tg_update_id=500000000
 
 ### Working directory
 
+## Improved script structure and security aspects
+
+```sh
+# --- global variables
+...
+# --- helper variables
+...
+# --- whitelist checks for user_id
+# it is just example:
+# - allows.list have contains strings line "_${ID}_" (it makes you able to write comments and things like that)
+# - we consider messages and callbacks
+if grep "_${tg_message_from_id}${tg_callback_query_from_id}_" allows.list 2>&1 >/dev/null
+then
+    : # pass this user, you may want to log it
+else
+    echo 'You are not allowd'
+    exit
+fi
+# --- process text messages
+if [ -n "$tg_message_text" ]
+then
+    case "$1" in
+        ...
+    esac
+    exit
+fi
+# --- process images
+if [ -n "$tg_message_photo" ]
+then
+    case "$1" in
+        ...
+    esac
+    exit
+fi
+# --- process voices (for instance)
+if [ -n "$tg_message_voice_file_id" ]
+then
+    ...
+    exit # don't forget to exit
+fi
+# --- process callbacks
+if [ -n "$tg_callback_query_data" ]
+then
+    ...
+    exit
+fi
+# process... whatever you want
+if ...
+    ...
+    exit
+fi
+```
+
+Of course, it is good idea to split script, using `source file.sh` instruction.
+And you are still able to use other languages and approaches for sure.
+
+> [!CAUTION]
+> Just don't forget to be careful, keep in mind that anybody in internet can send anything to your bot.
+>
+> Keep reading. We will consider how to protect your bot.
+
 ## Installation
 
 ## Running
@@ -606,8 +680,6 @@ TODO: example of systemd file
 - Configuration must be simple
 - Code must be testable and has to be covered
 - Functionality has to be observable and has to provide ability to add metrics and monitoring by adding middleware without code changing
-
-### Embedding
 
 ### Application structure
 
