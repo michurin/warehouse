@@ -187,10 +187,10 @@ func textToArgs(text string) []string { // TODO tests; move to package or file b
 	a := strings.Fields(strings.ToLower(text))
 	b := make([]string, len(a))
 	for i, v := range a {
-		r := []byte(v)
-		for j, q := range r {
-			if asciiSpaceAndUnsafe[q] > 0 {
-				r[j] = '_'
+		r := make([]byte, 0, len(v))
+		for _, q := range []byte(v) {
+			if asciiSpaceAndUnsafe[q] == 0 {
+				r = append(r, q)
 			}
 		}
 		b[i] = string(r)
