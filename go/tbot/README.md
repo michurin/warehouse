@@ -6,6 +6,15 @@ even simpler than CGI scripts.
 All you need to write is a script (on any language)
 that is complying with extremely simple contract.
 
+> [!NOTE]
+> The minimal-effort echo-bot can be started like this:
+>
+> ````sh
+> tb_x_token='TG_API_TOKEN' tb_x_script=echo tb_x_long_running_script=true tb_x_ctrl_addr=:9999 cnbot
+> ````
+>
+> Where `echo` and `true` are standard command line utilities.
+
 All interactions are based on `stdout` stream, arguments and environment variables.
 
 The engine recognize multimedia and images and cares about concurrency and races.
@@ -17,9 +26,11 @@ run long-running tasks like long image/video conversions and/or downloading.
 
 One engine is able to manage several different bots.
 
-## What is to for
+## What is it for
 
-This bot engine has proven itself in monitoring, alerting system monitoring and managing tasks.
+This bot engine has proven itself in alerting, system monitoring and managing tasks.
+
+It also good for prototyping and fast proofing ideas.
 
 ## Quick start
 
@@ -315,10 +326,12 @@ case "$1" in
         ;;
     menu)
         mShowEnv='{"text":"show environment","callback_data":"menu-debug"}'
+        mShowNotification='{"text":"show notification","callback_data":"menu-notification"}'
+        mShowAlert='{"text":"show alert","callback_data":"menu-alert"}'
         mLikeIt='{"text":"like it","callback_data":"menu-like"}'
         mUnlikeIt='{"text":"unlike it","callback_data":"menu-unlike"}'
         mDelete='{"text":"delete this message","callback_data":"menu-delete"}'
-        mLayout="[[$mShowEnv],[$mLikeIt,$mUnlikeIt],[$mDelete]]"
+        mLayout="[[$mShowEnv],[$mShowAlert,$mShowNotification],[$mLikeIt,$mUnlikeIt],[$mDelete]]"
         API sendMessage \
             -F chat_id=$FROM \
             -F text='Actions' \
@@ -334,6 +347,10 @@ case "$1" in
     id)
         echo '%!PRE'
         id 2>&1
+        ;;
+    caps)
+        echo '%!PRE'
+        getpcaps --verbose --iab $$
         ;;
     hostname)
         echo '%!PRE'
@@ -354,9 +371,21 @@ Known commands:
 - `run` — long-run example (long sequence of reactions)
 - `edit` — long-run example (editing)
 - `id` — check user who script runs from
+- `caps` — check current capabilities (`getpcaps $$`)
 - `hostname` — check hostname where script runs
 - `help` — show this message
+- `privacy` — mandatory privacy information
+- `start` — just very first greeting message
 '
+        ;;
+    start)
+        API sendMessage -F chat_id=$FROM -F parse_mode=Markdown -F text='
+Hi there!👋
+It is demo bot to show an example of usage [cnbot](https://github.com/michurin/cnbot) bot engine.
+You can use `help` command to see all available commands.'
+        ;;
+    privacy) # https://telegram.org/tos/bot-developers#4-privacy
+        echo "This bot does not collect or share any personal information."
         ;;
     *)
         if test -n "$tg_callback_query_data"
@@ -384,6 +413,12 @@ Known commands:
                     API answerCallbackQuery -F callback_query_id="$tg_callback_query_id"
                     API deleteMessage -F chat_id=$tg_callback_query_message_chat_id \
                         -F message_id=$tg_callback_query_message_message_id
+                    ;;
+                menu-notification)
+                    API answerCallbackQuery -F callback_query_id="$tg_callback_query_id" -F text="Notification text (200 chars maximum)"
+                    ;;
+                menu-alert)
+                    API answerCallbackQuery -F callback_query_id="$tg_callback_query_id" -F text="Notification text shown as alert" -F show_alert=true
                     ;;
             esac
         else
@@ -492,7 +527,45 @@ as `curl`'s arguments. For example, `API_STDOUT getMe` means literally
 
 Both of them logs their output to `$LOG` file.
 
+### Commands
+
+This script recognizes several commands. We already consider the following commands:
+
+- `debug` — it's our first script
+- `about` — just call `getMe` API method. You can also see how we use `API_STDOUT` helper
+- `two` — shows how to send asynchronous message from script. We saw how to do it from command line before. You can also see how we use `API` helper
+- `buttons` — message with buttons as we saw before
+- `image` — shows how to send image. Just throw it to `stdout` and bot engine will recognize that it is image and send it in proper way
+
+All the rest commands we will consider further.
+
 ## Advanced topics
+
+### Configuration
+
+You are already seeing the bot can be configured by configuration file and directory by environment variable.
+
+Environment has higher priority.
+
+All variables have the same structure:
+
+```sh
+tb_${BOTNAME}_${MEANING}
+```
+
+To configure bot `x` and `y`, you need to pass this variable to `cnbot`:
+
+```sh
+tb_x_token='TOKEN_X'
+tb_x_script=/usr/bin/echo
+tb_x_long_running_script=/usr/bin/echo
+tb_x_ctrl_addr=:9999
+
+tb_y_token='TOKEN_Y'
+tb_y_script=/usr/bin/echo
+tb_y_long_running_script=/usr/bin/echo
+tb_y_ctrl_addr=:9998
+```
 
 ### Arguments processing
 
@@ -599,6 +672,16 @@ tg_update_id=500000000
 ...
 # --- helper variables
 ...
+# --- must have commands
+case $1 in
+start)
+    echo "Hello message"
+    exit
+    ;;
+privacy) # https://telegram.org/tos/bot-developers#4-privacy
+    echo "This bot does not collect or share any personal information."
+    exit
+esac
 # --- whitelist checks for user_id
 # it is just example:
 # - allows.list have contains strings line "_${ID}_" (it makes you able to write comments and things like that)
@@ -664,7 +747,8 @@ TODO: example of systemd file
 
 ## Known issues
 
-- Some engine API methods are using both body and query parameters. It's against standards. However I haven't invented something more convenient and standard yet.
+- Some engine API methods are using both POST-body and query parameters. It's against standards. However I haven't invented something more convenient and standard yet.
+- Engine API uses non-standard method `RUN`. It allows by standards, however it doesn't seem inevitable.
 - Engine doesn't retry any requests to Telegram API. Looks like issue. However, Telegram API doesn't provide any idempotency keys, and engine doesn't save state between restarts. It seems you have to solve this issue somehow else.
 - It hasn't been tested on MS Windows and FreeBSD.
 - The engine doesn't support persistent storage. You have to save state if you need by yourself.
