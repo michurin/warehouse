@@ -22,3 +22,6 @@ go install github.com/michurin/systemd-env-file/cmd/xenv@latest
 go install github.com/michurin/human-readable-json-logging/cmd/...@latest
 
 go install github.com/charmbracelet/freeze@latest
+
+# render -s 12h 'rate(app_cpu{cpu="cpu",mx!="idle"}[1m])/100/16'
+go install github.com/itskoko/prometheus-renderer/cmd/...@latest
