@@ -54,7 +54,7 @@ semantic_escape_chars = ",│`|\"' ()[]{}<>\t▹·"
 startup_mode = "SimpleFullscreen" # MacOS only, use "Fullscreen" for others
 dynamic_title = false
 decorations = "Buttonless"
-opacity = 0.8
+opacity = 0.9
 blur = true
 option_as_alt = "Both"
 
@@ -63,10 +63,36 @@ columns = 120
 lines = 40
 
 [window.padding]
-x = 3
-y = 3
+x = 1
+y = 1
 
-[[keyboard.bindings]]
+[[keyboard.bindings]] # linux
+key = "Return"
+mods = "Alt"
+action = "ToggleFullscreen"
+
+[[keyboard.bindings]] # macos
 key = "Enter"
 mods = "Option"
 action = "ToggleSimpleFullscreen"
+
+[mouse]
+hide_when_typing = true
+
+[[mouse.bindings]]
+mouse = "Middle"
+action = "PasteSelection"
+
+[[mouse.bindings]]
+mouse = "Middle"
+mods = "Shift"
+action = "Paste"
+
+[[mouse.bindings]]
+mouse = "Right"
+action = "PasteSelection"
+
+[[mouse.bindings]]
+mouse = "Right"
+mods = "Shift"
+action = "Paste"
