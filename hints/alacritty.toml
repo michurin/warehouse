@@ -59,12 +59,32 @@ blur = true
 option_as_alt = "Both"
 
 [window.dimensions]
-columns = 120
-lines = 40
+columns = 80
+lines = 24
 
 [window.padding]
 x = 1
 y = 1
+
+[[keyboard.bindings]]
+key = "NumpadAdd"
+mods = "Alt"
+action = "IncreaseFontSize"
+
+[[keyboard.bindings]]
+key = "NumpadSubtract"
+mods = "Alt"
+action = "DecreaseFontSize"
+
+[[keyboard.bindings]]
+key = "NumpadMultiply"
+mods = "Alt"
+action = "ResetFontSize"
+
+[[keyboard.bindings]]
+key = "NumpadEnter"
+mods = "Alt"
+action = "ToggleFullscreen"
 
 [[keyboard.bindings]] # linux
 key = "Return"
