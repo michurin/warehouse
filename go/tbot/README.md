@@ -323,6 +323,13 @@ case "$1" in
             -F chat_id=$FROM \
             -F message_id=$tg_message_message_id \
             -F reaction='[{"type":"emoji","emoji":"👾"}]'
+        echo 'Bot reacted to your message☝️'
+        ;;
+    madrid)
+        API sendLocation \
+            -F chat_id="$FROM" \
+            -F latitude='40.423467' \
+            -F longitude='-3.712184'
         ;;
     menu)
         mShowEnv='{"text":"show environment","callback_data":"menu-debug"}'
@@ -367,6 +374,7 @@ Known commands:
 - `image` — show image
 - `invert` (as capture to image) — returns flipped flopped image
 - `reaction` — show reaction
+- `madrid` — show location
 - `menu` — scripted buttons
 - `run` — long-run example (long sequence of reactions)
 - `edit` — long-run example (editing)
