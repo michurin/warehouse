@@ -115,7 +115,7 @@ func Handler(bot *xbot.Bot, cmd *xproc.Cmd, loggingPatch ctxlog.PatchAttrs) http
 				xlog.L(ctx, err) // TODO response!
 				return
 			}
-			ctx := ctxlog.Add(ctx, "user", to)
+			ctx := xlog.User(ctx, to)
 			logCtxPatch := ctxlog.Patch(ctx)
 			go func() { //nolint:contextcheck // TODO: limit concurrency
 				ctx := ctxlog.ApplyPatch(context.Background(), logCtxPatch)

@@ -31,7 +31,8 @@ type Config struct {
 	LongRunningScript string
 }
 
-func Cfg(ctx context.Context, osEnviron []string) map[string]Config { //nolint:gocognit
+func Cfg(ctx context.Context, osEnviron []string) (map[string]Config, string) { //nolint:gocognit // slightly inefficient, however it runs only once
+	tgApiOrigin := "https://api.telegram.org"
 	x := map[string]map[string]string{}
 	for _, pair := range osEnviron {
 		ek, ev, ok := strings.Cut(pair, "=")
@@ -42,6 +43,10 @@ func Cfg(ctx context.Context, osEnviron []string) map[string]Config { //nolint:g
 		ek = strings.ToLower(ek)
 		if len(ev) == 0 {
 			xlog.L(ctx, fmt.Errorf("skipping %q: value is empty", pair))
+			continue
+		}
+		if ek == varPrefix+"api_origin" {
+			tgApiOrigin = ev
 			continue
 		}
 		if !strings.HasPrefix(ek, varPrefix) {
@@ -93,5 +98,5 @@ func Cfg(ctx context.Context, osEnviron []string) map[string]Config { //nolint:g
 		}
 		res[k] = c
 	}
-	return res
+	return res, tgApiOrigin
 }

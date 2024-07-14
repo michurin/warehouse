@@ -17,9 +17,9 @@ import (
 	"github.com/michurin/cnbot/xproc"
 )
 
-func bot(ctx context.Context, eg *errgroup.Group, cfg xcfg.Config, build string) {
+func bot(ctx context.Context, eg *errgroup.Group, cfg xcfg.Config, tgApiOrigin, build string) {
 	bot := &xbot.Bot{
-		APIOrigin: "https://api.telegram.org",
+		APIOrigin: tgApiOrigin,
 		Token:     cfg.Token,
 		Client:    http.DefaultClient,
 	}
@@ -43,14 +43,21 @@ func bot(ctx context.Context, eg *errgroup.Group, cfg xcfg.Config, build string)
 	}
 
 	eg.Go(func() error {
-		err := xloop.Loop(ctxlog.Add(ctx, "comp", "loop"), bot, command)
+		err := xloop.Loop(xlog.Comp(ctx, "loop"), bot, command)
 		if err != nil {
 			return ctxlog.Errorfx(ctx, "polling loop: %w", err)
 		}
 		return nil
 	})
 
-	server := &http.Server{Addr: cfg.ControlAddr, Handler: xctrl.Handler(bot, commandLong, ctxlog.Patch(ctxlog.Add(ctx, "comp", "ctrl")))}
+	server := &http.Server{
+		Addr: cfg.ControlAddr,
+		Handler: xctrl.Handler(
+			bot,
+			commandLong,
+			ctxlog.Patch(xlog.Comp(ctx, "ctrl")),
+		),
+	}
 	eg.Go(func() error {
 		<-ctx.Done()
 		cx, stop := context.WithTimeout(context.Background(), time.Second)
@@ -67,13 +74,13 @@ func bot(ctx context.Context, eg *errgroup.Group, cfg xcfg.Config, build string)
 	})
 }
 
-func Application(rootCtx context.Context, bots map[string]xcfg.Config, build string) error {
+func Application(rootCtx context.Context, bots map[string]xcfg.Config, tgApiOrigin, build string) error {
 	if len(bots) == 0 {
 		return ctxlog.Errorfx(rootCtx, "there is no configuration")
 	}
 	eg, ctx := errgroup.WithContext(rootCtx)
 	for name, cfg := range bots {
-		bot(ctxlog.Add(ctx, "bot", name), eg, cfg, build)
+		bot(xlog.Bot(ctx, name), eg, cfg, tgApiOrigin, build)
 	}
 	xlog.L(ctx, "Run. Build="+build)
 	return eg.Wait()

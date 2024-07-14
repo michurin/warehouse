@@ -140,7 +140,7 @@ func processMessage(ctx context.Context, m any, command *xproc.Cmd) (*xbot.Reque
 	if err != nil {
 		return nil, ctxlog.Errorfx(ctx, "no user id: %w", err)
 	}
-	ctx = ctxlog.Add(ctx, "user", userID)
+	ctx = xlog.User(ctx, userID)
 	env, err := xjson.JSONToEnv(m)
 	if err != nil {
 		return nil, ctxlog.Errorfx(ctx, "cannot create env: %w", err)

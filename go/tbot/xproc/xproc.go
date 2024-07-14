@@ -65,7 +65,7 @@ func (c *Cmd) Run(
 	if err != nil {
 		return nil, ctxlog.Errorfx(ctx, "start: %w", err)
 	}
-	ctx = ctxlog.Add(ctx, "pid", cmd.Process.Pid)
+	ctx = xlog.Pid(ctx, cmd.Process.Pid)
 
 	done := make(chan struct{})
 	intBound := time.NewTimer(c.InterruptDelay)

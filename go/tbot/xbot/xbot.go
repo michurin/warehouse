@@ -162,15 +162,20 @@ type Bot struct {
 }
 
 func (b *Bot) API(ctx context.Context, request *Request) ([]byte, error) {
-	ctx = ctxlog.Add(ctx, "api", request.Method)
+	ctx = xlog.Api(ctx, request.Method)
 	err := error(nil)
 	req := (*http.Request)(nil)
 	resp := (*http.Response)(nil)
+	respCode := 0
 	data := []byte(nil)
 	defer func() {
-		// TODO! error logging with INFO level!
-		// TODO replace empty stings by dash?
-		xlog.L(ctx, fmt.Sprintf("%s %s %v", string(request.Body), string(data), err))
+		msg := any(nil)
+		if err != nil {
+			msg = err
+		} else {
+			msg = "ok"
+		}
+		xlog.L(xlog.Status(xlog.Request(xlog.Response(ctx, data), request.Body), respCode), msg)
 	}()
 	reqURL := b.APIOrigin + "/bot" + b.Token + "/" + request.Method
 	req, err = http.NewRequestWithContext(ctx, http.MethodPost, reqURL, bytes.NewReader(request.Body))
@@ -182,6 +187,7 @@ func (b *Bot) API(ctx context.Context, request *Request) ([]byte, error) {
 	if err != nil {
 		return nil, ctxlog.Errorfx(ctx, "client: %w", err)
 	}
+	respCode = resp.StatusCode
 	defer resp.Body.Close()           // we are skipping error here
 	data, err = io.ReadAll(resp.Body) // we have to read and close Body even for non-200 responses
 	if err != nil {
@@ -191,10 +197,10 @@ func (b *Bot) API(ctx context.Context, request *Request) ([]byte, error) {
 }
 
 func (b *Bot) Download(ctx context.Context, path string, stream io.Writer) error {
-	ctx = ctxlog.Add(ctx, "api", "x-download")
+	ctx = xlog.Api(ctx, "x-download")
 	err := error(nil)
 	defer func() {
-		xlog.L(ctx, fmt.Sprintf("%s %v", path, err)) // TODO
+		xlog.L(xlog.Path(ctx, path), err)
 	}()
 	reqURL := b.APIOrigin + "/file/bot" + b.Token + "/" + path
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, reqURL, nil)

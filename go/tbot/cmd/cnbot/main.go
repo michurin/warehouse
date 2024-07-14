@@ -24,12 +24,12 @@ func main() {
 	defer stop()
 
 	app.SetupLogging()
-	cfg, err := app.LoadConfigs(flag.Args()...)
+	cfg, tgApiOrigin, err := app.LoadConfigs(flag.Args()...)
 	if err != nil {
 		xlog.L(ctx, err)
 		return
 	}
-	err = app.Application(ctx, cfg, Build+" "+app.MainVersion())
+	err = app.Application(ctx, cfg, tgApiOrigin, Build+" "+app.MainVersion())
 	if err != nil {
 		xlog.L(ctx, err)
 		return

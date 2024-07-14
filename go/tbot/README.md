@@ -10,7 +10,7 @@ that is complying with extremely simple contract.
 > The minimal-effort echo-bot can be started like this:
 >
 > ````sh
-> tb_x_token='TG_API_TOKEN' tb_x_script=echo tb_x_long_running_script=true tb_x_ctrl_addr=:9999 cnbot
+> tb_token='TG_API_TOKEN' tb_script=echo tb_long_running_script=true tb_ctrl_addr=:9999 cnbot
 > ````
 >
 > Where `echo` and `true` are standard command line utilities.
@@ -50,7 +50,7 @@ TODO: `go install final_path`, hint: `GOBIN=$(pwd)`
 Just run one command to invoke the simplest bot:
 
 ```sh
-tb_mybot_token='TOKEN' tb_mybot_script=/usr/bin/echo tb_mybot_long_running_script=/usr/bin/echo tb_mybot_ctrl_addr=:9999 cnbot
+tb_token='TOKEN' tb_script=/usr/bin/echo tb_long_running_script=/usr/bin/echo tb_ctrl_addr=:9999 cnbot
 ```
 
 Don't worry, we will use configuration file further. The engine is able to use both files and direct environment variables.
@@ -69,10 +69,10 @@ So you are able to load it in `systemd` files as well. For example:
 
 ```sh
 # let's name it config.env
-tb_mybot_token='TOKEN'
-tb_mybot_script=/usr/bin/echo
-tb_mybot_long_running_script=/usr/bin/echo
-tb_mybot_ctrl_addr=:9999
+tb_token='TOKEN'
+tb_script=/usr/bin/echo
+tb_long_running_script=/usr/bin/echo
+tb_ctrl_addr=:9999
 ```
 
 Now just start bot like this:
@@ -106,7 +106,7 @@ echo "Environment:"
 env | grep tg_ | sort
 ```
 
-Name it `mybot.sh` and mention it in configuration variable `tb_mybot_script=./mybot.sh`. Restart the bot and say to it `Hello bot!`.
+Name it `mybot.sh` and mention it in configuration variable `tb_script=./mybot.sh`. Restart the bot and say to it `Hello bot!`.
 It will reply to you something like that:
 
 ```
@@ -155,7 +155,7 @@ If you bot is running, you will obtain the message `OK!` in you Telegram client.
 
 Do not forget to use *your* user id from previous section.
 
-It makes sense what variable `tb_mybot_ctrl_addr=:9999` is for. It defines a control interface for external interactions with bot engine.
+It makes sense what variable `tb_ctrl_addr=:9999` is for. It defines a control interface for external interactions with bot engine.
 
 ### Call arbitrary Telegram API methods
 
@@ -492,10 +492,10 @@ esac
 Restart bot with this configuration (`mybot.env`):
 
 ```ini
-tb_mybot_token               = 'TOKEN'
-tb_mybot_script              = ./mybot.sh
-tb_mybot_long_running_script = ./mybot_long.sh
-tb_mybot_ctrl_addr           = :9999
+tb_token               = 'TOKEN'
+tb_script              = ./mybot.sh
+tb_long_running_script = ./mybot_long.sh
+tb_ctrl_addr           = :9999
 ```
 
 Like that:
@@ -772,6 +772,21 @@ TODO: example of systemd file
 - Configuration must be simple
 - Code must be testable and has to be covered
 - Functionality has to be observable and has to provide ability to add metrics and monitoring by adding middleware without code changing
+
+### Deep debugging
+
+Run proxy. For example [mitmproxy](https://mitmproxy.org/):
+
+```sh
+mitmdump --flow-detail 4 -p 9001 --mode reverse:https://api.telegram.org
+```
+
+Instruct the bot to use proxy and run it:
+
+```sh
+export tb_api_origin=http://localhost:9001
+./cnbot ... # run bot, it will deal with Telegram API through the proxy and you will see everything
+```
 
 ### Application structure
 
