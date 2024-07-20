@@ -673,7 +673,9 @@ tg_update_id=500000000
 
 ### Working directory
 
-## Improved script structure and security aspects
+## Tips and tricks
+
+### Improved script structure and security aspects
 
 ```sh
 # --- global variables
@@ -743,6 +745,40 @@ And you are still able to use other languages and approaches for sure.
 > Just don't forget to be careful, keep in mind that anybody in internet can send anything to your bot.
 >
 > Keep reading. We will consider how to protect your bot.
+
+### Debugging wrapper
+
+To debug your scripts, you can use this wrapper. Tune `$CMD`, and enjoy
+full logging: arguments, environment, out and err streams, exit code.
+
+```sh
+#!/bin/sh
+
+# put your command here
+CMD=./mybot.py
+
+# tune naming for your taste
+base="logs/$(date +%s-)_${$}_"
+ext='.log'
+
+n=0
+for a in "$@"
+do
+    echo "$a" >"${base}arg_${n}${ext}"
+    n="$(($n+1))"
+done
+
+env | sort >"${base}env${ext}"
+
+set -o pipefail
+
+"$CMD" "$@" 2>"${base}err${ext}" | tee "${base}out${ext}"
+
+code="$?"
+
+echo "$code" >"${base}status${ext}"
+exit "$code"
+```
 
 ## Installation
 
