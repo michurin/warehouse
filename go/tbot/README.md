@@ -15,22 +15,38 @@ that is complying with extremely simple contract.
 >
 > Where `echo` and `true` are standard command line utilities.
 
-All interactions are based on `stdout` stream, arguments and environment variables.
-
-The engine recognize multimedia and images and cares about concurrency and races.
-
-It also provides simple API for asynchronous messaging from crons and such things.
-
-It manages tasks (subprocesses), control timeouts, send signals and provides abilities to
-run long-running tasks like long image/video conversions and/or downloading.
-
-One engine is able to manage several different bots.
-
 ## What is it for
 
 This bot engine has proven itself in alerting, system monitoring and managing tasks.
 
 It also good for prototyping and fast proofing ideas.
+
+## How mature is it
+
+The engine is not perfect. Some error messages could be more informative.
+Somewhere you can face a lug of documentation and the need to appeal to source code.
+
+However, the engine has already proven itself in production and prototyping.
+
+It served bots for huge conferences, meetings and events. It has helped customers
+and provided control functionality for crew.
+
+The engine successfully drives several monitoring and alerting bots.
+
+It seems, API of this bot engines is quite stable and won't change dramatically in the near future.
+
+## Basic ideas
+
+All interactions `cnbot`-script are based on (i) `stdout` stream, (ii) arguments and (iii) environment variables.
+
+The engine recognize multimedia and images. It cares about concurrency and races.
+
+It also provides simple API for asynchronous messaging from `cron`s and such things.
+
+It manages tasks (subprocesses), control timeouts, send signals and provides abilities to
+run long-running tasks like long image/video conversions and/or downloading.
+
+One instance of engine is able to manage several different bots.
 
 ## Quick start
 
