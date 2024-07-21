@@ -555,11 +555,7 @@ You are already seeing the bot can be configured by configuration file and direc
 
 Environment has higher priority.
 
-All variables have the same structure:
-
-```sh
-tb_${BOTNAME}_${MEANING}
-```
+All variables have the same structure: `tb_{MEANING}` or `tb_{BOTNAME}_{MEANING}` if you need to start several bots.
 
 To configure bot `x` and `y`, you need to pass this variable to `cnbot`:
 
@@ -576,12 +572,6 @@ tb_y_ctrl_addr=:9998
 ```
 
 ### Arguments processing
-
-### Process management: concurrency, timeouts, signals, long-running tasks
-
-### Uploading and downloading example
-
-### Inline keyboard example
 
 ### Environment details
 
@@ -672,6 +662,18 @@ tg_update_id=500000000
 #### System variables
 
 ### Working directory
+
+### Process management: concurrency, timeouts, signals, long-running tasks
+
+### Uploading and downloading
+
+To upload something (image, video, audio, etc) you can just throw it stdout of your script.
+If you need to add capture or group multimedia files in one message, you need to call
+Telegram API. As usual, you don't need to care about secrets etc just use `cnbot` control handler as we did above.
+
+To download attachments (file, video, audio, photos, etc) you have to use `file_id` from message and
+just perform `GET` request to control handler with `file_id=...` in query string. See action `invert`
+in example above.
 
 ## Tips and tricks
 
