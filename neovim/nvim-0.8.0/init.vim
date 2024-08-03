@@ -641,6 +641,7 @@ autocmd FileType yaml   setlocal shiftwidth=2 tabstop=2 softtabstop=2 foldmethod
 autocmd FileType make   setlocal tabstop=8
 autocmd FileType tcl    setlocal shiftwidth=2 tabstop=8 softtabstop=2 foldmethod=indent
 autocmd FileType perl   setlocal noexpandtab
+autocmd FileType gitconfig setlocal noexpandtab
 
 " force json. Slightly ugly
 command! JSON :setlocal syntax=json foldmethod=syntax buftype=nofile | :echo ''
