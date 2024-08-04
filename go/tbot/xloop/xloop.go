@@ -176,8 +176,8 @@ var asciiSpaceAndUnsafe = [256]uint8{
 	'"': 1, '\\': 1, '`': 1, '$': 1, // systemd SHELL_NEED_ESCAPE
 	'*': 1, '?': 1, '[': 1, ']': 1, // systemd GLOB_CHARS
 	'\'': 1, '(': 1, ')': 1, '<': 1, '>': 1, '|': 1, '&': 1, ';': 1, '!': 1, // systemd SHELL_NEED_QUOTES
-	'/': 1, ':': 1, // to glue paths
-	'=': 1, '#': 1, '@': 1, // extra
+	'/': 1, ':': 1, // path separators
+	'=': 1, '#': 1, '@': 1, '+': 1, '-': 1, '.', // extra
 }
 
 func textToArgs(text string) []string { // TODO tests; move to package or file before?
