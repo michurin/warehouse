@@ -243,12 +243,12 @@ curl -qs https://github.githubassets.com/favicons/favicon.png | curl -qs http://
 
 ### Prepare playground
 
-Let's extend our `mybot.sh` like that:
+Let's extend our `mybot.sh` like that (it is literally [demo script](demo/demo_bot.sh) you can run by [docker compose](demo/compose.yaml)):
 
 ```sh
 #!/bin/bash
 
-LOG=log # /dev/null
+LOG=logs/log.log # /dev/null
 
 FROM="$tg_message_from_id"
 
@@ -441,12 +441,12 @@ You can use `help` command to see all available commands.'
 esac
 ```
 
-Let's add script for long-running tasks `mybot_long.sh`:
+Let's add script for long-running tasks `mybot_long.sh` (it's [demo script](demo/demo_bot_long.sh)):
 
 ```sh
 #!/bin/sh
 
-LOG=log # /dev/null
+LOG=logs/log_long.log # /dev/null
 
 FROM="$tg_x_to"
 

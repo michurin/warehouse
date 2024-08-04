@@ -60,7 +60,7 @@ case "$1" in
         for x in $tg_message_photo # finding the biggest image but ignoring too big ones
         do
             v=${x}_file_size
-            s=${!v}
+            s=${!v} # trick: getting variable name from variable; we need bash for it
             if test $s -gt 102400; then continue; fi # skipping too big files
             v=${x}_width
             w=${!v}
