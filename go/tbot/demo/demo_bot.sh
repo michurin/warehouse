@@ -108,6 +108,9 @@ case "$1" in
     edit)
         API "?to=$FROM&a=editing" -X RUN
         ;;
+    progress)
+        API "?to=$FROM&a=progress" -X RUN
+        ;;
     id)
         echo '%!PRE'
         id 2>&1
@@ -135,6 +138,7 @@ Known commands:
 - `menu` — scripted buttons
 - `run` — long-run example (long sequence of reactions)
 - `edit` — long-run example (editing)
+- `progress` — one more long-run example (editing)
 - `id` — check user who script runs from
 - `caps` — check current capabilities (`getpcaps $$`)
 - `hostname` — check hostname where script runs

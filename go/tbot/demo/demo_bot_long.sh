@@ -42,6 +42,31 @@ case "$1" in
             echo "cannot obtain message id"
         fi
         ;;
+    progress)
+        MESSAGE_ID="$(API_STDOUT sendMessage -F chat_id=$FROM -F text='Starting...' | jq .result.message_id)"
+        if test -n "$MESSAGE_ID"
+        then
+            for i in \
+                '[..........]' \
+                '[#.........]' \
+                '[##........]' \
+                '[###.......]' \
+                '[####......]' \
+                '[#####.....]' \
+                '[######....]' \
+                '[#######...]' \
+                '[########..]' \
+                '[#########.]'
+            do
+                sleep 1
+                API editMessageText -F chat_id=$FROM -F message_id="$MESSAGE_ID" -F text="\`${i}\` Doing..." -F parse_mode=Markdown
+            done
+            sleep 1
+            API editMessageText -F chat_id=$FROM -F message_id="$MESSAGE_ID" -F text='Done.'
+        else
+            echo "cannot obtain message id"
+        fi
+        ;;
     *)
         echo 'invalid mode'
         ;;
