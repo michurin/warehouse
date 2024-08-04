@@ -97,18 +97,7 @@ Now just start bot like this:
 cnbot config.env
 ```
 
-### Drive multiply bots
-
-It is possible to drive more than one bots at the same time. Just use different prefixes for variables:
-
-```sh
-tb_mybot_token='TOKEN'
-tb_mybot_script=/usr/bin/echo
-...
-tb_thenextbot_token='TOKEN'
-tb_thenextbot_script=/usr/bin/echo
-...
-```
+## Playing with random features
 
 ### Your first script (finding out your UserID)
 
@@ -257,7 +246,7 @@ curl -qs https://github.githubassets.com/favicons/favicon.png | curl -qs http://
 Let's extend our `mybot.sh` like that:
 
 ```sh
-#!/bin/sh
+#!/bin/bash
 
 LOG=log # /dev/null
 
@@ -319,7 +308,7 @@ case "$1" in
         for x in $tg_message_photo # finding the biggest image but ignoring too big ones
         do
             v=${x}_file_size
-            s=${!v}
+            s=${!v} # trick: getting variable name from variable; we need bash for it
             if test $s -gt 102400; then continue; fi # skipping too big files
             v=${x}_width
             w=${!v}
@@ -329,7 +318,7 @@ case "$1" in
         done
         if test -n "$fid"
         then
-            API_STDOUT '' -G --data-urlencode "file_id=$fid" -o - | magick - -flip -flop png:-
+            API_STDOUT '' -G --data-urlencode "file_id=$fid" -o - | mogrify -flip -flop -format png -
         else
             echo "attache not found (maybe it was skipped due to enormous size)"
         fi
@@ -565,7 +554,7 @@ All the rest commands we will consider further.
 
 ## Advanced topics
 
-### Configuration
+### Configuration details and driving multiple bots
 
 You are already seeing the bot can be configured by configuration file and directory by environment variable.
 
@@ -589,9 +578,19 @@ tb_y_ctrl_addr=:9998
 
 ### Arguments processing
 
+Bot engine runs your scripts with command line arguments. It can be useful for small bots.
+
+Arguments prepared from messages, captions and callback's data. Strings are cast to lower-case, cleaned of control characters and split by white spaces.
+
+For example the message `$Hello world!` will be represented as two arguments `hello` and `world`.
+
+Following characters will be removed from the arguments: ``!"#$&'()*+-./:;<=>?@[\]`|``.
+
 ### Environment details
 
 #### Turning telegram payload to environment variables
+
+Bot engine converts every [JSON-update](https://core.telegram.org/bots/api#update) to flat set of environment variables this way:
 
 ```json
 {
@@ -640,6 +639,8 @@ tb_y_ctrl_addr=:9998
 }
 ```
 
+turns to the following environment variables:
+
 ```ini
 tg_message_caption=Hi!
 tg_message_chat_first_name=Alexey
@@ -671,15 +672,41 @@ tg_update_id=500000000
 
 #### Build-in variables (`x`-variables)
 
+Engine provides the following additional variables:
+
 - `tg_x_build`
 - `tg_x_ctrl_addr`
-- `tg_x_to` (long-running)
+- `tg_x_to` (long-running scripts only)
 
 #### System variables
 
+> [!NOTE]
+> Beware. Bot engine does *NOT* convey its environment to child scripts.
+
+Bot engine does not transfer environment to child scripts. It is conscious decision cause it helps to
+make script's behavior more predictable and reproducible. Variables like `$PATH`, `$LANG`, `$LS_ALL` can
+change behavior of many commands and functions. It can lead to hard to debug behavior.
+
+If you need to have some environment variables, just set them in you script explicitly.
+
 ### Working directory
 
+Current working directory is directory, where the script is located in.
+
 ### Process management: concurrency, timeouts, signals, long-running tasks
+
+#### Ordinary tasks
+
+Bot engine generates all tasks of the same bot run strictly concurrently. It means you can use
+shared resources like files without any doubts. And your tasks have to finish in short time.
+
+Bot engine will send `SIGTERM` to task after 10 seconds, and `SIGKILL` after next 10 seconds.
+
+#### Long-running tasks
+
+Long-running tasks can be executed simultaneously though.
+
+They also have timeouts: 10 minutes.
 
 ### Uploading and downloading
 
