@@ -1,0 +1,39 @@
+name: chbot-echo-example
+services:
+  cnbot:
+    build:
+      context: ..
+      dockerfile_inline: |
+        # ----- builder ------
+        FROM golang:1.22 AS builder
+        WORKDIR /app
+        COPY . .
+        RUN go mod download && go mod verify && go build ./cmd/...
+        # ------- app --------
+        FROM debian:latest AS app
+        WORKDIR /app
+        COPY --from=builder /app/cnbot /app/cnbot
+        COPY --from=builder /app/demo/demo_bot.sh /app/demo_bot.sh
+        COPY --from=builder /app/demo/demo_bot_long.sh /app/demo_bot_long.sh
+        COPY --from=builder /app/demo/wrapper.sh /app/wrapper.sh
+        RUN \
+          apt update && \
+          apt-get install -y \
+            ca-certificates curl git \
+            libcap2-bin imagemagick jq \
+            vim less procps && \
+          groupadd -r cnbotgroup && \
+          useradd -r -g cnbotgroup cnbot && \
+          mkdir -p /app/logs && \
+          chown cnbot:cnbotgroup /app/logs && \
+          ln -s wrapper.sh demo_bot_debug.sh && \
+          ln -s wrapper.sh demo_bot_long_debug.sh
+        USER cnbot
+      target: app
+    hostname: chbothost
+    env_file:
+      - path: demo_bot.env
+      - path: local.env
+        required: false
+    working_dir: /app
+    command: ./cnbot
