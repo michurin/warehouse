@@ -103,7 +103,7 @@ case "$1" in
         ;;
     run)
         API "?to=$FROM&a=reactions&a=$tg_message_message_id" -X RUN
-        echo "I'll show you long run"
+        echo "Let me show you long run ☝️"
         ;;
     edit)
         API "?to=$FROM&a=editing" -X RUN
