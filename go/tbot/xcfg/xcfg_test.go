@@ -10,7 +10,7 @@ import (
 )
 
 func TestCfg(t *testing.T) {
-	cfg := xcfg.Cfg(context.Background(), []string{
+	cfg, tgOrigin := xcfg.Cfg(context.Background(), []string{
 		"",
 		"x",
 		"x=",
@@ -51,4 +51,5 @@ func TestCfg(t *testing.T) {
 			LongRunningScript: "worker.sh",
 		},
 	}, cfg)
+	assert.Equal(t, "https://api.telegram.org", tgOrigin)
 }

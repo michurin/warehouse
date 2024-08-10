@@ -26,6 +26,6 @@ func LoadConfigs(files ...string) (map[string]xcfg.Config, string, error) {
 		}
 		envs.Push(pairs)
 	}
-	cfg, tgApiOrigin := xcfg.Cfg(ctx, envs.CollectionStd())
-	return cfg, tgApiOrigin, nil
+	cfg, tgAPIOrigin := xcfg.Cfg(ctx, envs.CollectionStd())
+	return cfg, tgAPIOrigin, nil
 }

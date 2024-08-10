@@ -11,7 +11,7 @@ func ShowVersionInfo() {
 		fmt.Println("No build info")
 		return
 	}
-	fmt.Println("+++" + info.Main.Version)
+	fmt.Println(info.Main.Version)
 	fmt.Println(info.String())
 }
 

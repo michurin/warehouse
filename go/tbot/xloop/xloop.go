@@ -154,7 +154,7 @@ func processMessage(ctx context.Context, m any, command *xproc.Cmd) (*xbot.Reque
 	if err != nil {
 		return nil, err // already wrapped with context
 	}
-	req, err := xbot.RequestFromBinary(data, userID)
+	req, err := xbot.RequestFromBinary(data, userID) //nolint:contextcheck
 	if err != nil {
 		return nil, ctxlog.Errorfx(ctx, "invalid data: %w", err)
 	}

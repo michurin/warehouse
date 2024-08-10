@@ -97,7 +97,7 @@ func Handler(bot *xbot.Bot, cmd *xproc.Cmd, loggingPatch ctxlog.PatchAttrs) http
 					return
 				}
 				// TODO add `to` to log context
-				req, err = xbot.RequestFromBinary(body, to)
+				req, err = xbot.RequestFromBinary(body, to) //nolint:contextcheck
 				if err != nil {
 					xlog.L(ctx, err) // TODO response!
 					return

@@ -17,9 +17,9 @@ import (
 	"github.com/michurin/cnbot/xproc"
 )
 
-func bot(ctx context.Context, eg *errgroup.Group, cfg xcfg.Config, tgApiOrigin, build string) {
+func bot(ctx context.Context, eg *errgroup.Group, cfg xcfg.Config, tgAPIOrigin, build string) {
 	bot := &xbot.Bot{
-		APIOrigin: tgApiOrigin,
+		APIOrigin: tgAPIOrigin,
 		Token:     cfg.Token,
 		Client:    http.DefaultClient,
 	}
@@ -74,13 +74,13 @@ func bot(ctx context.Context, eg *errgroup.Group, cfg xcfg.Config, tgApiOrigin, 
 	})
 }
 
-func Application(rootCtx context.Context, bots map[string]xcfg.Config, tgApiOrigin, build string) error {
+func Application(rootCtx context.Context, bots map[string]xcfg.Config, tgAPIOrigin, build string) error {
 	if len(bots) == 0 {
 		return ctxlog.Errorfx(rootCtx, "there is no configuration")
 	}
 	eg, ctx := errgroup.WithContext(rootCtx)
 	for name, cfg := range bots {
-		bot(xlog.Bot(ctx, name), eg, cfg, tgApiOrigin, build)
+		bot(xlog.Bot(ctx, name), eg, cfg, tgAPIOrigin, build)
 	}
 	xlog.L(ctx, "Run. Build="+build)
 	return eg.Wait()

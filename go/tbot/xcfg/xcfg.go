@@ -32,7 +32,7 @@ type Config struct {
 }
 
 func Cfg(ctx context.Context, osEnviron []string) (map[string]Config, string) { //nolint:gocognit // slightly inefficient, however it runs only once
-	tgApiOrigin := "https://api.telegram.org"
+	tgAPIOrigin := "https://api.telegram.org"
 	x := map[string]map[string]string{}
 	for _, pair := range osEnviron {
 		ek, ev, ok := strings.Cut(pair, "=")
@@ -46,7 +46,7 @@ func Cfg(ctx context.Context, osEnviron []string) (map[string]Config, string) { 
 			continue
 		}
 		if ek == varPrefix+"api_origin" {
-			tgApiOrigin = ev
+			tgAPIOrigin = ev
 			continue
 		}
 		if !strings.HasPrefix(ek, varPrefix) {
@@ -98,5 +98,5 @@ func Cfg(ctx context.Context, osEnviron []string) (map[string]Config, string) { 
 		}
 		res[k] = c
 	}
-	return res, tgApiOrigin
+	return res, tgAPIOrigin
 }

@@ -78,6 +78,7 @@ func RequestFromBinary(data []byte, userID int64) (*Request, error) {
 	case strings.HasPrefix(contentType, "audio/"): // it seems application/ogg is not fully supported; it requires OPUS encoding
 		return reqMultipart("sendAudio", userID, "audio", data, "audio", contentType)
 	default: // TODO hmm... application/* and font/*
+		xlog.L(context.TODO(), fmt.Sprintf("Fallback to multipart from %q", contentType)) // TODO no context here
 		return reqMultipart("sendDocument", userID, "document", data, "document", contentType)
 	}
 }
@@ -162,7 +163,7 @@ type Bot struct {
 }
 
 func (b *Bot) API(ctx context.Context, request *Request) ([]byte, error) {
-	ctx = xlog.Api(ctx, request.Method)
+	ctx = xlog.API(ctx, request.Method, request.ContentType)
 	err := error(nil)
 	req := (*http.Request)(nil)
 	resp := (*http.Response)(nil)
@@ -197,7 +198,7 @@ func (b *Bot) API(ctx context.Context, request *Request) ([]byte, error) {
 }
 
 func (b *Bot) Download(ctx context.Context, path string, stream io.Writer) error {
-	ctx = xlog.Api(ctx, "x-download")
+	ctx = xlog.API(ctx, "x-download", "x")
 	err := error(nil)
 	defer func() {
 		xlog.L(xlog.Path(ctx, path), err)

@@ -18,8 +18,8 @@ func Comp(ctx context.Context, name string) context.Context {
 	return ctxlog.Add(ctx, slog.String("comp", name))
 }
 
-func Api(ctx context.Context, name string) context.Context {
-	return ctxlog.Add(ctx, slog.String("api", name))
+func API(ctx context.Context, method, contentType string) context.Context {
+	return ctxlog.Add(ctx, slog.String("api", method), slog.String("content_type", contentType))
 }
 
 func Status(ctx context.Context, status int) context.Context {
