@@ -28,10 +28,19 @@ API_STDOUT() {
 case "$1" in
     debug)
         echo '%!PRE'
-        echo "Args: $@"
-        echo "Environment:"
+        echo ''
+        echo "📌 Arguments:"
+        i=0
+        for a in "$@"
+        do
+            i=$(($i+1))
+            echo "$i: $a"
+        done
+        echo ''
+        echo "📌 Environment:"
         env | grep tg_ | sort
-        echo "FROM=$FROM"
+        echo ''
+        echo "📌 Configuration:"
         echo "LOG=$LOG"
         ;;
     about)
@@ -41,7 +50,7 @@ case "$1" in
     two)
         API "?to=$FROM" -d 'OK ONE!'
         API "?to=$FROM" -d 'OK TWO!!'
-        echo 'OK NATIVE'
+        echo 'OK (native response)'
         ;;
     buttons)
         bGoogle='{"text":"Google","url":"https://www.google.com/"}'
@@ -89,12 +98,12 @@ case "$1" in
             -F longitude='-3.712184'
         ;;
     menu)
-        mShowEnv='{"text":"show environment","callback_data":"menu-debug"}'
-        mShowNotification='{"text":"show notification","callback_data":"menu-notification"}'
-        mShowAlert='{"text":"show alert","callback_data":"menu-alert"}'
-        mLikeIt='{"text":"like it","callback_data":"menu-like"}'
-        mUnlikeIt='{"text":"unlike it","callback_data":"menu-unlike"}'
-        mDelete='{"text":"delete this message","callback_data":"menu-delete"}'
+        mShowEnv='{"text":"show environment","callback_data":"ment_debug"}'
+        mShowNotification='{"text":"show notification","callback_data":"ment_notification"}'
+        mShowAlert='{"text":"show alert","callback_data":"ment_alert"}'
+        mLikeIt='{"text":"like it","callback_data":"ment_like"}'
+        mUnlikeIt='{"text":"unlike it","callback_data":"ment_unlike"}'
+        mDelete='{"text":"delete this message","callback_data":"ment_delete"}'
         mLayout="[[$mShowEnv],[$mShowAlert,$mShowNotification],[$mLikeIt,$mUnlikeIt],[$mDelete]]"
         API sendMessage \
             -F chat_id=$FROM \
@@ -129,7 +138,7 @@ Known commands:
 
 - `debug` — show args, environment and vars
 - `about` — reslut of getMe
-- `two` — one request, two responses
+- `two` — one request, two additional responses
 - `buttons` — message with buttons
 - `image` — show image
 - `invert` (as capture to image) — returns flipped flopped image
@@ -160,33 +169,33 @@ You can use `help` command to see all available commands.'
         if test -n "$tg_callback_query_data"
         then
             case "$1" in
-                menu-debug)
+                ment_debug)
                     API answerCallbackQuery -F callback_query_id="$tg_callback_query_id"
                     echo '%!PRE'
                     echo "Environment:"
                     env | grep tg_ | sort
                     ;;
-                menu-like)
+                ment_like)
                     API answerCallbackQuery -F callback_query_id="$tg_callback_query_id" -F "text=Like it"
                     API setMessageReaction -F chat_id=$tg_callback_query_message_chat_id \
                         -F message_id=$tg_callback_query_message_message_id \
                         -F reaction='[{"type":"emoji","emoji":"👾"}]'
                     ;;
-                menu-unlike)
+                ment_unlike)
                     API answerCallbackQuery -F callback_query_id="$tg_callback_query_id" -F "text=Don't like it"
                     API setMessageReaction -F chat_id=$tg_callback_query_message_chat_id \
                         -F message_id=$tg_callback_query_message_message_id \
                         -F reaction='[]'
                     ;;
-                menu-delete)
+                ment_delete)
                     API answerCallbackQuery -F callback_query_id="$tg_callback_query_id"
                     API deleteMessage -F chat_id=$tg_callback_query_message_chat_id \
                         -F message_id=$tg_callback_query_message_message_id
                     ;;
-                menu-notification)
+                ment_notification)
                     API answerCallbackQuery -F callback_query_id="$tg_callback_query_id" -F text="Notification text (200 chars maximum)"
                     ;;
-                menu-alert)
+                ment_alert)
                     API answerCallbackQuery -F callback_query_id="$tg_callback_query_id" -F text="Notification text shown as alert" -F show_alert=true
                     ;;
             esac
