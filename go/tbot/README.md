@@ -825,14 +825,38 @@ echo "$code" >"${base}status${ext}"
 exit "$code"
 ```
 
-## Installation
+## System administration topics
 
-## Running
+### Installation
+
+```sh
+./build.sh
+sudo install ./cnbot /usr/bin
+```
+
+### Running
 
 The process itself does not try to be immortal. It dies on fatal issues that can not be solved by process itself. Like network problems.
 It is believed that the process will be restart by `systemd` or stuff like that according the proper way with timeouts, logging, notifications, alerting.
 
-TODO: example of systemd file
+Systemd unit file example (`/etc/systemd/system/cnbot.service`):
+
+```ini
+[Unit]
+Description=Telegram bot (cnbot) service
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+Restart=always
+RestartSec=1
+User=nobody
+ExecStart=/usr/bin/cnbot /etc/cnbot-config.env
+
+[Install]
+WantedBy=multi-user.target
+```
 
 ## Known issues
 
@@ -842,7 +866,7 @@ TODO: example of systemd file
 - It hasn't been tested on MS Windows and FreeBSD.
 - The engine doesn't support persistent storage. You have to save state if you need by yourself.
 
-## Develop
+## Developing and contributing
 
 ### Main ideas
 
