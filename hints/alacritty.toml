@@ -49,6 +49,7 @@ style = "Light"
 
 [selection]
 semantic_escape_chars = ",│`|\"' ()[]{}<>\t▹·"
+save_to_clipboard = true
 
 [window]
 startup_mode = "SimpleFullscreen" # MacOS only, use "Fullscreen" for others
