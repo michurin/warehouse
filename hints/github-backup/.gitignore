@@ -1,0 +1,3 @@
+repos/*
+generated_*
+*.tar.xz

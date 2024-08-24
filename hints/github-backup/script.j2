@@ -1,0 +1,19 @@
+#!/bin/sh
+
+set -e
+
+mkdir -p repos
+
+{% for r in repos -%}
+# ----- {{ r.name }}
+a='{{ r.name }}-{{ r.pushed_at }}{% if r.fork %}-fork{% endif %}.tar.xz'
+if test -e "$a"
+then
+    echo "$a already exists"
+else
+    cd repos
+    git clone --mirror {{ r.url }} && tar -c -f - '{{ r.name }}.git' | xz -9 -c - > "../$a"
+    cd ..
+fi
+{% endfor -%}
+echo "OK DONE"
