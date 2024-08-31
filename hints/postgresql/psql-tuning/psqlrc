@@ -4,7 +4,8 @@
 \set COMP_KEYWORD_CASE lower
 \set VERBOSITY verbose
 \set HISTCONTROL ignoredups
-\set PROMPT1 '%`basename $(pwd)` [%M:%> %~]# '
+-- \set PROMPT1 '[%M:%> %~]# '
+\set PROMPT1 '[%m]# '
 \set PROMPT2 ''
 \set paste
 -- \set FETCH_COUNT 1000
@@ -12,7 +13,8 @@
 
 \pset pager always
 \setenv PAGER '~/bin/psql-color.pl'
-\pset null '(null)'
+-- \setenv PAGER 'pspg -X -b'
+-- \pset null '(null)'
 \pset null '¤'
 
 \x auto
