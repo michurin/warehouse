@@ -23,155 +23,6 @@ call plug#begin() " https://github.com/junegunn/vim-plug +PlugInstall
   Plug 'codota/tabnine-nvim', { 'do': './dl_binaries.sh' }
 call plug#end()
 
-lua <<TAB9
-require('tabnine').setup({
-  disable_auto_comment=false, -- true,
-  accept_keymap="<Tab>",
-  dismiss_keymap = "<C-]>",
-  debounce_ms = 100, -- 800,
-  suggestion_color = {gui = "#80ff80", cterm = 120},
-  codelens_color = {gui = "#80ff80", cterm = 120},
-  codelens_enabled = true,
-  exclude_filetypes = {"TelescopePrompt", "NvimTree"},
-  log_file_path = nil, -- absolute path to Tabnine log file
-})
-TAB9
-
-" HACKS
-colorscheme vim " LEGACY MODE // before any highlight
-
-lua <<DAP
-require('dap-go').setup()
-require('dapui').setup({
-  layouts = {
-    {
-      elements = {'repl', 'scopes'},
-      size = 0.25,
-      position = 'bottom',
-    }
-  },
-  controls = {
-    element = "repl",
-    enabled = false,
-    icons = {pause="Pause",play="Play",step_into="Info",step_over="Over",step_out="Out",step_back="Back",run_last="Run",terminate="Kill"},
-  }
-})
-DAP
-nnoremap <silent> <space>dp <Cmd>lua require'dap'.toggle_breakpoint()<CR>
-nnoremap <silent> <space>dP <Cmd>lua require'dap'.set_breakpoint(vim.fn.input('Breakpoint condition: '))<CR>
-nnoremap <silent> <space>dt <Cmd>lua require'dap-go'.debug_test()<CR>
-nnoremap <silent> <space>dc <Cmd>lua require'dap'.continue()<CR>
-nnoremap <silent> <space>dn <Cmd>lua require'dap'.step_over()<CR>
-nnoremap <silent> <space>di <Cmd>lua require'dap'.step_into()<CR>
-nnoremap <silent> <space>do <Cmd>lua require'dap'.step_out()<CR>
-nnoremap <silent> <space>dv <Cmd>lua require'dapui'.float_element('scopes', {enter=1})<CR>
-nnoremap <silent> <space>dr <Cmd>lua require'dapui'.float_element('repl', {enter=1})<CR>
-nnoremap <silent> <space>du <Cmd>lua require'dapui'.toggle()<CR>
-nnoremap <silent> <space>sc <Cmd>lua require'telescope'.extensions.dap.commands()<CR>
-nnoremap <silent> <space>sC <Cmd>lua require'telescope'.extensions.dap.configurations()<CR>
-nnoremap <silent> <space>sp <Cmd>lua require'telescope'.extensions.dap.list_breakpoints({show_line=false})<CR>
-nnoremap <silent> <space>sv <Cmd>lua require'telescope'.extensions.dap.variables()<CR>
-nnoremap <silent> <space>sf <Cmd>lua require'telescope'.extensions.dap.frames()<CR>
-
-lua <<TELESCOPE_HELPERS
-function ft_args()
-  local bufnr = vim.api.nvim_get_current_buf()
-  local filetype = vim.bo[bufnr].filetype
-  return ({ -- rg options
-    ["go"]={
-      "-g", "*.go",
-      "-g", "!vendor",
-      "-g", "!mock",
-      "-g", "!mocks",
-      "-g", "!.git",
-      "-g", "!*_test.go",
-    },
-    ["js"]={"-g", "*.js"},
-  })[filetype]
-end
-function ft_alt_args()
-  local bufnr = vim.api.nvim_get_current_buf()
-  local filetype = vim.bo[bufnr].filetype
-  return ({ -- rg options
-    ["go"]={
-      "-g", "*_test.go",
-      "-g", "!vendor",
-      "-g", "!mock",
-      "-g", "!mocks",
-      "-g", "!.git",
-    },
-  })[filetype]
-end
-TELESCOPE_HELPERS
-
-" std
-nnoremap <space>ff <cmd>lua require('telescope.builtin').find_files()<cr>
-nnoremap <space>fg <cmd>lua require('telescope.builtin').live_grep()<cr>
-nnoremap <space>fb <cmd>lua require('telescope.builtin').buffers()<cr>
-nnoremap <space>fh <cmd>lua require('telescope.builtin').help_tags()<cr>
-" like /
-nnoremap <space>f/ <cmd>lua require('telescope.builtin').current_buffer_fuzzy_find()<cr>
-" z=
-nnoremap z= <cmd>lua require('telescope.builtin').spell_suggest()<cr>
-" m — method, d — diagnostics, l — language, t — tests, c — relative to current buffer dir
-nnoremap <space>fm <cmd>lua require('telescope.builtin').grep_string()<cr>
-nnoremap <space>fd <cmd>lua require('telescope.builtin').diagnostics()<cr>
-nnoremap <space>fl <cmd>lua require('telescope.builtin').live_grep({additional_args=ft_args, wrap_results=true})<cr>
-nnoremap <space>ft <cmd>lua require('telescope.builtin').live_grep({additional_args=ft_alt_args, wrap_results=true})<cr>
-nnoremap <space>fc <cmd>lua require('telescope.builtin').live_grep({["search_dirs"]={vim.fn.expand("%:p")}, wrap_results=true})<cr>
-" resume
-nnoremap <space>fr <cmd>lua require('telescope.builtin').resume()<cr>
-" std LSP
-nnoremap gr <cmd>lua require('telescope.builtin').lsp_references({show_line=false})<cr>
-nnoremap gi <cmd>lua require('telescope.builtin').lsp_implementations({show_line=false})<cr>
-nnoremap gd <cmd>lua require('telescope.builtin').lsp_definitions({show_line=false})<cr>
-nnoremap gs <cmd>lua require('telescope.builtin').lsp_definitions({show_line=false, jump_type='vsplit'})<cr> " nnoremap gs <cmd>vsplit \| lua vim.lsp.buf.definition()<cr>
-nnoremap ga <cmd>lua require('telescope.builtin').lsp_definitions({show_line=false, jump_type='tab'})<cr>
-nnoremap gy <cmd>lua require('telescope.builtin').lsp_type_definitions({show_line=false})<cr>
-" treesitter
-nnoremap <space>fs <cmd>lua require('telescope.builtin').treesitter()<cr>
-" all
-nnoremap <space>fa <cmd>lua require('telescope.builtin').builtin()<cr>
-
-lua <<TELESCOPE_SETTINGS
-local action_layout = require("telescope.actions.layout")
-require('telescope').setup{
-  defaults = {
-    layout_strategy = 'vertical',
-    layout_config = {
-      height = 0.9,
-      width = 0.9,
-      preview_cutoff = 3,
-    },
-    mappings = {
---      n = {
---        ["<C-t>"] = action_layout.toggle_preview,
---      },
---      i = {
---        ["<C-t>"] = action_layout.toggle_preview,
---      },
-    },
-  },
-  pickers = {
-    buffers = {
-      show_all_buffers = true,
-      sort_lastused = true,
---      theme = "dropdown",
---      previewer = false,
-      mappings = {
-        i = {
-          ["<c-e>"] = "delete_buffer",
-        }
-      }
-    },
-  },
-}
-require('telescope').load_extension('dap')
-TELESCOPE_SETTINGS
-
-highlight TelescopeNormal ctermfg=7 guifg=#c0c0c0
-highlight TelescopeMatching cterm=none ctermbg=23 ctermfg=none gui=none guibg=#005f5f guifg=none
-
 if filereadable(getcwd() . "/.nogofumpt") " Oh, too hackish. vim.lsp.buf.list_workspace_folders() or util.root_pattern?
   let g:nogofumpt_tweak = 1
 endif
@@ -275,7 +126,7 @@ local on_attach = function(client, bufnr)
   buf_set_keymap('n', '<space>e', '<cmd>lua vim.diagnostic.open_float({source="if_many"})<CR>', opts)
 end
 
-local servers = {'gopls', 'intelephense', 'pyright', 'tsserver', 'ccls'}
+local servers = {'gopls', 'intelephense', 'pyright', 'ts_ls', 'ccls', 'lua_ls'}
 local capabilities = require('cmp_nvim_lsp').default_capabilities(vim.lsp.protocol.make_client_capabilities())
 for _, lsp in pairs(servers) do
   require('lspconfig')[lsp].setup {
@@ -306,20 +157,17 @@ for _, lsp in pairs(servers) do
           enabled = true
         }
       },
+      Lua = {
+        diagnostics = {
+          globals = {'vim'},
+        }
+      },
     },
   }
 end
 LSP_AND_COMPLETION_SETTINTS
 
 set completeopt=menu,menuone,noselect
-
-highlight Pmenu ctermbg=234 ctermfg=153 guibg=#1c1c1c guifg=#afd7ff
-highlight PmenuSel ctermbg=240 ctermfg=153 guibg=#585858 guifg=#afd7ff
-
-highlight LspDiagnosticsDefaultHint ctermbg=234 ctermfg=64 guibg=#1c1c1c guifg=#5f8700
-highlight LspDiagnosticsDefaultInformation ctermbg=234 ctermfg=31 guibg=#1c1c1c guifg=#0087af
-highlight LspDiagnosticsDefaultWarning ctermbg=234 ctermfg=137 guibg=#1c1c1c guifg=#af875f
-highlight LspDiagnosticsDefaultError ctermbg=234 ctermfg=124 guibg=#1c1c1c guifg=#af0000
 
 lua <<TREESITTER_CONTEXT
 require'treesitter-context'.setup{
@@ -338,8 +186,6 @@ require'treesitter-context'.setup{
   },
 }
 TREESITTER_CONTEXT
-highlight TreesitterContext ctermbg=238 guibg=#444444
-highlight TreesitterContextLineNumber ctermbg=238 ctermfg=200 guibg=#444444 guifg=#ff00d7
 
 lua <<TREESITTER_SETTINGS
 require'nvim-treesitter.configs'.setup {
@@ -418,15 +264,6 @@ require'nvim-treesitter.configs'.setup {
 }
 TREESITTER_SETTINGS
 
-" Telescope
-" https://github.com/nvim-telescope/telescope.nvim
-" https://github.com/nvim-telescope/telescope.nvim/wiki/Configuration-Recipes
-" PLS
-" - npm config set prefix "${HOME}/.npm-packages"
-" - npm install -g typescript typescript-language-server
-" Completion
-" https://github.com/hrsh7th/nvim-cmp
-
 " VERY COMMON SETTINGS
 
 set wildmode=list:full,longest
@@ -458,26 +295,6 @@ set isfname-=# " TODO: do it for YAML only?
 
 set guicursor=n-c-sm:block,i-ci-ve:ver25,r-cr-o-v:hor20
 
-highlight Whitespace cterm=none ctermbg=none ctermfg=DarkGray gui=none guibg=none guifg=#555555 term=none
-highlight NonText cterm=none ctermbg=none ctermfg=DarkGray gui=none guibg=none guifg=#555555 term=none
-highlight EndOfBuffer cterm=none ctermbg=none ctermfg=DarkGray gui=none guibg=none guifg=DarkGray term=none
-highlight LineNr ctermfg=grey guifg=grey
-highlight StatusLineNC cterm=none ctermbg=238 ctermfg=0 gui=none guibg=#444444 guifg=#000000
-highlight StatusLine cterm=none ctermbg=238 ctermfg=15 gui=none guibg=#444444 guifg=#ffffff
-highlight VertSplit cterm=none ctermbg=none ctermfg=238 gui=none guibg=none guifg=#444444
-highlight TabLine cterm=none ctermbg=238 ctermfg=0 gui=none guibg=#444444 guifg=#000000
-highlight TabLineSel cterm=bold ctermbg=238 ctermfg=15 gui=bold guibg=#444444 guifg=#ffffff
-highlight TabLineFill cterm=none ctermbg=238 gui=none guibg=#444444
-highlight CursorLine cterm=none ctermbg=242 gui=none guibg=#6c6c6c
-highlight CursorLineNr cterm=none ctermbg=242 gui=none guibg=#6c6c6c
-highlight CursorColumn cterm=none ctermbg=242 gui=none guibg=#6c6c6c
-highlight Normal cterm=none ctermbg=none ctermfg=none gui=none guibg=none guifg=none
-highlight NormalFloat cterm=none ctermbg=none ctermfg=none gui=none guibg=none guifg=none
-highlight FloatBorder cterm=none ctermbg=none ctermfg=DarkGray gui=none guibg=none guifg=DarkGray
-highlight Search cterm=none ctermbg=23 ctermfg=none gui=none guibg=#005f5f guifg=none
-highlight IncSearch cterm=bold ctermbg=58 ctermfg=none gui=bold guibg=#5f5f00 guifg=none
-highlight Todo cterm=none ctermfg=142 ctermbg=58 " ctermfg=0 ctermbg=236
-
 let g:netrw_winsize = 30
 let g:netrw_banner = 0
 let g:netrw_keepdir = 0
@@ -500,9 +317,6 @@ endfunction
 
 nnoremap <space>dd :call ToggleNetrw()<CR>
 
-autocmd TextYankPost * lua vim.highlight.on_yank {higroup="hlTextYankPost", timeout=400}
-highlight link hlTextYankPost Visual
-
 nnoremap <silent> ]c :cnext<CR>
 nnoremap <silent> [c :cprevious<CR>
 nnoremap <silent> ]l :lnext<CR>
@@ -514,14 +328,9 @@ autocmd FileType qf setlocal nobuflisted
 
 " SPELLING
 
-set spell spelllang=en_us,ru_yo spelloptions=camel spellcapcheck=
+set spell spelllang=en_us,ru_yo spelloptions=camel " spellcapcheck=
 
 syntax match UrlNoSpell 'https\?:\/\/[^[:space:]]\+' contains=@NoSpell
-
-highlight SpellBad cterm=underline ctermbg=none ctermfg=none gui=underline guibg=none guifg=none term=underline
-highlight SpellCap cterm=underline ctermbg=none ctermfg=none gui=underline guibg=none guifg=none term=underline
-highlight SpellRare cterm=underline ctermbg=none ctermfg=none gui=underline guibg=none guifg=none term=underline
-highlight SpellLocal cterm=underline ctermbg=none ctermfg=none gui=underline guibg=none guifg=none term=underline
 
 " FOLDING
 
@@ -533,28 +342,6 @@ function! XFoldText()
     return '⟫ ' . line_text . ' ' . repeat('╶', fillcharcount) . ' (' . folded_line_num . ')'
 endfunction
 set foldtext=XFoldText()
-highlight Folded ctermbg=235 ctermfg=155 guibg=#262626 guifg=#afff5f
-" it is useful modeline: vi:fdm=marker:foldlevel=0
-
-" Markdown and HTML
-
-highlight htmlH1 cterm=none ctermbg=236 ctermfg=231 gui=none guibg=#303030 guifg=#ffffff
-highlight markdownH1Delimiter cterm=none ctermbg=236 ctermfg=231 gui=none guibg=#303030 guifg=#ffffff
-highlight htmlH2 cterm=none ctermbg=236 ctermfg=226 gui=none guibg=#303030 guifg=#ffff00
-highlight markdownH2Delimiter cterm=none ctermbg=236 ctermfg=226 gui=none guibg=#303030 guifg=#ffff00
-highlight htmlH3 cterm=none ctermbg=236 ctermfg=82 gui=none guibg=#303030 guifg=#5fff00
-highlight markdownH3Delimiter cterm=none ctermbg=236 ctermfg=82 gui=none guibg=#303030 guifg=#5fff00
-highlight htmlH4 cterm=none ctermbg=236 ctermfg=45 gui=none guibg=#303030 guifg=#00d7ff
-highlight markdownH4Delimiter cterm=none ctermbg=236 ctermfg=45 gui=none guibg=#303030 guifg=#00d7ff
-highlight htmlH5 cterm=none ctermbg=236 ctermfg=213 gui=none guibg=#303030 guifg=#ff87ff
-highlight markdownH5Delimiter cterm=none ctermbg=236 ctermfg=213 gui=none guibg=#303030 guifg=#ff87ff
-highlight htmlH6 cterm=none ctermbg=236 ctermfg=231 gui=none guibg=#303030 guifg=#ffffff
-highlight markdownH6Delimiter cterm=none ctermbg=236 ctermfg=231 gui=none guibg=#303030 guifg=#ffffff
-highlight htmlLink cterm=none ctermbg=none ctermfg=81 gui=none guibg=none guifg=#5fd7ff
-highlight markdownCodeBlock cterm=none ctermbg=none ctermfg=73 gui=none guibg=none guifg=#5fafaf
-highlight markdownStrike cterm=strikethrough ctermbg=none ctermfg=66 gui=strikethrough guibg=none guifg=#5f8787
-highlight markdownItalic cterm=italic ctermbg=none ctermfg=231 gui=italic guibg=none guifg=#ffffff
-highlight def link markdownCode Delimiter
 
 " GO STUFF
 
@@ -590,10 +377,6 @@ command! GL call s:GoLint()
 " alias pbcopy='xsel --clipboard --input'
 " alias pbpaste='xsel --clipboard --output'
 command! GP :lgetexpr system("pbpaste | sed -n '/^[[:space:]]/ {s/^[[:space:]]*//; s/\\(:[0-9][0-9]*\\)/\\1:>/; p;}'") | lopen " Uh. Ugly
-
-" https://github.com/nvim-treesitter/nvim-treesitter-textobjects
-" map <silent> [[ :noh<CR>?^func\><CR>:let @/=''<CR>:set hls<CR>
-" map <silent> ]] :noh<CR>/^func\><CR>:let @/=''<CR>:set hls<CR>
 
 " https://github.com/neovim/nvim-lspconfig/issues/115#issuecomment-1128949874
 lua <<EOF
@@ -678,4 +461,8 @@ set langmap=ФИСВУАПРШОЛДЬТЩЗЙКЫЕГМЦЧНЯ;ABCDEFGHIJKLMNO
 
 " Execute shell commands
 
-lua require'runsh'
+lua require('my.runsh')
+lua require('my.colors')
+lua require('my.tabnine')
+lua require('my.telescope')
+lua require('my.dap')
