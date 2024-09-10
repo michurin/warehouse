@@ -1,6 +1,6 @@
-#!/bin/sh
+#!/bin/bash
 
-set -o pipefail
+set -o pipefail # bash'ism
 
 clr0="`tput sgr0`"
 clrB="`tput bold`"
