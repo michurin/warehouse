@@ -325,6 +325,7 @@ func updateMikrotik() {
 		"7e65b7dda61d": "A12",
 		"8c8590803920": "Mac",
 		"9a991b7f913e": "SamsungAvito",
+		"2eaab6de2768": "iPhoneAvito",
 		"a44519790492": "8T",
 		"a44519e332bd": "8A",
 		"d86c02aeff48": "Ok",
