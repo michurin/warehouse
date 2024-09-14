@@ -1,0 +1,4 @@
+#!/bin/sh
+whoami
+ifconfig -a 2>&1 | perl -ne 'if (s/.*inet\s(\S+)\s.*/$1/) {print}'
+sshd -D -o IPQoS=none
