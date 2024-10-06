@@ -9,18 +9,22 @@ test -e ~/.bashrc.local && . ~/.bashrc.local
 
 [[ $DISPLAY ]] && shopt -s checkwinsize
 
-PS1='[\[\033[1;32m\]am\[\033[0m\] \W]\$ '
+c=32
+[[ $USER == root ]] && c='31;1'
+export PS1="\[\e[${c}m\][\u@\h${WINDOW:+:}\[\e[33m\]${WINDOW}\[\e[${c}m\] \W]\[\e[1m\]\\$\[\e[0m\] "
+unset c
 PS2='\[\e[32m\]>\[\e[0m\] '
 
 shopt -s histappend
 shopt -s promptvars
+shopt -s checkwinsize
+
 HISTCONTROL='ignoreboth'
 HISTSIZE='1000'
 HISTFILESIZE='20000'
 
-p="$PATH"
-q="$HOME/bin:$HOME/go/bin"
-export PATH="$q:$p"
+[[ -d $HOME/go/bin ]] && export PATH="$HOME/go/bin:$PATH"
+[[ -d $HOME/bin ]] && export PATH="$HOME/bin:$PATH"
 
 locale='C' # C.UTF-8; locale -a
 locale_ru="${locale_ru:-ru_RU.utf8}"
@@ -35,9 +39,12 @@ export LC_NUMERIC="$locale"
 export LC_PAPER="$locale"
 export LC_TELEPHONE="$locale"
 export LC_TIME="$locale"
+unset locale
+unset locale_ru
 
 export PYTHONIOENCODING='utf-8'
 export PYTHONDONTWRITEBYTECODE='1'
+export PYTHONSTARTUP='/etc/pythonstartup.py'
 
 export EDITOR='/usr/local/bin/nvim'
 export VIEWER='/usr/local/bin/nvim'
@@ -52,6 +59,7 @@ alias grep='grep --color=always'
 alias ls='ls -G'
 alias vim='nvim'
 alias vimdiff='nvim -d'
+alias tm='tmux new -AsMain'
 
 for i in /usr/share/fzf/ /usr/local/Cellar/fzf/0.25.0/shell/
 do
