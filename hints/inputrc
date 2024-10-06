@@ -1,4 +1,15 @@
-#  Delete
+set editing-mode vi
+set emacs-mode-string ""
+set show-mode-in-prompt on
+set vi-cmd-mode-string "\1\e]12;#ff0000\a\e[4 q\2"
+set vi-ins-mode-string "\1\e]12;#cccccc\a\e[2 q\2"
+
+set bell-style visible
+
+set show-all-if-ambiguous on
+set completion-ignore-case on
+
+# Delete
 #"\e[3~" delete-char
 # Shift-[=>][<=]
 "\e[1;2C" forward-word
@@ -6,9 +17,27 @@
 # Shift-[Up][Down]
 "\e[1;2A" history-search-backward
 "\e[1;2B" history-search-forward
+# Ctrl-[Up][Down]
+"\e[1;5A" previous-screen-line
+"\e[1;5B" next-screen-line
 # Home, End in rxvt
 #"\e[7~" beginning-of-line
 #"\e[8~" end-of-line
-# in Mac Shift-Option-[=>][<=]
+# on Mac Shift-Option-[=>][<=]
 "\e[1;10D" beginning-of-line
 "\e[1;10C" end-of-line
+C-l: clear-screen
+#C-e: dump-variables 1
+
+# Цвет файла в зависимости от типа
+# Может вызвать мерцание текста в некоторых терминалах (например, xterm)
+# export LS_COLORS='ex=92'
+set colored-stats on
+# Добавление символа для обозначения типа
+set visible-stats on
+# Пометить каталоги-ссылки
+set mark-symlinked-directories on
+# Цветовое выделение общего префикса
+set colored-completion-prefix on
+# Цветовое выделение общего префикса и завершение с помощью меню
+set menu-complete-display-prefix on
