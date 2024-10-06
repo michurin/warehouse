@@ -32,10 +32,6 @@ set fdm=expr
 
 --]]
 
-function check_stop_line(r)
-  local ln = vim.api.nvim_buf_get_lines(0, r-1, r, false)[1]
-  return not ln or ln == "" -- or string.sub(ln, 1, 1) == '#' or string.sub(ln, 1, 2) == '--' or string.sub(ln, 1, 3) == '{{{'
-end
 
 --[[
 vim.keymap.set('v', '<space>www', function()
@@ -49,6 +45,10 @@ end)
 ]]
 
 vim.keymap.set('n', '<space>www', function()
+  local check_stop_line = function(r)
+    local ln = vim.api.nvim_buf_get_lines(0, r-1, r, false)[1]
+    return not ln or ln == "" -- or string.sub(ln, 1, 1) == '#' or string.sub(ln, 1, 2) == '--' or string.sub(ln, 1, 3) == '{{{'
+  end
   local pos = vim.api.nvim_win_get_cursor(0)
   local ri = pos[1]
   local rj = pos[1]
@@ -85,7 +85,7 @@ vim.keymap.set('n', '<space>www', function()
   local opts = {buffer=buf}
 
   vim.keymap.set('n', '<space>www', function() vim.api.nvim_win_hide(win) end, opts) -- reset www
-  vim.keymap.set('n', 'q', function() vim.api.nvim_win_hide(win) end, opts)
+  vim.keymap.set('n', 'q',          function() vim.api.nvim_win_hide(win) end, opts)
   vim.keymap.set('n', '<esc><esc>', function() vim.api.nvim_win_hide(win) end, opts)
 
   vim.keymap.set('n', 'w', function() vim.api.nvim_win_set_option(0, "wrap", not vim.api.nvim_win_get_option(0, 'wrap')) end, opts)
