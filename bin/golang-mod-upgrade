@@ -1,0 +1,3 @@
+#!/bin/sh
+
+go list -f '{{if not (or .Main .Indirect)}}go get {{.Path}}@latest{{end}}' -m all | sh -x
