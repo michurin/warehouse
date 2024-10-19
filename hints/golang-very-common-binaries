@@ -1,27 +1,39 @@
-go install github.com/golang/mock/mockgen@latest
-go install github.com/vektra/mockery/v2@latest
-go install github.com/gojuno/minimock/v3/cmd/minimock@latest
+#!/bin/bash
 
-go install golang.org/x/tools/cmd/...@latest
-go install golang.org/x/tools/gopls@latest
-
-# go install golang.org/x/tools/cmd/present@latest
-# go install golang.org/x/tools/cmd/godoc@latest # godoc -http :8888
-
-go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
-go install mvdan.cc/gofumpt@latest
-
-go install github.com/go-delve/delve/cmd/dlv@latest
-
-go install github.com/fatih/gomodifytags@latest
-go install github.com/poloxue/modv@latest # go mod graph | modv | dot -T png >dps.png
-
-# go install github.com/fogleman/primitive@latest
-
-go install github.com/michurin/systemd-env-file/cmd/xenv@latest
-go install github.com/michurin/human-readable-json-logging/cmd/...@latest
-
-go install github.com/charmbracelet/freeze@latest
-
-# render -s 12h 'rate(app_cpu{cpu="cpu",mx!="idle"}[1m])/100/16'
-go install github.com/itskoko/prometheus-renderer/cmd/...@latest
+for pq in \
+  'n github.com/charmbracelet/freeze' \
+  'n github.com/fatih/gomodifytags' \
+  'n github.com/fogleman/primitive' \
+  'n github.com/go-delve/delve/cmd/dlv' \
+  'n github.com/gojuno/minimock/v3/cmd/minimock' \
+  'n github.com/golangci/golangci-lint/cmd/golangci-lint' \
+  'n github.com/golang/mock/mockgen' \
+  'n github.com/itskoko/prometheus-renderer/cmd/...' `# render -s 12h 'rate(app_cpu{cpu="cpu",mx!="idle"}[1m])/100/16'` \
+  'n github.com/michurin/human-readable-json-logging/cmd/...' \
+  'n github.com/michurin/systemd-env-file/cmd/xenv' \
+  'n github.com/poloxue/modv' `# go mod graph | modv | dot -T png >dps.png` \
+  'n github.com/vektra/mockery/v2' \
+  'n golang.org/x/tools/cmd/...' \
+  'n golang.org/x/tools/cmd/godoc' `# godoc -http :8888` \
+  'n golang.org/x/tools/cmd/present' \
+  'n golang.org/x/tools/gopls' \
+  'n mvdan.cc/gofumpt'
+do
+    p="${pq% *}"
+    q="${pq#* }"
+    case $p in
+        y ) p_=$'\e[1;92mY\e[0m/\e[31mn\e[0m';;
+        n ) p_=$'\e[32my\e[0m/\e[1;91mN\e[0m';;
+    esac
+    read -p $'Install \e[1;93m'"$q"$'\e[0m'" [$p_] " yn
+    case $yn in
+        [yY] ) go install "${q}@latest";;
+        [nN] ) echo "Skipping";;
+        * )
+            case $p in
+                y ) go install "${q}@latest";;
+                n ) echo "Skipping";;
+            esac
+            ;;
+    esac
+done
