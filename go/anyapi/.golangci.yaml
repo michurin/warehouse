@@ -1,0 +1,29 @@
+linters:
+  enable-all: true
+  disable:
+    # deprecated
+    - exportloopref
+    - gomnd
+    - execinquery
+    # too hard
+    - depguard
+    - varnamelen
+    - wsl
+    - nlreturn
+    # nice to be turned on
+    - godox   # "TODO" labels
+    - gci     # enable after root package renaming
+    - gofumpt # the same reason
+    - forbidigo # turn exceptions for certain files
+    - wrapcheck # this project too small for it?
+    - revive
+
+linters-settings:
+  exhaustruct:
+    exclude:
+      - '.+/cobra\.Command$'
+  lll:
+    line-length: 200
+
+output:
+  sort-results: true
