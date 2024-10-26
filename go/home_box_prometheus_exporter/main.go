@@ -323,6 +323,7 @@ func updateMikrotik() {
 		"66e4d52267a2": "A22_2g",
 		"7e4d3ea56879": "A31_2g",
 		"7e65b7dda61d": "A12",
+		"3208d7e45413": "A15",
 		"8c8590803920": "Mac",
 		"9a991b7f913e": "SamsungAvito",
 		"2eaab6de2768": "iPhoneAvito",
