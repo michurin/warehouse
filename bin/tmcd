@@ -1,0 +1,10 @@
+#!/bin/sh
+
+t="$(find ~/p/git -maxdepth 1 -mindepth 1 -type d | fzf)"
+if test -z "$t"
+then
+    exit
+fi
+s="/${t##*/}"
+tmux new-session -d -A -s "$s" -c "$t" -n fst
+tmux switch-client -t "$s"
