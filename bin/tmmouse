@@ -1,0 +1,5 @@
+#!/bin/sh
+
+# Toggle mouse
+
+tmux set -g mouse ';' display 'Mouse #{?mouse,ON,OFF}'
