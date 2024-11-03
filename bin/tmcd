@@ -1,6 +1,12 @@
 #!/bin/sh
 
-t="$(find ~/p/git -maxdepth 1 -mindepth 1 -type d | fzf)"
+if test -z "$TMUX"
+then
+    echo '$TMUX is empty'
+    exit 1
+fi
+
+t="$(find . -maxdepth "${1:-1}" -mindepth "${1:-1}" -type d | sort | fzf)"
 if test -z "$t"
 then
     exit
