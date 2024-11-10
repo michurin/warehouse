@@ -3,23 +3,23 @@ draw_bold_text_with_bright_colors = false
 
 [colors.bright]
 black = "#666666"
-blue = "#4186be"
-cyan = "#71bebe"
-green = "#c5f779"
-magenta = "#cf9ebe"
 red = "#cf6171"
-white = "#ffffff"
+green = "#c5f779"
 yellow = "#fff796"
+blue = "#4186be"
+magenta = "#cf9ebe"
+cyan = "#71bebe"
+white = "#ffffff"
 
 [colors.normal]
 black = "#000000"
-blue = "#414171"
-cyan = "#418179"
-green = "#aece92"
-magenta = "#963c59"
 red = "#9e1828"
-white = "#bebebe"
+green = "#aece92"
 yellow = "#968a38"
+blue = "#414171"
+magenta = "#963c59"
+cyan = "#418179"
+white = "#bebebe"
 
 [colors.primary]
 background = "#000000"
@@ -48,39 +48,23 @@ family = "JetBrains Mono"
 style = "Light"
 
 [selection]
-semantic_escape_chars = ",│`|\"' ()[]{}<>\t▹·"
-save_to_clipboard = true
+semantic_escape_chars = ",│`|\"' ()[]{}<>\t▹·\\"
 
 [window]
 startup_mode = "SimpleFullscreen" # MacOS only, use "Fullscreen" for others
 dynamic_title = false
 decorations = "Buttonless"
-opacity = 0.9
+opacity = 0.95
 blur = true
-option_as_alt = "Both"
+option_as_alt = "OnlyRight"
 
 [window.dimensions]
-columns = 80
-lines = 24
+columns = 120
+lines = 40
 
 [window.padding]
-x = 1
-y = 1
-
-[[keyboard.bindings]]
-key = "NumpadAdd"
-mods = "Alt"
-action = "IncreaseFontSize"
-
-[[keyboard.bindings]]
-key = "NumpadSubtract"
-mods = "Alt"
-action = "DecreaseFontSize"
-
-[[keyboard.bindings]]
-key = "NumpadMultiply"
-mods = "Alt"
-action = "ResetFontSize"
+x = 3
+y = 3
 
 [[keyboard.bindings]]
 key = "NumpadEnter"
@@ -94,26 +78,5 @@ action = "ToggleFullscreen"
 
 [[keyboard.bindings]] # macos
 key = "Enter"
-mods = "Option"
+mods = "Command"
 action = "ToggleSimpleFullscreen"
-
-[mouse]
-hide_when_typing = true
-
-[[mouse.bindings]]
-mouse = "Middle"
-action = "PasteSelection"
-
-[[mouse.bindings]]
-mouse = "Middle"
-mods = "Shift"
-action = "Paste"
-
-[[mouse.bindings]]
-mouse = "Right"
-action = "PasteSelection"
-
-[[mouse.bindings]]
-mouse = "Right"
-mods = "Shift"
-action = "Paste"
