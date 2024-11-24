@@ -3,13 +3,12 @@ package jf
 import (
 	"context"
 	"errors"
-	"fmt"
 	"log/slog"
 )
 
 type ctxHandler struct {
 	next     slog.Handler
-	fetchers []source
+	fetchers []func(context.Context) []any
 }
 
 type source struct {
@@ -17,27 +16,12 @@ type source struct {
 	key    string
 }
 
-func New(h slog.Handler, pairs ...any) slog.Handler {
-	h, err := Wrap(h, pairs...)
-	if err != nil {
-		panic(err)
-	}
-	return h
-}
+type errKeyT int
 
-func Wrap(h slog.Handler, pairs ...any) (slog.Handler, error) {
-	if len(pairs)%2 != 0 {
-		return nil, fmt.Errorf("odd number of key/source pairs: %d", len(pairs))
-	}
-	f := make([]source, 0, len(pairs)/2)
-	for i := 0; i < len(pairs); i += 2 {
-		x, ok := pairs[i].(string)
-		if !ok {
-			return nil, fmt.Errorf("key must be a string: %[1]T: %[1]v", pairs[i])
-		}
-		f = append(f, source{source: pairs[i+1], key: x})
-	}
-	return &ctxHandler{next: h, fetchers: f}, nil
+const errKey errKeyT = iota
+
+func New(h slog.Handler, f ...func(context.Context) []any) slog.Handler {
+	return &ctxHandler{next: h, fetchers: f}
 }
 
 func (c *ctxHandler) Enabled(ctx context.Context, level slog.Level) bool {
@@ -45,15 +29,11 @@ func (c *ctxHandler) Enabled(ctx context.Context, level slog.Level) bool {
 }
 
 func (c *ctxHandler) Handle(ctx context.Context, record slog.Record) error {
-	a := []any(nil)
+	r := record.Clone()
 	for _, f := range c.fetchers {
-		v := ctx.Value(f.source)
-		if v != nil {
-			a = append(a, f.key, v)
-		}
+		r.Add(f(ctx)...)
 	}
-	record.Add(a...)
-	return c.next.Handle(ctx, record)
+	return c.next.Handle(ctx, r)
 }
 
 func (c *ctxHandler) WithAttrs(attrs []slog.Attr) slog.Handler {
@@ -67,6 +47,24 @@ func (c *ctxHandler) WithGroup(name string) slog.Handler {
 	return &ctxHandler{
 		next:     c.next.WithGroup(name),
 		fetchers: c.fetchers,
+	}
+}
+
+func F(field string, key any) func(context.Context) []any {
+	return func(ctx context.Context) []any {
+		if x := ctx.Value(key); x != nil {
+			return []any{field, x}
+		}
+		return nil
+	}
+}
+
+func ErrF(f func(context.Context, error) []any) func(context.Context) []any {
+	return func(ctx context.Context) []any {
+		if e, ok := ctx.Value(errKey).(error); ok && e != nil {
+			return f(ctx, e)
+		}
+		return nil
 	}
 }
 
@@ -95,7 +93,7 @@ func E(ctx context.Context, err error) error {
 
 func C(ctx context.Context, err error) context.Context {
 	if e := new(ctxError); errors.As(err, &e) {
-		return e.ctx // TODO: fuse t.ctx and ctx together?
+		return context.WithValue(e.ctx, errKey, e.next)
 	}
 	return ctx
 }

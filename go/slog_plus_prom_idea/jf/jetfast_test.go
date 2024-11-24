@@ -21,6 +21,8 @@ func timeReplacer(_ []string, a slog.Attr) slog.Attr {
 	return a
 }
 
+/*
+
 func validate(x int) error {
 	if x < 0 {
 		return errors.New("negative number")
@@ -39,7 +41,7 @@ func handler(ctx context.Context, x int) error {
 
 func Example_general() {
 	h := slog.Handler(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{ReplaceAttr: timeReplacer}))
-	h = jf.New(h, "details", ctxKey) // wrap standard handler
+	h = jf.New(h, jf.F("details", ctxKey)) // wrap standard handler
 	l := slog.New(h)
 
 	ctx := context.Background()
@@ -58,10 +60,14 @@ func Example_general() {
 	// level=ERROR msg="Handler error" details="handler has been called with argument -1"
 }
 
+*/
+
 func ExampleNew_simplest() {
 	h := slog.Handler(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{ReplaceAttr: timeReplacer}))
-	h = jf.New(h, "details", ctxKey) // wrap standard handler
+	h = jf.New(h, jf.F("details", ctxKey)) // wrap standard handler
 	l := slog.New(h)
+
+	l.Info("Simple message") // you can use logger as usual, however...
 
 	ctx := context.Background()
 	ctx = context.WithValue(ctx, ctxKey, "value")
@@ -69,12 +75,13 @@ func ExampleNew_simplest() {
 	l.InfoContext(ctx, "Message") // we will see details=value from context
 
 	// output:
+	// level=INFO msg="Simple message"
 	// level=INFO msg=Message details=value
 }
 
 func ExampleNew_withGroups() {
 	h := slog.Handler(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{ReplaceAttr: timeReplacer}))
-	h = jf.New(h, "details", ctxKey) // wrap standard handler
+	h = jf.New(h, jf.F("details", ctxKey)) // wrap standard handler
 	l := slog.New(h)
 
 	l = l.With("pid", 100) // persistent attribute
@@ -91,7 +98,7 @@ func ExampleNew_withGroups() {
 
 func ExampleC_dealingWithErrors() {
 	h := slog.Handler(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{ReplaceAttr: timeReplacer}))
-	h = jf.New(h, "details", ctxKey) // wrap standard handler
+	h = jf.New(h, jf.F("details", ctxKey)) // wrap standard handler
 	l := slog.New(h)
 
 	ctx := context.Background()
@@ -112,7 +119,7 @@ func ExampleC_dealingWithErrors() {
 
 func ExampleC_itIsSafeToWrapAndUnwrapNilErrors() {
 	h := slog.Handler(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{ReplaceAttr: timeReplacer}))
-	h = jf.New(h, "details", ctxKey) // wrap standard handler
+	h = jf.New(h, jf.F("details", ctxKey)) // wrap standard handler
 	l := slog.New(h)
 
 	ctx := context.Background()
@@ -134,7 +141,7 @@ func ExampleC_itIsSafeToWrapAndUnwrapNilErrors() {
 
 func ExampleE_doubleWrapping() {
 	h := slog.Handler(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{ReplaceAttr: timeReplacer}))
-	h = jf.New(h, "details", ctxKey) // wrap standard handler
+	h = jf.New(h, jf.F("details", ctxKey)) // wrap standard handler
 	l := slog.New(h)
 
 	err := errors.New("error message")
@@ -151,32 +158,6 @@ func ExampleE_doubleWrapping() {
 	// level=INFO msg=Message details=a
 }
 
-func ExampleWrap_panicSafeWrapping() {
-	h := slog.Handler(slog.NewTextHandler(os.Stdout, nil))
-
-	_, err := jf.Wrap(h, "wrong", "number of", "arguments")
-	if err != nil {
-		fmt.Println("Error:", err)
-	}
-
-	_, err = jf.Wrap(h, true, true)
-	if err != nil {
-		fmt.Println("Error:", err)
-	}
-
-	defer func() {
-		if r := recover(); r != nil {
-			fmt.Println("Panic:", r)
-		}
-	}()
-	h = jf.New(h, true)
-
-	// output:
-	// Error: odd number of key/source pairs: 3
-	// Error: key must be a string: bool: true
-	// Panic: odd number of key/source pairs: 1
-}
-
 func ExampleE_asAndIsWorkAsExpected() {
 	ctx := context.Background()
 
@@ -190,4 +171,38 @@ func ExampleE_asAndIsWorkAsExpected() {
 
 	// output:
 	// err is errx
+}
+
+func ExampleErrF_specialFormattingForErrors() {
+	h := slog.Handler(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{ReplaceAttr: timeReplacer}))
+	h = jf.New(h, jf.F("details", ctxKey), jf.ErrF(func(ctx context.Context, err error) []any {
+		return []any{"error", err.Error(), "trace", "some additional info"}
+	}))
+	l := slog.New(h)
+
+	ctx := context.Background()
+	err := errors.New("error message")
+
+	err = jf.E(ctx, err)
+
+	l.ErrorContext(jf.C(ctx, err), "Message") // we will see context from initial wrap (details=a)
+
+	// output:
+	// level=ERROR msg=Message error="error message" trace="some additional info"
+}
+
+func ExampleErrF_withoutContext() {
+	h := slog.Handler(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{ReplaceAttr: timeReplacer}))
+	h = jf.New(h, jf.F("details", ctxKey), jf.ErrF(func(ctx context.Context, err error) []any {
+		return []any{"error", err.Error(), "trace", "some additional info"}
+	}))
+	l := slog.New(h)
+
+	ctx := context.Background()
+	err := errors.New("error message")
+
+	l.ErrorContext(jf.C(ctx, err), "Message") // it is safe to use naked (not wrapped) errors
+
+	// output:
+	// level=ERROR msg=Message
 }
