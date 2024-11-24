@@ -1,5 +1,7 @@
 #!/bin/sh
+
 exec xclip -selection primary -o
+
 # or
 # xclip -selection clipboard -o
 # xsel --clipboard --output
