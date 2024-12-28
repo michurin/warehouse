@@ -1,6 +1,6 @@
 // avito confluence
 //
-// Stolen from here https://github.com/guillesotelo/confluence-dark-mode.git
+// Stolen from here https://github.com/guillesotelo/confluence-dark-mode.git with minor improvements
 
 (() => {
   const styles = `
@@ -39,7 +39,12 @@ div[role=img],
 }
 
 .aui-header .aui-quicksearch input[type='text'], .aui-header .aui-quicksearch input[type='text'][type='text']:focus {
-    background: #8e9cb3 !important;
+    background-color: #8e9cb3 !important;
+}
+
+.inline-comment-marker {
+    background-color: #ff8888 !important;
+    color: #ffffff !important;
 }
 
 /* --- SCROLLBARS --- */
