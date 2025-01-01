@@ -12,5 +12,6 @@ then
     exit
 fi
 s="/${t##*/}"
+s="$(echo -n "$s" | tr -c '/a-zA-Z0-9' '_')"
 tmux new-session -d -A -s "$s" -c "$t" -n fst
 tmux switch-client -t "$s"
