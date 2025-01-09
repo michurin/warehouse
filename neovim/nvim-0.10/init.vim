@@ -459,10 +459,10 @@ set langmap=ФИСВУАПРШОЛДЬТЩЗЙКЫЕГМЦЧНЯ;ABCDEFGHIJKLMNO
 "endfunction
 "set statusline=%<%f\ %h%m%r\ %{&filetype}%=%{SyntaxItemHack()}\ %-10.(%l,%v%)\ %8.(%B%)
 
-" Execute shell commands
-
 lua require('my.runsh')
 lua require('my.colors')
 lua require('my.tabnine')
 lua require('my.telescope')
 lua require('my.dap')
+
+lua vim.keymap.set('n', '<space>wee', function() vim.system({'av', 'openstash', vim.api.nvim_buf_get_name(0), vim.api.nvim_win_get_cursor(0)[1]}, {stdout=false, stderr=false, tmeout=5000}) end)

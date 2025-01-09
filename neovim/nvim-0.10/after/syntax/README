@@ -1,1 +1,2 @@
 https://github.com/charlespascoe/vim-go-syntax
+curl -o plantuml.vim https://raw.githubusercontent.com/aklt/plantuml-syntax/refs/heads/master/syntax/plantuml.vim
