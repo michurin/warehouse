@@ -6,12 +6,13 @@ then
     exit 1
 fi
 
-t="$(find . -maxdepth "${1:-1}" -mindepth "${1:-1}" -type d | sort | fzf)"
+# -prune won't work with mixmaxdepth
+t="$(find -L "${1:-.}" -mindepth 1 -maxdepth "${2:-1}" -type d \! -regex '.*/\.git/.*' \! -regex '.*/\.git$' | sort | fzf)"
 if test -z "$t"
 then
     exit
 fi
 s="/${t##*/}"
 s="$(echo -n "$s" | tr -c '/a-zA-Z0-9' '_')"
-tmux new-session -d -A -s "$s" -c "$t" -n fst
+tmux new-session -d -A -s "$s" -c "$(realpath "$t")" -n fst
 tmux switch-client -t "$s"
