@@ -17,7 +17,8 @@ for pq in \
   'n golang.org/x/tools/cmd/godoc' `# godoc -http :8888` \
   'n golang.org/x/tools/cmd/present' \
   'n golang.org/x/tools/gopls' \
-  'n mvdan.cc/gofumpt'
+  'n mvdan.cc/gofumpt' \
+  'n github.com/ofabry/go-callvis@latest'
 do
     p="${pq% *}"
     q="${pq#* }"
