@@ -1,4 +1,6 @@
-#!/bin/sh
+#!/bin/bash
+
+# we must use bash to be able 'echo -n'
 
 if test -z "$TMUX"
 then
