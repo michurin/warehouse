@@ -9,13 +9,41 @@
 /*eslint prefer-arrow-callback: "error"*/
 /*eslint arrow-body-style: "error"*/
 
-// How to check
+// For developers: how to check
 // eslint --no-eslintrc --fix main.js
 
-const partitionSize = 20
+// SETTINGS [1/3]: Geometry
 
-const arenaWidth = 40
-const arenaHeight = 40
+const partitionSize = 2
+const partitioningFactor = 10
+
+const arenaWidth = 500 // in partitions
+const arenaHeight = 300
+
+// SETTINGS [2/3]: Dynamics of particles
+
+const initialVelocity = 1 // partitionSize * partitioningFactor / second
+
+const numgerOfParticals = 200 // for each individual specie
+
+const r1 = .3 // radius of repulsion; must be less than one
+const r2 = .7 // radius of interaction according matrix; must be less than one and greater than r1
+const forceMatrix = [ // N-by-N square matrix, where N is number of species; positive — attraction, negative — repulsion
+  [.4, .2, 0, 0],
+  [-.05, .4, 0, 0],
+  [0, 0, .4, .2],
+  [0, 0, -.005, .4],
+]
+
+const dynamicViscosity = .8
+const repulsionScale = 10
+
+// SETTINGS [3/3]: Dynamics
+
+const integrationTimeFactor = 2 // bigger — faster and less accuracy, smaller — slower and better accuracy
+const integrationIntervalLimit = .03 // hard limit of integration interval in seconds
+
+// END OF SETTINGS
 
 function createEmptyArena() {
   const a = []
@@ -33,12 +61,11 @@ let arena = createEmptyArena()
 
 // ---- fill arena
 
-for (let tp = 0; tp < 4; tp++) {
-  for (let s = 0; s < 500; s++) {
+for (let tp = 0; tp < forceMatrix.length; tp++) {
+  for (let s = 0; s < numgerOfParticals; s++) {
     const x = arenaWidth * Math.random()
     const y = arenaHeight * Math.random()
-    console.log(x, y)
-    const v = 1 // partitions/second
+    const v = initialVelocity
     const d = Math.random() * Math.PI * 2
     arena[Math.floor(y)][Math.floor(x)].push({
       x: x % 1, // coordinates, related partition
@@ -46,13 +73,14 @@ for (let tp = 0; tp < 4; tp++) {
       vx: v * Math.cos(d),
       vy: v * Math.sin(d),
       tp: tp,
-      clr: `hsl(${Math.round(tp * 360 / 4)} 100% 50%)`
+      clr: `hsl(${Math.round(tp * 360 / forceMatrix.length)} 100% 50%)`
     })
   }
 }
-console.log(arena)
 
 // ---- setup canvas
+
+const integrationIntervalElement = document.getElementById('integration-interval')
 
 const canvas = document.getElementById('a')
 const context = canvas.getContext('2d')
@@ -74,15 +102,6 @@ function drawArena() {
   }
 }
 
-const r1 = .2
-const r2 = .7
-const forceMatrix = [
-  [.4, .2, 0, 0],
-  [-.05, .4, 0, 0],
-  [0, 0, .4, .2],
-  [0, 0, -.005, .4],
-]
-
 function accelerate(dt) {
   for (let tpr = 0; tpr < arenaHeight; tpr++) { // loop over target partition rows
     for (let tp = 0; tp < arenaWidth; tp++) { // loop over target partitions
@@ -93,22 +112,22 @@ function accelerate(dt) {
         const ty = tv.y + tpr
         let fx = 0
         let fy = 0
-        for (let spr = tpr - 1; spr < tpr + 2; spr++) { // loop over source partitions rows
-          for (let sp = tp - 1; sp < tp + 2; sp++) { // loop over source partitions
-            const spv = arena[(spr + arenaHeight) % arenaHeight][(sp + arenaWidth) % arenaWidth] // TRICK!
+        for (let spr = tpr - partitioningFactor; spr <= tpr + partitioningFactor; spr++) { // loop over source partitions rows
+          for (let sp = tp - partitioningFactor; sp <= tp + partitioningFactor; sp++) { // loop over source partitions
+            const spv = arena[(spr + arenaHeight) % arenaHeight][(sp + arenaWidth) % arenaWidth] // TRICK! Part one: how we takes partition
             for (let s = 0; s < spv.length; s++) { // loop over members of source partition
               if (tpr === spr && tp === sp && t === s) {
                 continue // do not interact with itself
               }
               const sv = spv[s]
-              const sx = sv.x + sp // TRICK!
+              const sx = sv.x + sp // TRICK! Part two: how we calculate distances (without %). It does wrapping arena on bounds
               const sy = sv.y + spr
               const dx = sx - tx
               const dy = sy - ty
-              const r = Math.hypot(dx, dy)
-              var f = 0
+              const r = Math.hypot(dx, dy) / partitioningFactor
+              let f = 0
               if (r < r1) {
-                f = (-1 + r / r1) * 100
+                f = (-1 + r / r1) * repulsionScale
               } else if (r < r2) {
                 f = forceMatrix[tv.tp][sv.tp] * (r - r1) / (r2 - r1) // TODO: pre calculate denominator
               } else if (r < 1) {
@@ -119,8 +138,8 @@ function accelerate(dt) {
             }
           }
         }
-        fx -= tv.vx * .8 // TODO
-        fy -= tv.vy * .8
+        fx -= tv.vx * dynamicViscosity
+        fy -= tv.vy * dynamicViscosity
         tv.vx += dt * fx
         tv.vy += dt * fy
       }
@@ -146,16 +165,23 @@ function moveArena(dt) {
   arena = a
 }
 
+let animationCount = 0
+let cummulativeAnimationInterval = 0
 let prevMs = 0
 function animate(ms) {
   if (prevMs === 0) {
     prevMs = ms
   }
-  let dt = (ms - prevMs) / 1000 * 20 // TODO time factor
-  if (dt !== 0) { // TODO if dt is too big, skip too?
-    if (dt > .015) {
-      dt = .015
+  let dt = ms - prevMs
+  if (dt !== 0) {
+    animationCount++
+    dt /= 1000 // seconds
+    if (dt > integrationIntervalLimit) {
+      dt = integrationIntervalLimit
     }
+    cummulativeAnimationInterval = cummulativeAnimationInterval * .99 + dt
+    integrationIntervalElement.innerText = (['/', '-', '\\', '|'][animationCount % 4]) + ' ' + dt.toFixed(5) + ' ' + (cummulativeAnimationInterval / 100).toFixed(5)
+    dt *= integrationTimeFactor
     accelerate(dt)
     moveArena(dt)
     drawArena()
@@ -165,136 +191,3 @@ function animate(ms) {
 }
 
 window.requestAnimationFrame(animate)
-
-/*
-const unitSize = 20
-const fieldWidthUnits = 25
-const fieldHeightUnits = 25
-
-const creaturesCounts = [400, 400]
-
-// ----- init
-
-const interactionMatrics = (() => {
-  return [ // + — attract
-    [{ r1: .3, r2: .6, m: .1 }, { r1: .4, r2: .6, m: .06 }],
-    [{ r1: .4, r2: .6, m: -.02 }, { r1: .3, r2: .6, m: .1 }],
-  ]
-  const mtx = [] // random. Is not used right now
-  for (let i = 0; i < creaturesCounts.length; i++) {
-    const m = []
-    for (let j = 0; j < creaturesCounts.length; j++) {
-      const a = 1 - 2 * Math.random()
-      let p = .2 // Math.random()
-      let q = .5 // Math.random()
-      if (p > q) {
-        t = p
-        p = q
-        q = t
-      }
-      m.push({
-        r1: p,
-        r2: q,
-        m: a,
-      })
-    }
-    mtx.push(m)
-  }
-  console.log(mtx)
-  return mtx
-})()
-
-const canvas = document.getElementById('a')
-const context = canvas.getContext('2d')
-
-canvas.width = Math.round(unitSize * fieldWidthUnits)
-canvas.height = Math.round(unitSize * fieldHeightUnits)
-
-const creatures = (() => { // It should not be const in future?
-  const c = []
-  for (let tp = 0; tp < creaturesCounts.length; tp++) {
-    const clr = `hsl(${Math.round(tp * 360 / creaturesCounts.length)} 100% 50%)`
-    for (let i = 0; i < creaturesCounts[tp]; i++) {
-      const v = Math.random()
-      const d = Math.random() * Math.PI * 2
-      c.push({
-        x: fieldWidthUnits * Math.random(),
-        y: fieldHeightUnits * Math.random(),
-        vx: v * Math.cos(d),
-        vy: v * Math.sin(d),
-        tp: tp,
-        clr: clr,
-      })
-    }
-  }
-  return c
-})()
-
-function draw() {
-  context.clearRect(0, 0, unitSize * fieldWidthUnits, unitSize * fieldHeightUnits)
-  // IDEA:
-  // context.filter = 'brightness(80%)'
-  // context.drawImage(canvas, 0, 0)
-  // context.filter = ''
-  for (let i = 0; i < creatures.length; i++) {
-    const e = creatures[i]
-    context.fillStyle = e.clr
-    context.fillRect(e.x * unitSize - 1, e.y * unitSize - 1, 3, 3)
-  }
-}
-
-function move(ms) {
-  for (let i = 0; i < creatures.length; i++) {
-    const e = creatures[i]
-    e.x = (e.x + ms * e.vx / 1000 + fieldWidthUnits) % fieldWidthUnits
-    e.y = (e.y + ms * e.vy / 1000 + fieldHeightUnits) % fieldHeightUnits
-  }
-}
-
-function accelerate(ms) {
-  const dt = ms * .001
-  for (let i = 0; i < creatures.length; i++) {
-    const e = creatures[i]
-    let fx = 0
-    let fy = 0
-    for (let j = 0; j < creatures.length; j++) {
-      const g = creatures[j]
-      const dx = e.x - g.x
-      const dy = e.y - g.y
-      const r = Math.hypot(dx, dy)
-      if (i !== j && r < 1) {
-        const int = interactionMatrics[e.tp][g.tp]
-        let f = 0
-        if (r < int.r1) {
-          f = -1 + r / int.r1
-        } else if (r < int.r2) {
-          f = int.m * (r - int.r1) / (int.r2 - int.r1) // TODO: pre calculate denominator
-        } else {
-          f = int.m * (1 - r) / (1 - int.r2)
-        }
-        f = -f // TODO: dirty hack
-        fx += f * dx / r
-        fy += f * dy / r
-      }
-    }
-    fx -= e.vx * .4
-    fy -= e.vy * .4
-    e.vx += dt * fx
-    e.vy += dt * fy
-  }
-}
-
-let prevMs = 0
-function animate(ms) {
-  if (prevMs === 0) {
-    prevMs = ms
-  }
-  accelerate(ms - prevMs)
-  move(ms - prevMs)
-  draw()
-  prevMs = ms
-  window.requestAnimationFrame(animate)
-}
-
-window.requestAnimationFrame(animate)
-*/
