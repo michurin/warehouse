@@ -1,0 +1,22 @@
+{
+  "name": "Google auth popup blocker",
+  "version": "0.1.4",
+  "manifest_version": 3,
+  "description": "Google auth popup blocker",
+  "background": {
+    "service_worker": "worker.js"
+  },
+  "declarative_net_request": {
+    "rule_resources": [
+      {
+        "id": "block_google_auth_popup",
+        "enabled": true,
+        "path": "rules.json"
+      }
+    ]
+  },
+  "permissions": [
+    "declarativeNetRequest",
+    "declarativeNetRequestFeedback"
+  ]
+}
