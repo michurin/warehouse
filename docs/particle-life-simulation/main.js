@@ -17,33 +17,39 @@
 const partitionSize = 2
 const partitioningFactor = 10
 
-const arenaWidth = 500 // in partitions
-const arenaHeight = 300
+const arenaWidth = 400 // in partitions
+const arenaHeight = 400
 
 // SETTINGS [2/3]: Dynamics of particles
 
 const initialVelocity = 1 // partitionSize * partitioningFactor / second
 
-const numgerOfParticals = 200 // for each individual specie
+const numgerOfParticals = 400 // for each individual specie
 
-const r1 = .3 // radius of repulsion; must be less than one
+const r1 = .4 // radius of repulsion; must be less than one
 const r2 = .7 // radius of interaction according matrix; must be less than one and greater than r1
 const forceMatrix = [ // N-by-N square matrix, where N is number of species; positive — attraction, negative — repulsion
-  [.4, .2, 0, 0],
-  [-.05, .4, 0, 0],
-  [0, 0, .4, .2],
-  [0, 0, -.005, .4],
+  [3, .5],
+  [-.5, 3],
+
+  //  [.4, .2, 0, 0],
+  //  [-.05, .4, 0, 0],
+  //  [0, 0, .4, .2],
+  //  [0, 0, -.005, .4],
 ]
 
-const dynamicViscosity = .8
-const repulsionScale = 10
+const dynamicViscosity = 2
+const repulsionScale = 20
 
 // SETTINGS [3/3]: Dynamics
 
-const integrationTimeFactor = 2 // bigger — faster and less accuracy, smaller — slower and better accuracy
-const integrationIntervalLimit = .03 // hard limit of integration interval in seconds
+const integrationTimeFactor = 4 // bigger — faster and less accuracy, smaller — slower and better accuracy
+const integrationIntervalLimit = .02 // hard limit of integration interval in seconds
 
 // END OF SETTINGS
+
+const arenaWidthModAlign = arenaWidth * 100 // is stupid helper for true m = ((x%n)+n)%n approach
+const arenaHeightModAlign = arenaHeight * 100
 
 function createEmptyArena() {
   const a = []
@@ -61,20 +67,25 @@ let arena = createEmptyArena()
 
 // ---- fill arena
 
+function color(n, total) { // function heights where colors come from
+  return `hsl(${Math.round(n * 360 / total)} 100% 50%)`
+}
+
+function putPartical(x, y, v, va, tp, clr) { // function heights how partitioning works
+  arena[Math.floor(y)][Math.floor(x)].push({
+    x: x % 1, // coordinates, related partition
+    y: y % 1,
+    vx: v * Math.cos(va),
+    vy: v * Math.sin(va),
+    tp: tp,
+    clr: clr,
+  })
+}
+
 for (let tp = 0; tp < forceMatrix.length; tp++) {
+  const clr = color(tp, forceMatrix.length)
   for (let s = 0; s < numgerOfParticals; s++) {
-    const x = arenaWidth * Math.random()
-    const y = arenaHeight * Math.random()
-    const v = initialVelocity
-    const d = Math.random() * Math.PI * 2
-    arena[Math.floor(y)][Math.floor(x)].push({
-      x: x % 1, // coordinates, related partition
-      y: y % 1,
-      vx: v * Math.cos(d),
-      vy: v * Math.sin(d),
-      tp: tp,
-      clr: `hsl(${Math.round(tp * 360 / forceMatrix.length)} 100% 50%)`
-    })
+    putPartical(arenaWidth * Math.random(), arenaHeight * Math.random(), initialVelocity, Math.random() * Math.PI * 2, tp, clr)
   }
 }
 
@@ -95,6 +106,19 @@ function drawArena() {
       const pv = arena[pr][p]
       for (let i = 0; i < pv.length; i++) { // loop over members of partition
         const v = pv[i]
+        /*
+                context.beginPath()
+                context.arc((p + v.x) * partitionSize, (pr + v.y) * partitionSize, r1 * partitionSize * partitioningFactor, 0, 2 * Math.PI);
+                context.fillStyle = 'rgba(255, 255, 255, .03)'
+                context.fill();
+                context.closePath()
+
+                context.beginPath()
+                context.arc((p + v.x) * partitionSize, (pr + v.y) * partitionSize, partitionSize * partitioningFactor, 0, 2 * Math.PI);
+                context.fillStyle = 'rgba(255, 255, 0, .03)'
+                context.fill();
+                context.closePath()
+        */
         context.fillStyle = v.clr
         context.fillRect((p + v.x) * partitionSize - 1, (pr + v.y) * partitionSize - 1, 3, 3)
       }
@@ -114,7 +138,7 @@ function accelerate(dt) {
         let fy = 0
         for (let spr = tpr - partitioningFactor; spr <= tpr + partitioningFactor; spr++) { // loop over source partitions rows
           for (let sp = tp - partitioningFactor; sp <= tp + partitioningFactor; sp++) { // loop over source partitions
-            const spv = arena[(spr + arenaHeight) % arenaHeight][(sp + arenaWidth) % arenaWidth] // TRICK! Part one: how we takes partition
+            const spv = arena[(spr + arenaHeightModAlign) % arenaHeight][(sp + arenaWidthModAlign) % arenaWidth] // TRICK! Part one: how we takes partition
             for (let s = 0; s < spv.length; s++) { // loop over members of source partition
               if (tpr === spr && tp === sp && t === s) {
                 continue // do not interact with itself
@@ -154,8 +178,8 @@ function moveArena(dt) {
       const pv = arena[pr][p]
       for (let i = 0; i < pv.length; i++) { // loop over members of partition
         const v = pv[i]
-        const x = (p + v.x + dt * v.vx + arenaWidth) % arenaWidth
-        const y = (pr + v.y + dt * v.vy + arenaHeight) % arenaHeight
+        const x = (p + v.x + dt * v.vx + arenaWidthModAlign) % arenaWidth
+        const y = (pr + v.y + dt * v.vy + arenaHeightModAlign) % arenaHeight
         v.x = x % 1
         v.y = y % 1
         a[Math.floor(y)][Math.floor(x)].push(v)
