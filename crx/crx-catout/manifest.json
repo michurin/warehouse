@@ -1,6 +1,6 @@
 {
   "name": "XCutOut",
-  "version": "1.25.7",
+  "version": "1.25.8",
   "description": "Cut out annoying unwanted elements, highlight useful elements",
   "manifest_version": 3,
   "content_scripts": [
