@@ -1,3 +1,4 @@
 #!/bin/sh
 
-git log --graph --reflog --branches --remotes --tags --decorate --date=relative --format=format:"%C(auto)%h%C(reset)%C(auto)%d%C(reset) %C(cyan)%an%C(reset) %C(auto)%s%C(reset) %C(cyan)%ad%C(reset)"
+git log --graph --reflog --branches --remotes --tags --decorate --date='format:%y-%m-%d %H:%M' --format='format:%C(auto)%h%C(reset)%C(auto)%d%C(reset) %C(cyan)%an%C(reset) %C(auto)%s%C(reset) %C(cyan)%ad%C(reset)' "$@"
+
