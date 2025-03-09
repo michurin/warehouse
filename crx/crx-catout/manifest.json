@@ -1,6 +1,6 @@
 {
   "name": "XCutOut",
-  "version": "1.25.8",
+  "version": "1.25.9",
   "description": "Cut out annoying unwanted elements, highlight useful elements",
   "manifest_version": 3,
   "content_scripts": [
@@ -14,6 +14,8 @@
     {"matches": ["https://*.zoom.us/saml/*"], "js": ["z.js"]},
     {"matches": ["https://*.slack.com/archives/*"], "js": ["z.js"]},
     {"matches": ["https://go.dev/play/*"], "js": ["go.js"]},
+    {"matches": ["https://www.google.com/search?*"], "js": ["google.js"]},
+    {"matches": ["https://stackoverflow.com/*", "https://*.stackexchange.com/*"], "js": ["sof.js"]},
 
     {"matches": ["https://jr.avito.ru/*"], "js": ["av.js"]},
     {"matches": ["https://cf.avito.ru/*"], "js": ["cf.js"]},
