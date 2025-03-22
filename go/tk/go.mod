@@ -18,8 +18,8 @@ require (
 	github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec // indirect
 	golang.org/x/exp v0.0.0-20230315142452-642cacee5cc0 // indirect
 	golang.org/x/image v0.20.0 // indirect
-	golang.org/x/net v0.29.0 // indirect
-	golang.org/x/sys v0.28.0 // indirect
+	golang.org/x/net v0.36.0 // indirect
+	golang.org/x/sys v0.30.0 // indirect
 	modernc.org/fileutil v1.3.0 // indirect
 	modernc.org/fsm v1.2.1 // indirect
 	modernc.org/gc/v3 v3.0.0-20230512134359-466b49aa80e0 // indirect
