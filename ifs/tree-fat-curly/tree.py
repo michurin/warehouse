@@ -76,15 +76,18 @@ def arch(f, n, w): # relatively to bottom-center of square
     line(f, .09+.61j, .1+.6j, width=w)
     line(f, .15+.75j, .15+.8j, width=w2)
     line(f, .05+.8j, .15+.8j, width=w2)
-    line(f, .05+.8j, .05+.725j, width=w2)
-    line(f, .025+.75j, .15+.75j, width=w2)
+    line(f, .05+.8j, .05+.77j, width=w2)
+    line(f, .07+.75j, .15+.75j, width=w2)
     line(f, -.15+.75j, -.05+.75j, width=w2)
     fx = link(f, lambda x: x*-.25j-.05+.7j) # put root to link
     w3=w2
     for i in range(n):
         root(fx, w3)
         if i == 0:
-            line(fx, .4j, -.2+.2j, width=w3)
+            line(fx, .4j, -.2+.2j, width=w3/sq2)
+            line(fx, .4j, -.1+.5j, width=w3/sq2)
+            line(fx, -.2+.2j, -.25+.25j, width=w3/sq2)
+            line(fx, -.27+.33j, -.1+.5j, width=w3/sq2)
         else:
             root(link(fx, lambda x: x*(.5+.5j)-.1+.3j), w3)
         fx = link(fx, lambda x: x*(.5-.5j)+.1+.3j)
@@ -151,7 +154,7 @@ def main():
     pos = lambda x: x*60+50+1j
     # arch(pos, 4, 1) # show one arch
     # sector(pos, 4, .5) # show one secrot
-    #spiral(pos, 20, 9, .5)
+    # spiral(pos, 10, 5, .5)
     spiral(pos, 20, 8, .5)
     drawClose()
 
