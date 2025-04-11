@@ -10,9 +10,12 @@ message Number {
   double x = 10;
 }
 
+message Empty {}
+
 service CalsService {
   rpc Square(Number) returns (Number) {}
   rpc Sum(stream Number) returns (Number) {}
   rpc Repeat(Number) returns (stream Number) {}
   rpc PipeSquare(stream Number) returns (stream Number) {}
+  rpc Error(Empty) returns (Empty) {}
 }

@@ -10,7 +10,9 @@ import (
 	"demo/kit/api"
 
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/reflection"
+	"google.golang.org/grpc/status"
 )
 
 func noerr(err error) {
@@ -71,6 +73,10 @@ func (c Calc) PipeSquare(stream grpc.BidiStreamingServer[api.Number, api.Number]
 		}()
 	}
 	return nil
+}
+
+func (c Calc) Error(context.Context, *api.Empty) (*api.Empty, error) {
+	return nil, status.Errorf(codes.FailedPrecondition, "CUSTOM ERROR MESSAGE")
 }
 
 func main() {

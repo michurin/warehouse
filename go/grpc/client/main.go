@@ -9,6 +9,7 @@ import (
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
+	"google.golang.org/grpc/status"
 )
 
 func noerr(err error) {
@@ -85,4 +86,13 @@ func main() {
 	<-sync                 // we have to wait for all results
 	err = stbi.CloseSend() // have to be closed, but it close both directions
 	noerr(err)
+
+	log.Println("------------- Error")
+	_, err = client.Error(ctx, nil)
+	log.Printf("Error [%+[1]T]: %[1]v", err)
+	if e, ok := status.FromError(err); ok { // even such style is working
+		log.Println("Code: ", e.Code())
+		log.Println("Message: ", e.Message())
+		log.Println("Details: ", e.Details())
+	}
 }
