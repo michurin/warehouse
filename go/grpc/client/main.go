@@ -4,13 +4,22 @@ import (
 	"context"
 	"io"
 	"log"
+	"log/slog"
+	"os"
 
 	"demo/kit/api"
 
+	"github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/logging"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/status"
 )
+
+func InterceptorLogger(label string, l *slog.Logger) logging.Logger {
+	return logging.LoggerFunc(func(ctx context.Context, lvl logging.Level, msg string, fields ...any) {
+		l.Log(ctx, slog.Level(lvl), msg, append([]any{slog.String("label", label)}, fields...)...)
+	})
+}
 
 func noerr(err error) {
 	if err != nil {
@@ -20,7 +29,27 @@ func noerr(err error) {
 
 func main() {
 	ctx := context.Background()
-	conn, err := grpc.NewClient("localhost:9898", grpc.WithTransportCredentials(insecure.NewCredentials()))
+
+	logger := slog.New(slog.NewJSONHandler(os.Stderr, &slog.HandlerOptions{Level: slog.LevelDebug}))
+
+	logOpts := []logging.Option{
+		logging.WithLogOnEvents(logging.StartCall, logging.FinishCall),
+		logging.WithFieldsFromContext(func(context.Context) logging.Fields {
+			return logging.Fields{"fromContext", "xxx"} // slog.Attr are not supported?
+		}),
+	}
+
+	opts := []grpc.DialOption{
+		grpc.WithTransportCredentials(insecure.NewCredentials()),
+		grpc.WithChainUnaryInterceptor(
+			logging.UnaryClientInterceptor(InterceptorLogger("unary", logger), logOpts...),
+		),
+		grpc.WithChainStreamInterceptor(
+			logging.StreamClientInterceptor(InterceptorLogger("chain", logger), logOpts...),
+		),
+	}
+
+	conn, err := grpc.NewClient("localhost:9898", opts...)
 	noerr(err)
 	defer conn.Close()
 	log.Printf("Connected to %s", conn.CanonicalTarget())

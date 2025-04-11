@@ -4,16 +4,25 @@ import (
 	"context"
 	"io"
 	"log"
+	"log/slog"
 	"net"
+	"os"
 	"time"
 
 	"demo/kit/api"
 
+	"github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/logging"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/reflection"
 	"google.golang.org/grpc/status"
 )
+
+func InterceptorLogger(label string, l *slog.Logger) logging.Logger {
+	return logging.LoggerFunc(func(ctx context.Context, lvl logging.Level, msg string, fields ...any) {
+		l.Log(ctx, slog.Level(lvl), msg, append([]any{slog.String("label", label)}, fields...)...)
+	})
+}
 
 func noerr(err error) {
 	if err != nil {
@@ -82,7 +91,25 @@ func (c Calc) Error(context.Context, *api.Empty) (*api.Empty, error) {
 func main() {
 	lis, err := net.Listen("tcp", "localhost:9898")
 	noerr(err)
-	var opts []grpc.ServerOption
+
+	logger := slog.New(slog.NewJSONHandler(os.Stderr, &slog.HandlerOptions{Level: slog.LevelDebug}))
+
+	logOpts := []logging.Option{
+		logging.WithLogOnEvents(logging.StartCall, logging.FinishCall),
+		logging.WithFieldsFromContext(func(context.Context) logging.Fields {
+			return logging.Fields{"fromContext", "xxx"}
+		}),
+	}
+
+	opts := []grpc.ServerOption{
+		grpc.ChainUnaryInterceptor(
+			logging.UnaryServerInterceptor(InterceptorLogger("unary", logger), logOpts...),
+		),
+		grpc.ChainStreamInterceptor(
+			logging.StreamServerInterceptor(InterceptorLogger("chain", logger), logOpts...),
+		),
+	}
+
 	mux := grpc.NewServer(opts...)
 	api.RegisterCalsServiceServer(mux, Calc{})
 	reflection.Register(mux)
