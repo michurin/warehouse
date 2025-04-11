@@ -12,4 +12,7 @@ message Number {
 
 service CalsService {
   rpc Square(Number) returns (Number) {}
+  rpc Sum(stream Number) returns (Number) {}
+  rpc Repeat(Number) returns (stream Number) {}
+  rpc PipeSquare(stream Number) returns (stream Number) {}
 }

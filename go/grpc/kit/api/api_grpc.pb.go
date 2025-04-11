@@ -19,7 +19,10 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	CalsService_Square_FullMethodName = "/api.v1.CalsService/Square"
+	CalsService_Square_FullMethodName     = "/api.v1.CalsService/Square"
+	CalsService_Sum_FullMethodName        = "/api.v1.CalsService/Sum"
+	CalsService_Repeat_FullMethodName     = "/api.v1.CalsService/Repeat"
+	CalsService_PipeSquare_FullMethodName = "/api.v1.CalsService/PipeSquare"
 )
 
 // CalsServiceClient is the client API for CalsService service.
@@ -27,6 +30,9 @@ const (
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type CalsServiceClient interface {
 	Square(ctx context.Context, in *Number, opts ...grpc.CallOption) (*Number, error)
+	Sum(ctx context.Context, opts ...grpc.CallOption) (grpc.ClientStreamingClient[Number, Number], error)
+	Repeat(ctx context.Context, in *Number, opts ...grpc.CallOption) (grpc.ServerStreamingClient[Number], error)
+	PipeSquare(ctx context.Context, opts ...grpc.CallOption) (grpc.BidiStreamingClient[Number, Number], error)
 }
 
 type calsServiceClient struct {
@@ -47,11 +53,59 @@ func (c *calsServiceClient) Square(ctx context.Context, in *Number, opts ...grpc
 	return out, nil
 }
 
+func (c *calsServiceClient) Sum(ctx context.Context, opts ...grpc.CallOption) (grpc.ClientStreamingClient[Number, Number], error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	stream, err := c.cc.NewStream(ctx, &CalsService_ServiceDesc.Streams[0], CalsService_Sum_FullMethodName, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &grpc.GenericClientStream[Number, Number]{ClientStream: stream}
+	return x, nil
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type CalsService_SumClient = grpc.ClientStreamingClient[Number, Number]
+
+func (c *calsServiceClient) Repeat(ctx context.Context, in *Number, opts ...grpc.CallOption) (grpc.ServerStreamingClient[Number], error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	stream, err := c.cc.NewStream(ctx, &CalsService_ServiceDesc.Streams[1], CalsService_Repeat_FullMethodName, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &grpc.GenericClientStream[Number, Number]{ClientStream: stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type CalsService_RepeatClient = grpc.ServerStreamingClient[Number]
+
+func (c *calsServiceClient) PipeSquare(ctx context.Context, opts ...grpc.CallOption) (grpc.BidiStreamingClient[Number, Number], error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	stream, err := c.cc.NewStream(ctx, &CalsService_ServiceDesc.Streams[2], CalsService_PipeSquare_FullMethodName, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &grpc.GenericClientStream[Number, Number]{ClientStream: stream}
+	return x, nil
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type CalsService_PipeSquareClient = grpc.BidiStreamingClient[Number, Number]
+
 // CalsServiceServer is the server API for CalsService service.
 // All implementations must embed UnimplementedCalsServiceServer
 // for forward compatibility.
 type CalsServiceServer interface {
 	Square(context.Context, *Number) (*Number, error)
+	Sum(grpc.ClientStreamingServer[Number, Number]) error
+	Repeat(*Number, grpc.ServerStreamingServer[Number]) error
+	PipeSquare(grpc.BidiStreamingServer[Number, Number]) error
 	mustEmbedUnimplementedCalsServiceServer()
 }
 
@@ -64,6 +118,15 @@ type UnimplementedCalsServiceServer struct{}
 
 func (UnimplementedCalsServiceServer) Square(context.Context, *Number) (*Number, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Square not implemented")
+}
+func (UnimplementedCalsServiceServer) Sum(grpc.ClientStreamingServer[Number, Number]) error {
+	return status.Errorf(codes.Unimplemented, "method Sum not implemented")
+}
+func (UnimplementedCalsServiceServer) Repeat(*Number, grpc.ServerStreamingServer[Number]) error {
+	return status.Errorf(codes.Unimplemented, "method Repeat not implemented")
+}
+func (UnimplementedCalsServiceServer) PipeSquare(grpc.BidiStreamingServer[Number, Number]) error {
+	return status.Errorf(codes.Unimplemented, "method PipeSquare not implemented")
 }
 func (UnimplementedCalsServiceServer) mustEmbedUnimplementedCalsServiceServer() {}
 func (UnimplementedCalsServiceServer) testEmbeddedByValue()                     {}
@@ -104,6 +167,31 @@ func _CalsService_Square_Handler(srv interface{}, ctx context.Context, dec func(
 	return interceptor(ctx, in, info, handler)
 }
 
+func _CalsService_Sum_Handler(srv interface{}, stream grpc.ServerStream) error {
+	return srv.(CalsServiceServer).Sum(&grpc.GenericServerStream[Number, Number]{ServerStream: stream})
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type CalsService_SumServer = grpc.ClientStreamingServer[Number, Number]
+
+func _CalsService_Repeat_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(Number)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(CalsServiceServer).Repeat(m, &grpc.GenericServerStream[Number, Number]{ServerStream: stream})
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type CalsService_RepeatServer = grpc.ServerStreamingServer[Number]
+
+func _CalsService_PipeSquare_Handler(srv interface{}, stream grpc.ServerStream) error {
+	return srv.(CalsServiceServer).PipeSquare(&grpc.GenericServerStream[Number, Number]{ServerStream: stream})
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type CalsService_PipeSquareServer = grpc.BidiStreamingServer[Number, Number]
+
 // CalsService_ServiceDesc is the grpc.ServiceDesc for CalsService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -116,6 +204,23 @@ var CalsService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _CalsService_Square_Handler,
 		},
 	},
-	Streams:  []grpc.StreamDesc{},
+	Streams: []grpc.StreamDesc{
+		{
+			StreamName:    "Sum",
+			Handler:       _CalsService_Sum_Handler,
+			ClientStreams: true,
+		},
+		{
+			StreamName:    "Repeat",
+			Handler:       _CalsService_Repeat_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "PipeSquare",
+			Handler:       _CalsService_PipeSquare_Handler,
+			ServerStreams: true,
+			ClientStreams: true,
+		},
+	},
 	Metadata: "api/api.proto",
 }
