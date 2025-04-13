@@ -1,5 +1,9 @@
 ```
 protoc --go_out=kit --go-grpc_out=kit api/api.proto
+
+# +grpc-gateway
+protoc -I ./api --go_out=kit --go-grpc_out=kit --grpc-gateway_out=kit api.proto
+curl localhost:8999/square -d '{"x": 99}'
 ```
 
 ```

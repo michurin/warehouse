@@ -2,11 +2,12 @@
 // versions:
 // 	protoc-gen-go v1.36.6
 // 	protoc        v6.30.1
-// source: api/api.proto
+// source: api.proto
 
 package api
 
 import (
+	_ "google.golang.org/genproto/googleapis/api/annotations"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	reflect "reflect"
@@ -30,7 +31,7 @@ type Number struct {
 
 func (x *Number) Reset() {
 	*x = Number{}
-	mi := &file_api_api_proto_msgTypes[0]
+	mi := &file_api_proto_msgTypes[0]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -42,7 +43,7 @@ func (x *Number) String() string {
 func (*Number) ProtoMessage() {}
 
 func (x *Number) ProtoReflect() protoreflect.Message {
-	mi := &file_api_api_proto_msgTypes[0]
+	mi := &file_api_proto_msgTypes[0]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -55,7 +56,7 @@ func (x *Number) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Number.ProtoReflect.Descriptor instead.
 func (*Number) Descriptor() ([]byte, []int) {
-	return file_api_api_proto_rawDescGZIP(), []int{0}
+	return file_api_proto_rawDescGZIP(), []int{0}
 }
 
 func (x *Number) GetX() float64 {
@@ -73,7 +74,7 @@ type Empty struct {
 
 func (x *Empty) Reset() {
 	*x = Empty{}
-	mi := &file_api_api_proto_msgTypes[1]
+	mi := &file_api_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -85,7 +86,7 @@ func (x *Empty) String() string {
 func (*Empty) ProtoMessage() {}
 
 func (x *Empty) ProtoReflect() protoreflect.Message {
-	mi := &file_api_api_proto_msgTypes[1]
+	mi := &file_api_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -98,54 +99,54 @@ func (x *Empty) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Empty.ProtoReflect.Descriptor instead.
 func (*Empty) Descriptor() ([]byte, []int) {
-	return file_api_api_proto_rawDescGZIP(), []int{1}
+	return file_api_proto_rawDescGZIP(), []int{1}
 }
 
-var File_api_api_proto protoreflect.FileDescriptor
+var File_api_proto protoreflect.FileDescriptor
 
-const file_api_api_proto_rawDesc = "" +
+const file_api_proto_rawDesc = "" +
 	"\n" +
-	"\rapi/api.proto\x12\x06api.v1\"\x16\n" +
+	"\tapi.proto\x12\x06api.v1\x1a\x1cgoogle/api/annotations.proto\"\x16\n" +
 	"\x06Number\x12\f\n" +
 	"\x01x\x18\n" +
 	" \x01(\x01R\x01x\"\a\n" +
-	"\x05Empty2\xef\x01\n" +
-	"\vCalsService\x12*\n" +
-	"\x06Square\x12\x0e.api.v1.Number\x1a\x0e.api.v1.Number\"\x00\x12)\n" +
+	"\x05Empty2\x81\x02\n" +
+	"\vCalsService\x12)\n" +
 	"\x03Sum\x12\x0e.api.v1.Number\x1a\x0e.api.v1.Number\"\x00(\x01\x12,\n" +
 	"\x06Repeat\x12\x0e.api.v1.Number\x1a\x0e.api.v1.Number\"\x000\x01\x122\n" +
 	"\n" +
 	"PipeSquare\x12\x0e.api.v1.Number\x1a\x0e.api.v1.Number\"\x00(\x010\x01\x12'\n" +
-	"\x05Error\x12\r.api.v1.Empty\x1a\r.api.v1.Empty\"\x00B\aZ\x05./apib\x06proto3"
+	"\x05Error\x12\r.api.v1.Empty\x1a\r.api.v1.Empty\"\x00\x12<\n" +
+	"\x06Square\x12\x0e.api.v1.Number\x1a\x0e.api.v1.Number\"\x12\x82\xd3\xe4\x93\x02\f:\x01*\"\a/squareB\aZ\x05./apib\x06proto3"
 
 var (
-	file_api_api_proto_rawDescOnce sync.Once
-	file_api_api_proto_rawDescData []byte
+	file_api_proto_rawDescOnce sync.Once
+	file_api_proto_rawDescData []byte
 )
 
-func file_api_api_proto_rawDescGZIP() []byte {
-	file_api_api_proto_rawDescOnce.Do(func() {
-		file_api_api_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_api_api_proto_rawDesc), len(file_api_api_proto_rawDesc)))
+func file_api_proto_rawDescGZIP() []byte {
+	file_api_proto_rawDescOnce.Do(func() {
+		file_api_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_api_proto_rawDesc), len(file_api_proto_rawDesc)))
 	})
-	return file_api_api_proto_rawDescData
+	return file_api_proto_rawDescData
 }
 
-var file_api_api_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
-var file_api_api_proto_goTypes = []any{
+var file_api_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
+var file_api_proto_goTypes = []any{
 	(*Number)(nil), // 0: api.v1.Number
 	(*Empty)(nil),  // 1: api.v1.Empty
 }
-var file_api_api_proto_depIdxs = []int32{
-	0, // 0: api.v1.CalsService.Square:input_type -> api.v1.Number
-	0, // 1: api.v1.CalsService.Sum:input_type -> api.v1.Number
-	0, // 2: api.v1.CalsService.Repeat:input_type -> api.v1.Number
-	0, // 3: api.v1.CalsService.PipeSquare:input_type -> api.v1.Number
-	1, // 4: api.v1.CalsService.Error:input_type -> api.v1.Empty
-	0, // 5: api.v1.CalsService.Square:output_type -> api.v1.Number
-	0, // 6: api.v1.CalsService.Sum:output_type -> api.v1.Number
-	0, // 7: api.v1.CalsService.Repeat:output_type -> api.v1.Number
-	0, // 8: api.v1.CalsService.PipeSquare:output_type -> api.v1.Number
-	1, // 9: api.v1.CalsService.Error:output_type -> api.v1.Empty
+var file_api_proto_depIdxs = []int32{
+	0, // 0: api.v1.CalsService.Sum:input_type -> api.v1.Number
+	0, // 1: api.v1.CalsService.Repeat:input_type -> api.v1.Number
+	0, // 2: api.v1.CalsService.PipeSquare:input_type -> api.v1.Number
+	1, // 3: api.v1.CalsService.Error:input_type -> api.v1.Empty
+	0, // 4: api.v1.CalsService.Square:input_type -> api.v1.Number
+	0, // 5: api.v1.CalsService.Sum:output_type -> api.v1.Number
+	0, // 6: api.v1.CalsService.Repeat:output_type -> api.v1.Number
+	0, // 7: api.v1.CalsService.PipeSquare:output_type -> api.v1.Number
+	1, // 8: api.v1.CalsService.Error:output_type -> api.v1.Empty
+	0, // 9: api.v1.CalsService.Square:output_type -> api.v1.Number
 	5, // [5:10] is the sub-list for method output_type
 	0, // [0:5] is the sub-list for method input_type
 	0, // [0:0] is the sub-list for extension type_name
@@ -153,26 +154,26 @@ var file_api_api_proto_depIdxs = []int32{
 	0, // [0:0] is the sub-list for field type_name
 }
 
-func init() { file_api_api_proto_init() }
-func file_api_api_proto_init() {
-	if File_api_api_proto != nil {
+func init() { file_api_proto_init() }
+func file_api_proto_init() {
+	if File_api_proto != nil {
 		return
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
-			RawDescriptor: unsafe.Slice(unsafe.StringData(file_api_api_proto_rawDesc), len(file_api_api_proto_rawDesc)),
+			RawDescriptor: unsafe.Slice(unsafe.StringData(file_api_proto_rawDesc), len(file_api_proto_rawDesc)),
 			NumEnums:      0,
 			NumMessages:   2,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
-		GoTypes:           file_api_api_proto_goTypes,
-		DependencyIndexes: file_api_api_proto_depIdxs,
-		MessageInfos:      file_api_api_proto_msgTypes,
+		GoTypes:           file_api_proto_goTypes,
+		DependencyIndexes: file_api_proto_depIdxs,
+		MessageInfos:      file_api_proto_msgTypes,
 	}.Build()
-	File_api_api_proto = out.File
-	file_api_api_proto_goTypes = nil
-	file_api_api_proto_depIdxs = nil
+	File_api_proto = out.File
+	file_api_proto_goTypes = nil
+	file_api_proto_depIdxs = nil
 }

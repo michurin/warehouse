@@ -2,7 +2,7 @@
 // versions:
 // - protoc-gen-go-grpc v1.5.1
 // - protoc             v6.30.1
-// source: api/api.proto
+// source: api.proto
 
 package api
 
@@ -19,22 +19,23 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	CalsService_Square_FullMethodName     = "/api.v1.CalsService/Square"
 	CalsService_Sum_FullMethodName        = "/api.v1.CalsService/Sum"
 	CalsService_Repeat_FullMethodName     = "/api.v1.CalsService/Repeat"
 	CalsService_PipeSquare_FullMethodName = "/api.v1.CalsService/PipeSquare"
 	CalsService_Error_FullMethodName      = "/api.v1.CalsService/Error"
+	CalsService_Square_FullMethodName     = "/api.v1.CalsService/Square"
 )
 
 // CalsServiceClient is the client API for CalsService service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type CalsServiceClient interface {
-	Square(ctx context.Context, in *Number, opts ...grpc.CallOption) (*Number, error)
+	// rpc Square(Number) returns (Number) {}
 	Sum(ctx context.Context, opts ...grpc.CallOption) (grpc.ClientStreamingClient[Number, Number], error)
 	Repeat(ctx context.Context, in *Number, opts ...grpc.CallOption) (grpc.ServerStreamingClient[Number], error)
 	PipeSquare(ctx context.Context, opts ...grpc.CallOption) (grpc.BidiStreamingClient[Number, Number], error)
 	Error(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*Empty, error)
+	Square(ctx context.Context, in *Number, opts ...grpc.CallOption) (*Number, error)
 }
 
 type calsServiceClient struct {
@@ -43,16 +44,6 @@ type calsServiceClient struct {
 
 func NewCalsServiceClient(cc grpc.ClientConnInterface) CalsServiceClient {
 	return &calsServiceClient{cc}
-}
-
-func (c *calsServiceClient) Square(ctx context.Context, in *Number, opts ...grpc.CallOption) (*Number, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(Number)
-	err := c.cc.Invoke(ctx, CalsService_Square_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
 }
 
 func (c *calsServiceClient) Sum(ctx context.Context, opts ...grpc.CallOption) (grpc.ClientStreamingClient[Number, Number], error) {
@@ -110,15 +101,26 @@ func (c *calsServiceClient) Error(ctx context.Context, in *Empty, opts ...grpc.C
 	return out, nil
 }
 
+func (c *calsServiceClient) Square(ctx context.Context, in *Number, opts ...grpc.CallOption) (*Number, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(Number)
+	err := c.cc.Invoke(ctx, CalsService_Square_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // CalsServiceServer is the server API for CalsService service.
 // All implementations must embed UnimplementedCalsServiceServer
 // for forward compatibility.
 type CalsServiceServer interface {
-	Square(context.Context, *Number) (*Number, error)
+	// rpc Square(Number) returns (Number) {}
 	Sum(grpc.ClientStreamingServer[Number, Number]) error
 	Repeat(*Number, grpc.ServerStreamingServer[Number]) error
 	PipeSquare(grpc.BidiStreamingServer[Number, Number]) error
 	Error(context.Context, *Empty) (*Empty, error)
+	Square(context.Context, *Number) (*Number, error)
 	mustEmbedUnimplementedCalsServiceServer()
 }
 
@@ -129,9 +131,6 @@ type CalsServiceServer interface {
 // pointer dereference when methods are called.
 type UnimplementedCalsServiceServer struct{}
 
-func (UnimplementedCalsServiceServer) Square(context.Context, *Number) (*Number, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Square not implemented")
-}
 func (UnimplementedCalsServiceServer) Sum(grpc.ClientStreamingServer[Number, Number]) error {
 	return status.Errorf(codes.Unimplemented, "method Sum not implemented")
 }
@@ -143,6 +142,9 @@ func (UnimplementedCalsServiceServer) PipeSquare(grpc.BidiStreamingServer[Number
 }
 func (UnimplementedCalsServiceServer) Error(context.Context, *Empty) (*Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Error not implemented")
+}
+func (UnimplementedCalsServiceServer) Square(context.Context, *Number) (*Number, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Square not implemented")
 }
 func (UnimplementedCalsServiceServer) mustEmbedUnimplementedCalsServiceServer() {}
 func (UnimplementedCalsServiceServer) testEmbeddedByValue()                     {}
@@ -163,24 +165,6 @@ func RegisterCalsServiceServer(s grpc.ServiceRegistrar, srv CalsServiceServer) {
 		t.testEmbeddedByValue()
 	}
 	s.RegisterService(&CalsService_ServiceDesc, srv)
-}
-
-func _CalsService_Square_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(Number)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(CalsServiceServer).Square(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: CalsService_Square_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(CalsServiceServer).Square(ctx, req.(*Number))
-	}
-	return interceptor(ctx, in, info, handler)
 }
 
 func _CalsService_Sum_Handler(srv interface{}, stream grpc.ServerStream) error {
@@ -226,6 +210,24 @@ func _CalsService_Error_Handler(srv interface{}, ctx context.Context, dec func(i
 	return interceptor(ctx, in, info, handler)
 }
 
+func _CalsService_Square_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(Number)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(CalsServiceServer).Square(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: CalsService_Square_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(CalsServiceServer).Square(ctx, req.(*Number))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // CalsService_ServiceDesc is the grpc.ServiceDesc for CalsService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -234,12 +236,12 @@ var CalsService_ServiceDesc = grpc.ServiceDesc{
 	HandlerType: (*CalsServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "Square",
-			Handler:    _CalsService_Square_Handler,
-		},
-		{
 			MethodName: "Error",
 			Handler:    _CalsService_Error_Handler,
+		},
+		{
+			MethodName: "Square",
+			Handler:    _CalsService_Square_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{
@@ -260,5 +262,5 @@ var CalsService_ServiceDesc = grpc.ServiceDesc{
 			ClientStreams: true,
 		},
 	},
-	Metadata: "api/api.proto",
+	Metadata: "api.proto",
 }

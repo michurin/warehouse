@@ -2,7 +2,8 @@ syntax = "proto3";
 
 package api.v1;
 
-// import
+// turn on gateway
+import "google/api/annotations.proto";
 
 option go_package = "./api";
 
@@ -13,9 +14,16 @@ message Number {
 message Empty {}
 
 service CalsService {
-  rpc Square(Number) returns (Number) {}
+  // rpc Square(Number) returns (Number) {}
   rpc Sum(stream Number) returns (Number) {}
   rpc Repeat(Number) returns (stream Number) {}
   rpc PipeSquare(stream Number) returns (stream Number) {}
   rpc Error(Empty) returns (Empty) {}
+
+  rpc Square(Number) returns (Number) {
+    option (google.api.http) = {
+      post: "/square"
+      body: "*"
+    };
+  }
 }
