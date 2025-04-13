@@ -1,5 +1,6 @@
 #!/bin/bash
 
+all='n'
 for pq in \
   'n github.com/charmbracelet/freeze' \
   'n github.com/fatih/gomodifytags' \
@@ -7,7 +8,7 @@ for pq in \
   'n github.com/go-delve/delve/cmd/dlv' \
   'n github.com/gojuno/minimock/v3/cmd/minimock' \
   'n github.com/golangci/golangci-lint/cmd/golangci-lint' \
-  'n github.com/golang/mock/mockgen' \
+  'n go.uber.org/mock/mockgen' `# n github.com/golang/mock/mockgen` \
   'n github.com/itskoko/prometheus-renderer/cmd/...' `# render -s 12h 'rate(app_cpu{cpu="cpu",mx!="idle"}[1m])/100/16'` \
   'n github.com/michurin/human-readable-json-logging/cmd/...' \
   'n github.com/michurin/systemd-env-file/cmd/xenv' \
@@ -18,7 +19,13 @@ for pq in \
   'n golang.org/x/tools/cmd/present' \
   'n golang.org/x/tools/gopls' \
   'n mvdan.cc/gofumpt' \
-  'n github.com/ofabry/go-callvis'
+  'n github.com/ofabry/go-callvis' \
+  'n github.com/bufbuild/buf/...' \
+  'n google.golang.org/protobuf/cmd/protoc-gen-go' \
+  'n google.golang.org/grpc/cmd/protoc-gen-go-grpc' \
+  'n github.com/fullstorydev/grpcurl/cmd/grpcurl' \
+  'n github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-grpc-gateway' \
+  'n github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-openapiv2'
 do
     p="${pq% *}"
     q="${pq#* }"
@@ -26,10 +33,18 @@ do
         y ) p_=$'\e[1;92mY\e[0m/\e[31mn\e[0m';;
         n ) p_=$'\e[32my\e[0m/\e[1;91mN\e[0m';;
     esac
-    read -p $'Install \e[1;93m'"$q"$'\e[0m'" [$p_] " yn
+    case $all in
+        n ) read -p $'Install \e[1;93m'"$q"$'\e[0m'" [$p_/a/q] " yn;;
+        y ) echo $'Install \e[1;93m'"$q"$'\e[0m (auto)';;
+    esac
     case $yn in
         [yY] ) go install "${q}@latest";;
         [nN] ) echo "Skipping";;
+        [aA] )
+            all=y
+            go install "${q}@latest"
+            ;;
+        [qQ] ) exit;;
         * )
             case $p in
                 y ) go install "${q}@latest";;
