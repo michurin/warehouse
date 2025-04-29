@@ -32,7 +32,11 @@ Useful commands:
 
 Useful commands to find out ids:
 
-    udevadm monitor # useful option: --environment
+    sudo udevadm monitor # useful option: --environment
+                         # or
+                         # udevadm monitor -p -u -s tty
+                         # and
+                         # udevadm info -a /dev/ttyACM0
     # connect usb cable
     # KERNEL[000] add      /devices/pci0000:00/0000:00:14.0/usb1/1-3/1-3.2 (usb)
     # ...
