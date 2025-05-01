@@ -7,7 +7,7 @@ for pq in \
   'n github.com/fogleman/primitive' \
   'n github.com/go-delve/delve/cmd/dlv' \
   'n github.com/gojuno/minimock/v3/cmd/minimock' \
-  'n github.com/golangci/golangci-lint/cmd/golangci-lint' \
+  'n github.com/golangci/golangci-lint/v2/cmd/golangci-lint' \
   'n go.uber.org/mock/mockgen' `# n github.com/golang/mock/mockgen` \
   'n github.com/itskoko/prometheus-renderer/cmd/...' `# render -s 12h 'rate(app_cpu{cpu="cpu",mx!="idle"}[1m])/100/16'` \
   'n github.com/michurin/human-readable-json-logging/cmd/...' \
