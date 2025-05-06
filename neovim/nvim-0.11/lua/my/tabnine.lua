@@ -1,3 +1,4 @@
+-- TABNINE01052025 Tabnine won't work after nvim 0.11. I don't even really wanted.
 require('tabnine').setup({
   disable_auto_comment=false, -- true,
   accept_keymap="<Tab>",

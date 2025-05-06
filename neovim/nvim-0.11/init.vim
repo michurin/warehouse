@@ -20,7 +20,8 @@ call plug#begin() " https://github.com/junegunn/vim-plug +PlugInstall
   Plug 'leoluz/nvim-dap-go' " go install github.com/go-delve/delve/cmd/dlv@latest
   Plug 'nvim-telescope/telescope-dap.nvim' " require('telescope').load_extension('dap') after require('telescope').setup()
 
-  Plug 'codota/tabnine-nvim', { 'do': './dl_binaries.sh' }
+" TABNINE01052025 Plug 'codota/tabnine-nvim', { 'do': './dl_binaries.sh' }
+" TABNINE01052025 Plug 'tzachar/cmp-tabnine', { 'do': './install.sh' }
 call plug#end()
 
 if filereadable(getcwd() . "/.nogofumpt") " Oh, too hackish. vim.lsp.buf.list_workspace_folders() or util.root_pattern?
@@ -64,6 +65,7 @@ cmp.setup({
     { name = 'nvim_lsp', group_index = 1 },
     { name = 'vsnip', group_index = 2 },
     { name = 'buffer', group_index = 3 },
+-- TABNINE01052025 { name = 'cmp_tabnine', group_index = 4 },
   })
 })
 
@@ -463,7 +465,7 @@ set langmap=ФИСВУАПРШОЛДЬТЩЗЙКЫЕГМЦЧНЯ;ABCDEFGHIJKLMNO
 
 lua require('my.runsh')
 lua require('my.colors')
-lua require('my.tabnine')
+" TABNINE01052025 lua require('my.tabnine')
 lua require('my.telescope')
 lua require('my.dap')
 
