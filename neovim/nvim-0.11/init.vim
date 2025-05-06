@@ -126,6 +126,7 @@ local on_attach = function(client, bufnr)
   buf_set_keymap('n', '<space>e', '<cmd>lua vim.diagnostic.open_float({source="if_many"})<CR>', opts)
 end
 
+-- brea install lua-language-server
 local servers = {'gopls', 'intelephense', 'pyright', 'ts_ls', 'ccls', 'lua_ls', 'buf_ls'}
 local capabilities = require('cmp_nvim_lsp').default_capabilities(vim.lsp.protocol.make_client_capabilities())
 for _, lsp in pairs(servers) do
