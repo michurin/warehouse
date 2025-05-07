@@ -1,2 +1,9 @@
-ssh-keygen -t ed25519 -a 100
-ssh-keygen -t rsa -b 4096 -a 100
+ssh-keygen -t ed25519 -a 100 -C "$(whoami)@$(hostname)"
+ssh-keygen -t rsa -b 4096 -a 100 -C "$(whoami)@$(hostname)"
+
+Comment (-C) is optional.
+
+To unlock legacy RSA, you may need to add following lines to your local (client side) ~/.ssh/config file.
+
+Host your-old-host.com
+    PubkeyAcceptedKeyTypes +ssh-rsa
