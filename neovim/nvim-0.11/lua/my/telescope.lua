@@ -56,6 +56,8 @@ vim.keymap.set('n', 'gy', function() require('telescope.builtin').lsp_type_defin
 vim.keymap.set('n', '<space>fs', function() require('telescope.builtin').treesitter(); end)
 -- all
 vim.keymap.set('n', '<space>fa', function() require('telescope.builtin').builtin(); end)
+-- semi gf
+vim.keymap.set('n', 'ggf', function() require('telescope.builtin').find_files({default_text=vim.fs.basename(vim.fn.expand('<cfile>')), find_command = {"fd", "--color", "never"}}); end)
 
 -- local action_layout = require("telescope.actions.layout")
 require('telescope').setup{
