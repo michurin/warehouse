@@ -45,7 +45,7 @@ function proxyCall(options, data) {
 
 function requestHandler(request, response) {
   const { headers, method, url } = request;
-  console.log(`\x1b[1;44;36m${method} ${url}\x1b[K\x1b[0m`);
+  console.log(`\x1b[1;44;96m${method} ${url}\x1b[K\x1b[0m`);
   let data = '';
   request.on('data', (chunk) => { data += chunk; });
   request.on('end', async () => {
