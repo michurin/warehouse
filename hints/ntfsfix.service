@@ -1,0 +1,12 @@
+[Unit]
+Description=Clear the volume dirty flag for /dev/sda1
+# put the file here:
+# /etc/systemd/system/ntfsfix.service
+# how to figure out Before unit:
+# sudo systemctl show local-fs.target | grep Requires
+Before=mnt-wd.mount
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/ntfsfix -d /dev/sda1
+[Install]
+WantedBy=multi-user.target
