@@ -2,7 +2,7 @@ module x
 
 go 1.24.2
 
-require modernc.org/tk9.0 v0.70.1
+require modernc.org/tk9.0 v0.70.2
 
 require (
 	github.com/adrg/xdg v0.5.3 // indirect
@@ -18,7 +18,7 @@ require (
 	golang.org/x/exp v0.0.0-20250408133849-7e4ce0ab07d0 // indirect
 	golang.org/x/image v0.26.0 // indirect
 	golang.org/x/net v0.39.0 // indirect
-	golang.org/x/sys v0.32.0 // indirect
+	golang.org/x/sys v0.33.0 // indirect
 	modernc.org/fileutil v1.3.1 // indirect
 	modernc.org/fsm v1.3.2 // indirect
 	modernc.org/gc/v3 v3.1.0 // indirect
@@ -29,7 +29,7 @@ require (
 	modernc.org/libXft v0.10.19 // indirect
 	modernc.org/libXrender v0.9.13 // indirect
 	modernc.org/libbsd v0.11.10 // indirect
-	modernc.org/libc v1.65.0 // indirect
+	modernc.org/libc v1.65.6 // indirect
 	modernc.org/libexpat v0.10.12 // indirect
 	modernc.org/libfontconfig v0.8.11 // indirect
 	modernc.org/libfreetype v0.9.18 // indirect
@@ -45,6 +45,6 @@ require (
 	modernc.org/regexp v1.7.9 // indirect
 	modernc.org/sortutil v1.2.1 // indirect
 	modernc.org/strutil v1.2.1 // indirect
-	modernc.org/tcl9.0 v0.16.4 // indirect
+	modernc.org/tcl9.0 v0.16.5 // indirect
 	modernc.org/token v1.1.0 // indirect
 )
