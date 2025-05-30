@@ -1,0 +1,17 @@
+#!/bin/sh
+
+# TODO: very tricky and specific datadir magic
+#       this magic considers custom datadir's if any
+
+url="$(git remote get-url origin | perl -pe 's{^git\@github\.com:([^/]+)/(.+)\.git$}{https://github.com/$1/$2}')"
+
+echo "url=$url"
+
+test -n "$url" || exit
+
+datadir=$(ps auxwww | perl -ne 'if (m|/chromium| && !m|--type| && !m|--proxy-server| && m|--user-data-dir=(\S+)|) {print "--user-data-dir=$1\n"}' | head -1)
+
+echo "datadir=$datadir"
+
+
+chromium $datadir "$url"
