@@ -1,4 +1,7 @@
 (() => {
+
+  return; // --------------------------------
+
   setInterval(() => {
     // letter-like
     let cc = document.querySelector('[data-key="box=toolbar-box"]');
