@@ -27,7 +27,7 @@ func Example() {
 	log.Info("OK", sslog.Args(ctx)...)
 
 	err := errors.New("message")
-	err = sslog.Wrap(err, sslog.Args(ctx))
+	err = sslog.Wrap(err, sslog.Args(ctx)...)
 	log.Error("ERR", sslog.ArgsE(err)...)
 
 	// output:

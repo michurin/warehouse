@@ -13,7 +13,7 @@ func (e Error) Error() string { return e.next.Error() }
 
 func (e Error) Unwrap() error { return e.next }
 
-func Wrap(err error, args []any) error {
+func Wrap(err error, args ...any) error {
 	if err == nil {
 		return err
 	}
