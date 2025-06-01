@@ -1,7 +1,6 @@
 package sslog
 
 import (
-	"context"
 	"errors"
 )
 
@@ -14,11 +13,11 @@ func (e Error) Error() string { return e.next.Error() }
 
 func (e Error) Unwrap() error { return e.next }
 
-func Wrap(ctx context.Context, err error) error {
+func Wrap(err error, args []any) error {
 	if err == nil {
 		return err
 	}
-	if ctx == nil {
+	if len(args) == 0 {
 		return err
 	}
 	t := new(Error)
@@ -27,7 +26,7 @@ func Wrap(ctx context.Context, err error) error {
 	}
 	return Error{
 		next: err,
-		args: Args(ctx),
+		args: args,
 	}
 }
 
