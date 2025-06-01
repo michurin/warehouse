@@ -23,7 +23,7 @@ func Example() {
 	ctx := context.Background()
 	log := slog.New(slog.NewTextHandler(os.Stdout, handlerOptions))
 	ctx = sslog.With(ctx, "K", "V")
-	ctx = sslog.With(ctx, slog.Group("g", "kk", "vv"))
+	ctx = sslog.With(ctx, slog.Group("g", slog.String("kk", "vv")))
 	log.Info("OK", sslog.Args(ctx)...)
 
 	err := errors.New("message")
