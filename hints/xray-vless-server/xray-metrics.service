@@ -1,0 +1,13 @@
+[Unit]
+Description=Xray Service Metric Exporter
+Documentation=http://www.michurin.net/
+After=network.target nss-lookup.target
+
+[Service]
+User=nobody
+NoNewPrivileges=true
+ExecStart=/usr/local/bin/v2ray-exporter --v2ray-endpoint '127.0.0.1:5432' --listen '127.0.0.1:9999'
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
