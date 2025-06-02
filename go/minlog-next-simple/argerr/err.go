@@ -4,14 +4,14 @@ import (
 	"errors"
 )
 
-type Error struct {
+type xerr struct {
 	next error
 	args []any
 }
 
-func (e Error) Error() string { return e.next.Error() }
+func (e xerr) Error() string { return e.next.Error() }
 
-func (e Error) Unwrap() error { return e.next }
+func (e xerr) Unwrap() error { return e.next }
 
 func Wrap(err error, args ...any) error {
 	if err == nil {
@@ -20,18 +20,18 @@ func Wrap(err error, args ...any) error {
 	if len(args) == 0 {
 		return err
 	}
-	t := new(Error)
+	t := new(xerr)
 	if errors.As(err, t) {
 		return err // already wrapped
 	}
-	return Error{
+	return xerr{
 		next: err,
 		args: args,
 	}
 }
 
 func Args(err error) []any {
-	t := new(Error)
+	t := new(xerr)
 	if errors.As(err, t) { // allows err=nil
 		return t.args
 	}
