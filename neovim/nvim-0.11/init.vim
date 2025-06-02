@@ -299,6 +299,8 @@ set isfname-=# " TODO: do it for YAML only?
 set guicursor=n-c-sm:block,i-ci-ve:ver25,r-cr-o-v:hor20
 set termguicolors
 
+lua vim.o.numberwidth=1
+
 let g:netrw_winsize = 30
 let g:netrw_banner = 0
 let g:netrw_keepdir = 0
