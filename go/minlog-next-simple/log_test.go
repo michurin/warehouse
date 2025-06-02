@@ -6,7 +6,8 @@ import (
 	"log/slog"
 	"os"
 
-	"sslog"
+	"github.com/michurin/minlog/argctx"
+	"github.com/michurin/minlog/argerr"
 )
 
 var handlerOptions = &slog.HandlerOptions{
@@ -22,13 +23,13 @@ var handlerOptions = &slog.HandlerOptions{
 func Example() {
 	ctx := context.Background()
 	log := slog.New(slog.NewTextHandler(os.Stdout, handlerOptions))
-	ctx = sslog.With(ctx, "K", "V")
-	ctx = sslog.With(ctx, slog.Group("g", slog.String("kk", "vv")))
-	log.Info("OK", sslog.Args(ctx)...)
+	ctx = argctx.With(ctx, "K", "V")
+	ctx = argctx.With(ctx, slog.Group("g", slog.String("kk", "vv")))
+	log.Info("OK", argctx.Args(ctx)...)
 
 	err := errors.New("message")
-	err = sslog.Wrap(err, sslog.Args(ctx)...)
-	log.Error("ERR", sslog.ArgsE(err)...)
+	err = argerr.Wrap(err, argctx.Args(ctx)...)
+	log.Error("ERR", argerr.Args(err)...)
 
 	// output:
 	// level=INFO msg=OK K=V g.kk=vv

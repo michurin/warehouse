@@ -1,4 +1,4 @@
-package sslog
+package argerr
 
 import (
 	"errors"
@@ -30,7 +30,7 @@ func Wrap(err error, args ...any) error {
 	}
 }
 
-func ArgsE(err error) []any {
+func Args(err error) []any {
 	t := new(Error)
 	if errors.As(err, t) { // allows err=nil
 		return t.args
