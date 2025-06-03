@@ -23,6 +23,7 @@ var handlerOptions = &slog.HandlerOptions{
 func Example() {
 	ctx := context.Background()
 	log := slog.New(slog.NewTextHandler(os.Stdout, handlerOptions))
+
 	ctx = argctx.With(ctx, "K", "V")
 	ctx = argctx.With(ctx, slog.Group("g", slog.String("kk", "vv")))
 	log.Info("OK", argctx.Args(ctx)...)
