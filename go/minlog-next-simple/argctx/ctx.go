@@ -21,5 +21,17 @@ func With(ctx context.Context, args ...any) context.Context { // With mimics [sl
 
 func Args(ctx context.Context) []any {
 	a, _ := ctx.Value(ctxKey).([]any)
-	return a
+	return grouping(a)
+}
+
+func grouping(a []any) []any {
+	r := []any(nil)
+	for i, v := range a {
+		if f, ok := v.(func([]any) any); ok {
+			r = append(r, f(grouping(a[i+1:])))
+			break
+		}
+		r = append(r, v)
+	}
+	return r
 }

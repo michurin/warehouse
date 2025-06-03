@@ -36,3 +36,23 @@ func Example() {
 	// level=INFO msg=OK K=V g.kk=vv
 	// level=ERROR msg=ERR K=V g.kk=vv
 }
+
+func Example_experimentalCtxGroups() {
+	ctx := context.Background()
+	log := slog.New(slog.NewTextHandler(os.Stdout, handlerOptions))
+
+	ctx = argctx.With(ctx, "R", 1)
+	ctx = argctx.With(ctx, func(x []any) any {
+		return slog.Group("handler", x...)
+	})
+	ctx = argctx.With(ctx, "H", 2)
+	ctx = argctx.With(ctx, func(x []any) any {
+		return slog.Group("adapter", x...)
+	})
+	ctx = argctx.With(ctx, "A", 3)
+
+	log.Info("OK", argctx.Args(ctx)...)
+
+	// output:
+	// level=INFO msg=OK R=1 handler.H=2 handler.adapter.A=3
+}
