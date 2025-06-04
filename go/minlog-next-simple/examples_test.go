@@ -51,8 +51,13 @@ func Example_experimentalCtxGroups() {
 	})
 	ctx = argctx.With(ctx, "A", 3)
 
+	err := errors.New("error message")
+	err = argerr.Wrap(err, argctx.Args(ctx)...)
+
+	log.Error(err.Error(), argerr.Args(err)...) // we are obtaining all logging context from error only
 	log.Info("OK", argctx.Args(ctx)...)
 
 	// output:
+	// level=ERROR msg="error message" R=1 handler.H=2 handler.adapter.A=3
 	// level=INFO msg=OK R=1 handler.H=2 handler.adapter.A=3
 }
