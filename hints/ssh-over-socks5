@@ -1,0 +1,1 @@
+ssh a@whatever -o 'ProxyCommand=nc -X 5 -x localhost:1080 localhost 22'
