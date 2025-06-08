@@ -1,0 +1,14 @@
+# https://billauer.co.il/blog/2023/12/systemd-dependencies-fstab/
+# add noauto to /etc/fstab
+[Unit]
+Description=WD automatic mount
+
+[Service]
+ExecStartPre=/usr/bin/ntfsfix -d /dev/sda1
+ExecStart=/usr/bin/mount -o noatime /mnt/wd
+ExecStop=/usr/bin/umount /mnt/wd
+Type=simple
+RemainAfterExit=yes
+
+[Install]
+WantedBy=local-fs.target

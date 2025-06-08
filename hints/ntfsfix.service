@@ -1,3 +1,5 @@
+# CAUTION: it won't work correctly due to dependency loop
+#          see ntfs-safe-mount.service
 [Unit]
 Description=Clear the volume dirty flag for /dev/sda1
 # put the file here:
