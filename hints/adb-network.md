@@ -79,7 +79,7 @@ Systemd service:
     Type=forking
     ExecStart=/usr/bin/adb start-server
     ExecStartPost=/usr/bin/adb wait-for-usb-device
-    ExecStartPost=/usr/bin/adb shell cmd notification post TagWayfarer Connected
+    ExecStartPost=/usr/bin/adb shell cmd notification post TagWayfarer "'Connected: port 3022'"
     ExecStartPost=/usr/bin/adb reverse tcp:3022 tcp:22
     ExecStop=/usr/bin/adb kill-server
     Restart=no
