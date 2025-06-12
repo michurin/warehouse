@@ -1,0 +1,4 @@
+git clone https://go.googlesource.com/tools
+cd tools
+sed -i .bak "s/font-family: 'Droid Sans Mono', 'Courier New', monospace;/font-family: monospace;/" cmd/present/static/styles.css
+go build -o ~/go/bin/present ./cmd/present/...
