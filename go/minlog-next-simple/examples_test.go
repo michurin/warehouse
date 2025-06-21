@@ -25,16 +25,15 @@ func Example() {
 	log := slog.New(slog.NewTextHandler(os.Stdout, handlerOptions))
 
 	ctx = argctx.With(ctx, "K", "V")
-	ctx = argctx.With(ctx, slog.Group("g", slog.String("kk", "vv")))
 	log.Info("OK", argctx.Args(ctx)...)
 
 	err := errors.New("message")
-	err = argerr.Wrap(err, argctx.Args(ctx)...)
+	err = argerr.Wrap(err, argctx.Args(ctx)...) // CONSIDER: helper Wrap(err, ctx)?
 	log.Error("ERR", argerr.Args(err)...)
 
 	// output:
-	// level=INFO msg=OK K=V g.kk=vv
-	// level=ERROR msg=ERR K=V g.kk=vv
+	// level=INFO msg=OK K=V
+	// level=ERROR msg=ERR K=V
 }
 
 func Example_experimentalCtxGroups() {
