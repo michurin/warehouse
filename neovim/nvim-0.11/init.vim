@@ -264,6 +264,15 @@ require'nvim-treesitter.configs'.setup {
       },
     },
   },
+  incremental_selection = {
+    enable = true,
+    keymaps = {
+      init_selection = "gww", -- set to `false` to disable one of the mappings
+      node_incremental = "gwi",
+      scope_incremental = "gwj",
+      node_decremental = "gwd",
+    },
+  },
 }
 TREESITTER_SETTINGS
 
