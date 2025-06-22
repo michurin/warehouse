@@ -299,8 +299,10 @@ set foldlevelstart=99
 set foldlevel=99
 set synmaxcol=10000
 
-set foldmethod=expr
-set foldexpr=nvim_treesitter#foldexpr()
+"set foldmethod=expr
+"set foldexpr=nvim_treesitter#foldexpr()
+lua vim.wo.foldmethod = 'expr'
+lua vim.wo.foldexpr = 'v:lua.vim.treesitter.foldexpr()'
 
 set splitright
 set isfname-=# " TODO: do it for YAML only?
