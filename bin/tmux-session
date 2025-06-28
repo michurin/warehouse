@@ -1,22 +1,19 @@
 #!/usr/bin/env bash
 #
 ### Stolen from https://github.com/mislav/dotfiles/blob/master/bin/tmux-session ###
-### TODO:
-### add:         tmux list-sessions -F "#S #{session_path}"
-### and restore: tmux new-session -c dir
-#
-# Save and restore the state of tmux sessions and windows.
-#
-# TODO: persist and restore the state & position of panes.
+### with minor hacks
+
 set -e
+
+sessionfile="${0}-" # ~/.tmux-session
 
 dump() {
   local d=$'\t'
-  tmux list-windows -a -F "#S${d}#W${d}#{pane_current_path}"
+  tmux list-windows -a -F "#S${d}#{session_path}${d}#W${d}#{pane_current_path}"
 }
 
 save() {
-  dump > ~/.tmux-session
+  dump | tee "$sessionfile"
 }
 
 terminal_size() {
@@ -32,8 +29,8 @@ add_window() {
 }
 
 new_session() {
-  cd "$3" &&
-  tmux new-session -d -s "$1" -n "$2" $4
+  tmux new-session -d -s "$1" -n '__' -c "$3" $5 sleep 1 # creating interim window to force session working directory (hakish)
+  tmux new-window -d -t "$1:" -n "$2" -c "$4"
 }
 
 restore() {
@@ -41,16 +38,16 @@ restore() {
   local count=0
   local dimensions="$(terminal_size)"
 
-  while IFS=$'\t' read session_name window_name dir; do
+  while IFS=$'\t' read session_name sdir window_name dir; do
     if [[ -d "$dir" && $window_name != "log" && $window_name != "man" ]]; then
       if session_exists "$session_name"; then
         add_window "$session_name" "$window_name" "$dir"
       else
-        new_session "$session_name" "$window_name" "$dir" "$dimensions"
+        new_session "$session_name" "$window_name" "$sdir" "$dir" "$dimensions"
         count=$(( count + 1 ))
       fi
     fi
-  done < ~/.tmux-session
+  done < "$sessionfile"
 
   echo "restored $count sessions"
 }
@@ -64,3 +61,4 @@ save | restore )
   exit 1
 esac
 
+# vi:set sts=2 sw=2 ts=2 et:
