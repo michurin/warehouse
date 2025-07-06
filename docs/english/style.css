@@ -1,0 +1,52 @@
+@page {
+  size: 210mm 297mm; /* A4 */
+}
+
+* {
+  font-family: sans-serif;
+}
+#title-block-header h1 {
+  color: #000;
+  background-color: transparent;
+  font-size: 100%;
+}
+#TOC a {
+  text-decoration: none;
+  color: #060;
+}
+.header-section-number, .toc-section-number {
+  color: #920;
+  font-size: 80%;
+}
+h1 {
+  color: #920;
+  background-color: #ff5;
+  background: linear-gradient(0deg, #dd5 0% 30%, transparent 30% 100%);
+}
+del {
+  text-decoration: none;
+  background-color: #ff5;
+  background: linear-gradient(0deg, transparent 0% 35%, #dd5 35% 50%, transparent 50% 100%);
+}
+h2 {
+  color: #920;
+}
+h4, h5 {
+  color: #060;
+}
+em {
+  color: #080; /* slightly brighter than headers */
+  font-style: normal;
+}
+blockquote {
+  border-color: #dd5;
+  border-style: solid;
+  border-width: .2em .2em .2em 2em;
+  padding: 1em;
+}
+code, code span {
+  font-family: monospace;
+}
+code {
+  color: #000;
+}
