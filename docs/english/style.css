@@ -10,9 +10,12 @@
   background-color: transparent;
   font-size: 100%;
 }
-#TOC a {
+a {
   text-decoration: none;
-  color: #060;
+  color: #006;
+}
+a:hover {
+  text-decoration: underline;
 }
 .header-section-number, .toc-section-number {
   color: #920;

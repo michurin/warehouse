@@ -6,7 +6,7 @@
 >
 > I'm not English teacher. English is not my first language. Mistakes and typos are possible in this document. You have been warned.
 >
-> You are welcome to improve this document if you wish.
+> You are welcome to improve this document if you wish. If you familiar with github, you can [edit the source online](https://github.com/michurin/warehouse/blob/master/docs/english/ENGLISH.md), [styles](https://github.com/michurin/warehouse/blob/master/docs/english/style.css) are nearby.
 
 # Present
 
