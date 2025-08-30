@@ -104,4 +104,22 @@ Systemd service:
 
 - <https://gist.github.com/Pulimet/5013acf2cd5b28e55036c82c91bd56d8>
 
+## Just useful adb commands
+
+    adb start-server
+    adb devices
+    adb kill-server
+
+    adb shell ls /storage/emulated/0/Book
+    adb push Stephen_Wolfram_A_new_kind_of_science.mobi /storage/emulated/0/Book
+
+By the way, forward tunneling is allow as well:
+
+    adb forward tcp:3022 tcp:22
+
+You can remove all (or one, by `--remove`) tunnels:
+
+    adb forward --remove-all
+    adb reverse --remove-all
+
 <!-- ::: vi: set ft=markdown ::: -->
