@@ -1,5 +1,6 @@
 #!/bin/sh
 
+# pkg install ncurses-utils
 clr0="`tput sgr0`"
 clr1="`tput setaf 2`"
 clr2="`tput setaf 3`"
