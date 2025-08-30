@@ -2,7 +2,16 @@
 
 ## Prepare phone
 
-On the phone turn on *USB Debugging*
+On the phone
+
+- *Settings*
+- *About phone*
+- *Software information*
+- tap seven times on *Build number*
+- unlock
+- *Settings* (go back)
+- *Developer options*
+- turn on *USB Debugging*
 
 ## Manual
 
