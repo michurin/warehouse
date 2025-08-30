@@ -477,6 +477,7 @@ set langmap=ФИСВУАПРШОЛДЬТЩЗЙКЫЕГМЦЧНЯ;ABCDEFGHIJKLMNO
 "set statusline=%<%f\ %h%m%r\ %{&filetype}%=%{SyntaxItemHack()}\ %-10.(%l,%v%)\ %8.(%B%)
 
 lua require('my.runsh')
+lua require('my.magic')
 lua require('my.colors')
 " TABNINE01052025 lua require('my.tabnine')
 lua require('my.telescope')
