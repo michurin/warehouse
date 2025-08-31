@@ -1,0 +1,178 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Wenneker Resume/CV
+% LaTeX Template
+% Version 1.1 (19/6/2016)
+%
+% This template has been downloaded from:
+% http://www.LaTeXTemplates.com
+%
+% Original author:
+% Frits Wenneker (http://www.howtotex.com) with extensive modifications by 
+% Vel (vel@LaTeXTemplates.com)
+%
+% License:
+% CC BY-NC-SA 3.0 (http://creativecommons.org/licenses/by-nc-sa/3.0/
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%----------------------------------------------------------------------------------------
+%	PACKAGES AND OTHER DOCUMENT CONFIGURATIONS
+%----------------------------------------------------------------------------------------
+
+\documentclass[a4paper,11pt]{memoir} % Font and paper size
+
+\input{structure.tex} % Include the file specifying document layout and packages
+
+%----------------------------------------------------------------------------------------
+%	NAME AND CONTACT INFORMATION
+%----------------------------------------------------------------------------------------
+
+\userinformation{ % Set the content that goes into the sidebar of each page
+\begin{flushright}
+% Comment out this figure block if you don't want a photo
+\includegraphics[width=0.8\columnwidth]{michurin.jpg}\\[\baselineskip] % Your photo
+\footnotesize % \small % Smaller font size
+Alexey Michurin \\ % Your name
+\url{michurin.github.io} \\ % Your URL
+\url{github.com/michurin} \\ % Your URL
+\Sep
+Avito, Gett, Yandex, VimpelCom, MSU \\
+\Sep % Some whitespace
+%\textbf{Backend} \\
+Golang \\
+Python \\
+NodeJS \\
+PostgreSQL \\
+Redis \\
+MapReduce/PrestoDB \\
+Linux \\
+\Sep % Some whitespace
+Product development \\
+Billing \\
+Inventory \\
+Fraud prevention \\
+ML infrastructure for bidding and weather forecasting \\
+\Sep % Some whitespace
+%\textbf{Contacts} \\
+\url{a.michurin@gmail.com} \\ % Your email address
+\url{alexeymichurin.t.me} \\ % Your email address
++7 906 722 5401 \\ % Your phone number
+\Sep % Some whitespace
+%\textbf{Location} \\
+Moscow, Russia \\ % Address 1
+\Sep % Some whitespace
+Ready for relocation \\
+Not ready for remote
+\vfill % Whitespace under this block to push it up under the photo
+    v. 2025.07.25$_{\beta}$
+\end{flushright}
+}
+
+%----------------------------------------------------------------------------------------
+
+%\makeatletter
+%\let\oldsection\section%
+%\renewcommand{\section}[1]{\leavevmode\unskip\vspace*{-\baselineskip}\oldsection{#1}}%
+%\makeatother
+
+\begin{document}
+
+\userinformation % Print your information in the left column
+
+\framebreak % End of the first column
+
+%----------------------------------------------------------------------------------------
+%	HEADING
+%----------------------------------------------------------------------------------------
+
+\cvheading{Alexey Michurin} % Large heading - your name
+
+\cvsubheading{Backend Golang Developer} % Subheading - your occupation/specialization
+
+%----------------------------------------------------------------------------------------
+%	ABOUT ME
+%----------------------------------------------------------------------------------------
+
+\aboutme{About Me}{I've been lucky to work on a bunch of amazing projects and learn from smartest people.
+I believe my expertise might come in handy and you have challenging job.}
+
+%----------------------------------------------------------------------------------------
+%	EXPERIENCE
+%----------------------------------------------------------------------------------------
+\Sep % Extra whitespace after the end of a major section
+
+\CVSection{Experience}
+
+%------------------------------------------------
+
+\CVItem{
+    Aug 2021 -- present, Avito Tech (operation under Avito brand),\\
+    Jan 2021 -- Jul 2021, Avito, Cross-functional team
+}{
+Mostly Golang, PostgreSQL, Redis.
+
+It is my most product-focused position. I learned here how to make
+extremely flexible software, how to fit approaches to tests, logging, monitoring
+into unpredictable requirements changes. How to deal with
+contracts to ship new features faster and keep backward
+compatibility. How to share knowledge to move faster and work under the same roof with
+front-end engineers, designers, product-managers.
+}
+
+\CVItem{May 2018 -- Dec 2020, Gett, Payments and Fraud prevention}{
+Golang, Python, RabbitMQ, PostgreSQL, PrestoDB, Redis, AWS.
+
+The primary responsibility of our team was to support and develop payments infrastructure.
+It was made up of lots of internal and external integrations as well as parts of business logic.
+I also supported existing fraud prevention system based on ML.
+}
+
+\CVItem{Jun 2016 -- May 2018, Yandex, Weather forecasting system}{
+Python, MapReduce, MongoDB, distributed computing.
+
+We developed distributed system, that fetched weather data from different sources
+and produced weather forecast based on ML. I was engaged into process of
+significant modifications of system. We got global and began to process
+more data sources. I was responsible for applying ML models and collecting
+logs for training process. I designed not only the system itself, but also
+degradation strategy, monitoring and other useful things.
+}
+
+\CVItem{Nov 2014 -- Jun 2016, Yandex, Advertising system}{
+Python, Perl, MySQL, MapReduce, distributed computing.
+
+Our team was focused on auction and bidding. I took part in development and investigations.
+I also actively participated in design and development of RTB system.
+I was feature owner and key developer for new banner enrichment feature.
+In addition I contributed a bit to MapReduce engine.}
+
+\CVItem{Dec 2006 -- Nov 2014, Vimpelcom (Beeline), Billing and Inventory}{
+Python, Perl, MySQL, widespread distributed systems.
+
+We managed Beeline WiFi and broadband networks with tens of thousands of network hardware
+spread out over ten time zones. I was focused on control and monitoring system in
+conjunction with billing system. For example, it switches shapers to align traffic to tariff and billing status of customer.
+}
+
+\Sep % Extra whitespace after the end of a major section
+
+\CVSection{Education}
+
+\CVItem{1992 -- 1998, Moscow State University}{Physical department. Master Of Science (Solid State Physics).}
+
+\Sep % Extra whitespace after the end of a major section
+
+\CVSection{(Fun) facts}
+
+I worked in Moscow State University for 8 years after graduating.
+I taught students, conducted researches, made speeches at conferences, wrote papers.
+I worked abroad in international labs in Poland
+and Spain.
+
+%------------------------------------------------
+
+%\Sep % Extra whitespace after the end of a major section
+
+\clearpage
+
+\end{document}

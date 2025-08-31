@@ -52,7 +52,7 @@ func TestCtxKeys(t *testing.T) {
 		ctx := context.Background()
 		ctx = context.WithValue(ctx, 1, 2)
 		r := contextinspector.CtxKeys(ctx)
-		assert.Equal(t, []interface{}{1}, r)
+		assert.Equal(t, []any{1}, r)
 	})
 }
 
@@ -65,7 +65,7 @@ func TestCtxKeysCounters(t *testing.T) {
 		ctx = context.WithValue(ctx, "A", "A2")
 		ctx = context.WithValue(ctx, "B", "B1")
 		r := contextinspector.CtxKeysCounters(ctx)
-		assert.Equal(t, map[interface{}]int(map[interface{}]int{"A": 2, "B": 1}), r)
+		assert.Equal(t, map[any]int(map[any]int{"A": 2, "B": 1}), r)
 	})
 	t.Run("with_value_custom_type", func(t *testing.T) {
 		ctx := context.Background()
@@ -74,10 +74,11 @@ func TestCtxKeysCounters(t *testing.T) {
 		ctx = context.WithValue(ctx, customString("A"), "A3")
 		ctx = context.WithValue(ctx, "B", "B1")
 		r := contextinspector.CtxKeysCounters(ctx)
-		assert.Equal(t, map[interface{}]int(map[interface{}]int{
+		assert.Equal(t, map[any]int(map[any]int{
 			"A":               2,
 			customString("A"): 1,
-			"B":               1}), r)
+			"B":               1,
+		}), r)
 	})
 }
 
@@ -86,7 +87,7 @@ type customCtxAlias bool
 func (_ customCtxAlias) Deadline() (deadline time.Time, ok bool) { return time.Time{}, false }
 func (_ customCtxAlias) Done() <-chan struct{}                   { return nil }
 func (_ customCtxAlias) Err() error                              { return nil }
-func (_ customCtxAlias) Value(key interface{}) interface{}       { return nil }
+func (_ customCtxAlias) Value(key any) any                       { return nil }
 
 type customCtxChain struct {
 	privateNext context.Context
@@ -96,7 +97,7 @@ type customCtxChain struct {
 func (_ customCtxChain) Deadline() (deadline time.Time, ok bool) { return time.Time{}, false }
 func (_ customCtxChain) Done() <-chan struct{}                   { return nil }
 func (_ customCtxChain) Err() error                              { return nil }
-func (_ customCtxChain) Value(key interface{}) interface{}       { return nil }
+func (_ customCtxChain) Value(key any) any                       { return nil }
 
 func TestCtxKeysPanic(t *testing.T) {
 	t.Run("panic", func(t *testing.T) {
@@ -117,5 +118,6 @@ func TestCtxKeysWithCustom_does_not_work_yet(t *testing.T) {
 		"github.com/michurin/warehouse/go/contextinspector_test.customCtxChain": {
 			Next: "privateNext",
 			Key:  "customKey",
-		}})
+		},
+	})
 }
