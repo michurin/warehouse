@@ -1,0 +1,56 @@
+create table sex(id int, name varchar(5), primary key (id));
+create table st(name varchar(5), age int, sex int, foreign key (sex) references sex(id));
+-- foreing key will create key st.sex
+create table st(name varchar(5), age int, sex int, foreign key (sex) references sex(id) on delete cascade on update cascade);
+-- delete from sex where id=0; -- delete from st as well
+
+show index from st;  -- BTREE Null=YES  Non_unique=1
+show index from sex; -- BTREE Null=(no) Non_unique=0 PRIMARY
+
+insert into sex values (0, "GIRL");
+insert into sex values (1, "BOY");
+
+insert into st values ("Anna", 20, 0);
+insert into st values ("Alex", 20, 1);
+insert into st values ("Mary", 21, 0);
+insert into st values ("Hydra", 100, NULL);
+
+select * from st inner join sex on st.sex=sex.id; -- no Hydra
+select * from st left join sex on st.sex=sex.id where sex.name is null; -- Hydra only
+select sex, count(sex), count(*) from st group by 1; -- group by sex
+select sex, count(sex), count(*) from st group by 1 having sex=1; -- filter group
+
+select sex, count(sex), count(*) from st group by sex; -- count(sex) skips NULLs
+
+delete st from st left join sex on st.sex=sex.id where sex.name is null; -- delete Hydra
+delete from sex where id=0; -- cascade delition (affects st)
+update sex set id=100 where id=0; -- cascade update (affects st)
+
+----------------------------
+-- mysqldump --compact -p db
+----------------------------
+
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `sex` (
+  `id` int NOT NULL,
+  `name` varchar(5) DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+INSERT INTO `sex` VALUES (0,'GIRL'),(1,'BOY');
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `st` (
+  `name` varchar(5) DEFAULT NULL,
+  `age` int DEFAULT NULL,
+  `sex` int DEFAULT NULL,
+  KEY `sex` (`sex`),
+  CONSTRAINT `st_ibfk_1` FOREIGN KEY (`sex`) REFERENCES `sex` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+INSERT INTO `st` VALUES ('Anna',20,0),('Alex',20,1),('Mary',21,0),('Hydra',100,NULL);
+
+----------------------------
+
+-- vi:set ft=sql:

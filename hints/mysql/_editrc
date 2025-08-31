@@ -1,0 +1,11 @@
+# Shift-Left/Right
+bind "^[[1;2D" vi-prev-word
+bind "^[[1;2C" vi-next-word
+
+# Shift-Up/Down
+bind "^[[1;2A" ed-search-prev-history
+bind "^[[1;2B" ed-search-next-history
+
+# Ctrl-Shift-Left/Right
+bind "^[[1;6D" ed-delete-prev-word
+bind "^[[1;6C" vi-undo
