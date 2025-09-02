@@ -1,0 +1,15 @@
+[Unit]
+Description=VNC
+After=syslog.target network.target
+
+[Service]
+Type=simple
+Restart=always
+RestartSec=300
+User=o
+Group=users
+Environment=XAUTHORITY=/big/o/.Xauthority_vnc
+ExecStart=/usr/bin/vncserver :2
+
+[Install]
+WantedBy=multi-user.target
