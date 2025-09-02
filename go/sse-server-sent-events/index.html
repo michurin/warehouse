@@ -1,0 +1,21 @@
+<h1>demo</h1>
+<div id="board"></div>
+<script>
+const rootElement = document.getElementById("board")
+function say(text) {
+  const newElement = document.createElement("div");
+  newElement.textContent = text;
+  rootElement.prepend(newElement);
+}
+
+const evtSource = new EventSource("sse.go");
+console.log("Run...");
+evtSource.onmessage = (event) => {
+  console.log("Event");
+  say("Event: " + event.data);
+};
+evtSource.onerror = (err) => {
+  console.error("EventSource failed:", err);
+  say("Error");
+};
+</script>
