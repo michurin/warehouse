@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+
+# OSC in sourcs: https://github.com/exg/rxvt-unicode/blob/main/src/rxvt.h#L415-L430
+# Basics: https://bbs.archlinux.org/viewtopic.php?id=201685
+# Actual for kitty: https://chromium.googlesource.com/apps/libapps/+/nassh-0.8.41/hterm/doc/ControlSequences.md#OSC
+
+# echo $BASH_VERSION # MacOS's v3 won't work
+
+echo -ne "\e]11;#000000\a" # background
+echo -ne "\e]10;#bebebe\a" # foreground
+
+echo -ne "\e]4;0;#000000\a"
+echo -ne "\e]4;1;#9e1828\a"
+echo -ne "\e]4;2;#aece92\a"
+echo -ne "\e]4;3;#968a38\a"
+echo -ne "\e]4;4;#414171\a"
+echo -ne "\e]4;5;#963c59\a"
+echo -ne "\e]4;6;#418179\a"
+echo -ne "\e]4;7;#bebebe\a"
+echo -ne "\e]4;8;#666666\a"
+echo -ne "\e]4;9;#cf6171\a"
+echo -ne "\e]4;10;#c5f779\a"
+echo -ne "\e]4;11;#fff796\a"
+echo -ne "\e]4;12;#4186be\a"
+echo -ne "\e]4;13;#cf9ebe\a"
+echo -ne "\e]4;14;#71bebe\a"
+echo -ne "\e]4;15;#ffffff\a"
