@@ -9,7 +9,6 @@ clr3="`tput setaf 1``tput bold`"
 d=`date '+-%y-%m-%d'`
 for arg in "$@"
 do
-  echo $arg
   base=`basename "$arg"`
   dir=`dirname "$arg"`
   ok='not'
