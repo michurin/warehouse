@@ -1,0 +1,24 @@
+#!/bin/bash
+
+(
+echo "=============="
+date
+pwd
+for i in "$@"
+do
+  echo "[DEBUG][ARG] $i"
+done
+ix="$(git remote get-url origin | sed 's-^git@github.com:--;s-\.git$--')" # git@github.com:inDriver/payment-provider.git -> inDriver/payment-provider
+echo "ORG/REPO=$ix"
+br="$(git rev-parse --abbrev-ref HEAD)"
+br=main
+echo "BRANCH=$br"
+wd="$(pwd)"
+echo "PWD=$wd"
+rel="$(echo "$1" | sed 's#^'"$wd"'##')"
+echo "REL=$rel"
+url="https://github.com/$ix/blob/$br$rel#L$2"
+echo "URL=$url"
+open "$url"
+echo -n "$url" | pbcopy
+) >>~/vim-helper-open-git.log

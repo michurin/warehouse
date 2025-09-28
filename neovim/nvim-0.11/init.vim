@@ -109,26 +109,26 @@ local on_attach = function(client, bufnr)
 
   -- See `:help vim.lsp.*` for documentation on any of the below functions
   buf_set_keymap('n', 'gD', '<cmd>lua vim.lsp.buf.declaration()<CR>', opts)
---  buf_set_keymap('n', 'gd', '<cmd>lua vim.lsp.buf.definition()<CR>', opts)
+  --buf_set_keymap('n', 'gd', '<cmd>lua vim.lsp.buf.definition()<CR>', opts) -- telescope
   buf_set_keymap('n', 'K', '<cmd>lua vim.lsp.buf.hover()<CR>', opts)
---  buf_set_keymap('n', 'gi', '<cmd>lua vim.lsp.buf.implementation()<CR>', opts)
+  --buf_set_keymap('n', 'gri', '<cmd>lua vim.lsp.buf.implementation()<CR>', opts) -- telescope
   buf_set_keymap('n', '<C-k>', '<cmd>lua vim.lsp.buf.signature_help()<CR>', opts)
   buf_set_keymap('n', '<space>wa', '<cmd>lua vim.lsp.buf.add_workspace_folder()<CR>', opts)
   buf_set_keymap('n', '<space>wr', '<cmd>lua vim.lsp.buf.remove_workspace_folder()<CR>', opts)
   buf_set_keymap('n', '<space>wl', '<cmd>lua print(vim.inspect(vim.lsp.buf.list_workspace_folders()))<CR>', opts)
---  buf_set_keymap('n', 'gy', '<cmd>lua vim.lsp.buf.type_definition()<CR>', opts)
+  --buf_set_keymap('n', 'gry', '<cmd>lua vim.lsp.buf.type_definition()<CR>', opts) -- telescope gy
   buf_set_keymap('n', 'grn', '<cmd>lua vim.lsp.buf.rename()<CR>', opts)      -- std in 0.11
   buf_set_keymap('n', 'gra', '<cmd>lua vim.lsp.buf.code_action()<CR>', opts) -- std in 0.11
---  buf_set_keymap('n', 'gr', '<cmd>lua vim.lsp.buf.references()<CR>', opts)
+  --buf_set_keymap('n', 'grr', '<cmd>lua vim.lsp.buf.references()<CR>', opts)  -- std in 0.11 -- telescope
   buf_set_keymap('n', '[d', '<cmd>lua vim.diagnostic.goto_prev()<CR>', opts)
   buf_set_keymap('n', ']d', '<cmd>lua vim.diagnostic.goto_next()<CR>', opts)
   buf_set_keymap('n', '<space>q', '<cmd>lua vim.lsp.diagnostic.set_loclist()<CR>', opts)
   buf_set_keymap('n', '<space>f', '<cmd>lua vim.lsp.buf.format()<CR>', opts)
--- deprecated vim.lsp.diagnostic.show_line_diagnostics()
   buf_set_keymap('n', '<space>e', '<cmd>lua vim.diagnostic.open_float({source="if_many"})<CR>', opts)
 end
 
--- brea install lua-language-server
+-- brew install lua-language-server
+-- brew install python-lsp-server
 local servers = {'gopls', 'intelephense', 'pyright', 'ts_ls', 'ccls', 'lua_ls', 'buf_ls'}
 local capabilities = require('cmp_nvim_lsp').default_capabilities(vim.lsp.protocol.make_client_capabilities())
 for _, lsp in pairs(servers) do
@@ -142,11 +142,12 @@ for _, lsp in pairs(servers) do
       gopls = { -- https://github.com/golang/tools/blob/master/gopls/doc/settings.md
         gofumpt = vim.api.nvim_eval('exists("g:nogofumpt_tweak")') == 0, -- true
         experimentalPostfixCompletions = true,
-        analyses = {
+        analyses = { -- https://github.com/golang/tools/blob/master/gopls/doc/analyzers.md
           unusedparams = true,
           unusedwrite = true,
           useany = true,
           shadow = true,
+          ST1000 = false,
         },
         staticcheck = true,
       },
@@ -483,4 +484,4 @@ lua require('my.colors')
 lua require('my.telescope')
 lua require('my.dap')
 
-lua vim.keymap.set('n', '<space>wee', function() vim.system({'av', 'openstash', vim.api.nvim_buf_get_name(0), vim.api.nvim_win_get_cursor(0)[1]}, {stdout=false, stderr=false, tmeout=5000}) end)
+lua vim.keymap.set('n', '<space>wee', function() vim.system({vim.fn.stdpath('config') .. '/bin/vim-helper-open-git', vim.api.nvim_buf_get_name(0), vim.api.nvim_win_get_cursor(0)[1]}, {stdout=false, stderr=false, tmeout=5000}) end)
