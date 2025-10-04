@@ -1,5 +1,9 @@
 # Access to your computer's `sshd` from Android phone:
 
+## Prepare PC
+
+    brew install android-platform-tools
+
 ## Prepare phone
 
 On the phone
