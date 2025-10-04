@@ -1,0 +1,4 @@
+#!/bin/sh
+
+export LESS='FRSXQj.5' LESSCHARSET='utf-8'
+tmux capture-pane -p -e -S -10000 | less +G
