@@ -1,0 +1,3 @@
+#!/bin/sh
+
+tmux capture-pane -p -S -10000| fzf --no-sort --no-mouse --tac --smart-case >/dev/null
