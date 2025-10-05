@@ -1,0 +1,2 @@
+#!/usr/bin/env bash
+echo -e '\e[105;1;30m\e[K'$(env -i date)'\e[0m'
