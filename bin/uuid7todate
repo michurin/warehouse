@@ -1,0 +1,7 @@
+#!/usr/bin/env python3
+
+from datetime import datetime, UTC
+from sys import argv
+
+for x in argv[1:]:
+    print("%s: %s" % (x, str(datetime.fromtimestamp(int(''.join(x.split('-')[:2]), 16)/1000, UTC))))
