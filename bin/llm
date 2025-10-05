@@ -1,0 +1,32 @@
+#!/bin/sh
+
+: <<'END_COMMENT'
+Usage:
+
+echo 'how are you?' | llm
+
+echo how are 'you?' | llm
+
+llm <<END
+how are you?
+END
+
+llm 'how are you?'
+
+llm how are 'you?'
+END_COMMENT
+
+_llm() {
+    jq -Rn '{model: "llama3.1", stream: false, prompt: inputs}' |
+    tee /tmp/llm-request-debug.json |
+    curl -qs http://localhost:11434/api/generate -d @- |
+    tee /tmp/llm-response-debug.json |
+    jq -r .response
+}
+
+if test -n "$*"
+then
+    echo "$*" | _llm
+else
+    _llm
+fi
