@@ -8,17 +8,40 @@ import (
 	"runtime"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/davecgh/go-spew/spew"
 )
 
 const (
-	envVarStack  = "MXXX_STACK"
-	envVarStderr = "MXXX_STDERR"
+	envVarStack     = "MXXX_STACK"
+	envVarStderr    = "MXXX_STDERR"
+	envVarDumpDepth = "MXXX_DUMP_DEPTH"
 )
 
-var colors = [2]string{"\033[1;30;102m", "\033[92m"}
+type (
+	internalString string
+	internalInt    int
+)
+
+var (
+	gcount = 0
+	glock  = new(sync.Mutex)
+	colors = [2]string{"\033[1;30;102m", "\033[1;92m"}
+)
+
+func dumpDepth() int {
+	e, ok := os.LookupEnv(envVarDumpDepth)
+	if !ok {
+		return 3 // default
+	}
+	x, err := strconv.ParseInt(e, 10, 64)
+	if err != nil {
+		panic("INVALID VARIABLE " + envVarDumpDepth + ": " + err.Error())
+	}
+	return int(x)
+}
 
 func stackLimit() int {
 	e, ok := os.LookupEnv(envVarStack)
@@ -50,7 +73,7 @@ func writeStack(out []byte) []byte {
 	cwd, _ := os.Getwd()
 	home, _ := os.UserHomeDir()
 	pc := make([]uintptr, 20)
-	n := runtime.Callers(3, pc)
+	n := runtime.Callers(4, pc)
 	frames := runtime.CallersFrames(pc[:n])
 LOOP:
 	for n := range stackLimit() {
@@ -103,15 +126,39 @@ func writeOutput(out []byte) {
 	_, _ = io.Copy(s, bytes.NewReader(out))
 }
 
-func P(args ...any) {
+func p(args ...any) {
 	out := writeStack(nil)
 	for _, a := range args {
 		s := ""
 		c := ""
 		switch v := a.(type) {
+		case wrapper:
+			sp := spew.NewDefaultConfig() // TODO DUP
+			sp.SortKeys = true
+			sp.DisableCapacities = true
+			sp.DisablePointerAddresses = true
+			sp.DisableMethods = true
+			sp.DisablePointerMethods = true
+			sp.Indent = "  "
+			sp.MaxDepth = dumpDepth()
+			sp.ContinueOnMethod = false
+			s = strings.TrimSpace(sp.Sdump(v.v))
+			c = "33"
+		case nil:
+			s = "nil"
+			c = "105;1;30"
+		case internalString:
+			s = string(v)
+			c = "101;30"
+		case internalInt:
+			s = fmt.Sprintf("%d", v)
+			c = "103;30"
 		case string:
 			s = strings.TrimSpace(v)
 			c = "95"
+		case error:
+			s = v.Error()
+			c = "103;41;1"
 		case fmt.Stringer:
 			s = v.String()
 			c = "92"
@@ -126,14 +173,17 @@ func P(args ...any) {
 			sp.DisableMethods = true
 			sp.DisablePointerMethods = true
 			sp.Indent = "  "
-			sp.MaxDepth = 3 // TODO tunable
-			sp.ContinueOnMethod = true
+			sp.MaxDepth = dumpDepth()
+			sp.ContinueOnMethod = false
 			s = strings.TrimSpace(sp.Sdump(v))
-			c = "96"
+			c = "33"
 		}
 		if strings.Contains(s, "\n") {
 			out = appendUnlessNL(out, '\n')
-			out = fmt.Appendf(out, "\033[%sm%s\033[0m\n", c, s)
+			x := strings.Split(s, "\n")
+			for _, e := range x {
+				out = fmt.Appendf(out, "\033[%sm%s\033[0m\n", c, e)
+			}
 		} else {
 			out = appendUnlessNL(out, ' ')
 			out = fmt.Appendf(out, "\033[%sm%s\033[0m", c, s)
@@ -143,9 +193,56 @@ func P(args ...any) {
 	writeOutput(out)
 }
 
+type wrapper struct {
+	v any
+}
+
+// DUMP is a wrapper to force data dumping, ignoring [fmt.Stringer], and [fmt.GoStringer] implementations.
+func DUMP(x any) wrapper {
+	return wrapper{v: x}
+}
+
+// P dumps arguments
+func P(args ...any) {
+	p(args...)
+}
+
+// NOERR dumps and exits if first argument is non-nil error. Otherwise it does nothing.
+func NOERR(args ...any) {
+	if args[0] == nil {
+		return
+	}
+	p(args...)
+	os.Exit(22)
+}
+
+// PX wraps call.
+func PX[T any](x T, args ...any) T {
+	p(append([]any{x}, args...)...)
+	return x
+}
+
+// EXIT dumps arguments and exits.
+func EXIT(args ...any) {
+	p(args...)
+	os.Exit(22)
+}
+
+// SLEEP sleeps.
 func SLEEP(d time.Duration) {
 	out := writeStack(nil)
 	out = fmt.Appendf(out, "\033[105;1;35m\033[K SLEEP %v\033[0m\n", d)
 	writeOutput(out)
 	time.Sleep(d)
+}
+
+// GO unparallelize goroutines to make logs more readable.
+func GO(args ...any) func() {
+	glock.Lock()
+	gcount++
+	p(append([]any{internalString("STARTING GOROUTINE"), internalInt(gcount)}, args...)...)
+	return func() {
+		p(internalString("STOPPING GOROUTINE"), internalInt(gcount))
+		glock.Unlock()
+	}
 }
