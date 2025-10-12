@@ -51,6 +51,8 @@ function requestHandler(request, response) {
   request.on('end', async () => {
     let config = JSON.parse(await readFile('config.json'));
     let resp;
+    let code = 200;
+    let headers = {};
     for (let i = 0; i < config.length; i++) { // TODO no-await-in-loop
       const c = config[i];
       if ((new RegExp(c.urlRe)).test(url)) {
@@ -60,7 +62,8 @@ function requestHandler(request, response) {
         } else if (c.payload) {
           resp = JSON.stringify(c.payload)
         } else if (c.location) {
-          response.writeHead(302, { 'Location': c.location });
+          code = 302;
+          headers['Location'] = c.location;
           resp = '';
         } else if (c.proxyHost) {
           const h = { ...headers };
@@ -75,6 +78,9 @@ function requestHandler(request, response) {
           };
           resp = await proxyCall(opts, data);
         }
+        if (c.mime) {
+          headers['Content-Type'] = c.mime;
+        }
         break;
       } else {
         console.log('Skipped', c.urlRe);
@@ -82,6 +88,7 @@ function requestHandler(request, response) {
     }
     logJSON(data);
     logJSON(resp);
+    response.writeHead(code, headers);
     response.end(resp);
   });
 }
