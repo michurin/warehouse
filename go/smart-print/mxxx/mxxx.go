@@ -26,9 +26,10 @@ type (
 )
 
 var (
-	gcount = 0
-	glock  = new(sync.Mutex)
-	colors = [2]string{"\033[1;30;102m", "\033[1;92m"}
+	gcount       = 0
+	glock        = new(sync.Mutex)
+	colors       = [2]string{"\033[1;30;102m", "\033[1;92m"}
+	OutputStream = io.Writer(nil) // just for testing and very extreme things; suppresses MXXX_STDERR effect
 )
 
 func dumpDepth() int {
@@ -118,10 +119,13 @@ func appendUnlessNL(out []byte, c byte) []byte {
 }
 
 func writeOutput(out []byte) {
-	s := os.Stdout
-	e, ok := os.LookupEnv(envVarStderr)
-	if ok && len(e) > 0 {
-		s = os.Stderr
+	s := OutputStream
+	if s == nil {
+		s = os.Stdout
+		e, ok := os.LookupEnv(envVarStderr)
+		if ok && len(e) > 0 {
+			s = os.Stderr
+		}
 	}
 	_, _ = io.Copy(s, bytes.NewReader(out))
 }
