@@ -50,8 +50,21 @@ floating_modifier $mod
 # or left-clicking anywhere into the window while holding the floating modifier.
 tiling_drag modifier titlebar
 
-# start a terminal
-bindsym $mod+Return exec xterm
+hide_edge_borders smart
+
+# start applications
+mode "start" {
+    bindsym Return mode "default"; exec --no-startup-id xterm -fa 'JetBrains Mono' -fs 14 -fg '#777777' -bg '#000000'
+    bindsym b mode "default"; exec --no-startup-id google-chrome-stable
+    bindsym i mode "default"; exec --no-startup-id google-chrome-stable --proxy-server='socks://127.0.0.1:1080' --user-data-dir=$HOME/.config/chrome-id
+    bindsym g mode "default"; exec --no-startup-id gimp
+    bindsym d mode "default"; exec --no-startup-id gzdoom
+    bindsym t mode "default"; exec --no-startup-id Telegram
+    bindsym l mode "default"; exec --no-startup-id i3lock -c '#222222' -f -k
+
+    bindsym Escape mode "default"
+}
+bindsym $mod+Return mode "start"
 
 # kill focused window
 bindsym $mod+Escape kill
