@@ -97,79 +97,167 @@ cmp.setup.cmdline(':', {
 })
 
 -- Lsp
-local on_attach = function(client, bufnr)
-  local function buf_set_keymap(...) vim.api.nvim_buf_set_keymap(bufnr, ...) end
-  local function buf_set_option(...) vim.api.nvim_buf_set_option(bufnr, ...) end
+-- +local on_attach = function(client, bufnr)
+-- +  local function buf_set_keymap(...) vim.api.nvim_buf_set_keymap(bufnr, ...) end
+-- +  local function buf_set_option(...) vim.api.nvim_buf_set_option(bufnr, ...) end
+-- +
+-- +  -- Enable completion triggered by <c-x><c-o>
+-- +  buf_set_option('omnifunc', 'v:lua.vim.lsp.omnifunc')
+-- +
+-- +  -- Mappings
+-- +  local opts = { noremap=true, silent=true }
+-- +
+-- +  -- See `:help vim.lsp.*` for documentation on any of the below functions
+-- +  buf_set_keymap('n', 'gD', '<cmd>lua vim.lsp.buf.declaration()<CR>', opts)
+-- +  --buf_set_keymap('n', 'gd', '<cmd>lua vim.lsp.buf.definition()<CR>', opts) -- telescope
+-- +  buf_set_keymap('n', 'K', '<cmd>lua vim.lsp.buf.hover()<CR>', opts)
+-- +  --buf_set_keymap('n', 'gri', '<cmd>lua vim.lsp.buf.implementation()<CR>', opts) -- telescope
+-- +  buf_set_keymap('n', '<C-k>', '<cmd>lua vim.lsp.buf.signature_help()<CR>', opts)
+-- +  buf_set_keymap('n', '<space>wa', '<cmd>lua vim.lsp.buf.add_workspace_folder()<CR>', opts)
+-- +  buf_set_keymap('n', '<space>wr', '<cmd>lua vim.lsp.buf.remove_workspace_folder()<CR>', opts)
+-- +  buf_set_keymap('n', '<space>wl', '<cmd>lua print(vim.inspect(vim.lsp.buf.list_workspace_folders()))<CR>', opts)
+-- +  --buf_set_keymap('n', 'gry', '<cmd>lua vim.lsp.buf.type_definition()<CR>', opts) -- telescope gy
+-- +  buf_set_keymap('n', 'grn', '<cmd>lua vim.lsp.buf.rename()<CR>', opts)      -- std in 0.11
+-- +  buf_set_keymap('n', 'gra', '<cmd>lua vim.lsp.buf.code_action()<CR>', opts) -- std in 0.11
+-- +  --buf_set_keymap('n', 'grr', '<cmd>lua vim.lsp.buf.references()<CR>', opts)  -- std in 0.11 -- telescope
+-- +  buf_set_keymap('n', '[d', '<cmd>lua vim.diagnostic.goto_prev()<CR>', opts)
+-- +  buf_set_keymap('n', ']d', '<cmd>lua vim.diagnostic.goto_next()<CR>', opts)
+-- +  buf_set_keymap('n', '<space>q', '<cmd>lua vim.lsp.diagnostic.set_loclist()<CR>', opts)
+-- +  buf_set_keymap('n', '<space>f', '<cmd>lua vim.lsp.buf.format()<CR>', opts)
+-- +  buf_set_keymap('n', '<space>e', '<cmd>lua vim.diagnostic.open_float({source="if_many"})<CR>', opts)
+-- +end
 
-  -- Enable completion triggered by <c-x><c-o>
-  buf_set_option('omnifunc', 'v:lua.vim.lsp.omnifunc')
-
-  -- Mappings
-  local opts = { noremap=true, silent=true }
-
-  -- See `:help vim.lsp.*` for documentation on any of the below functions
-  buf_set_keymap('n', 'gD', '<cmd>lua vim.lsp.buf.declaration()<CR>', opts)
-  --buf_set_keymap('n', 'gd', '<cmd>lua vim.lsp.buf.definition()<CR>', opts) -- telescope
-  buf_set_keymap('n', 'K', '<cmd>lua vim.lsp.buf.hover()<CR>', opts)
-  --buf_set_keymap('n', 'gri', '<cmd>lua vim.lsp.buf.implementation()<CR>', opts) -- telescope
-  buf_set_keymap('n', '<C-k>', '<cmd>lua vim.lsp.buf.signature_help()<CR>', opts)
-  buf_set_keymap('n', '<space>wa', '<cmd>lua vim.lsp.buf.add_workspace_folder()<CR>', opts)
-  buf_set_keymap('n', '<space>wr', '<cmd>lua vim.lsp.buf.remove_workspace_folder()<CR>', opts)
-  buf_set_keymap('n', '<space>wl', '<cmd>lua print(vim.inspect(vim.lsp.buf.list_workspace_folders()))<CR>', opts)
-  --buf_set_keymap('n', 'gry', '<cmd>lua vim.lsp.buf.type_definition()<CR>', opts) -- telescope gy
-  buf_set_keymap('n', 'grn', '<cmd>lua vim.lsp.buf.rename()<CR>', opts)      -- std in 0.11
-  buf_set_keymap('n', 'gra', '<cmd>lua vim.lsp.buf.code_action()<CR>', opts) -- std in 0.11
-  --buf_set_keymap('n', 'grr', '<cmd>lua vim.lsp.buf.references()<CR>', opts)  -- std in 0.11 -- telescope
-  buf_set_keymap('n', '[d', '<cmd>lua vim.diagnostic.goto_prev()<CR>', opts)
-  buf_set_keymap('n', ']d', '<cmd>lua vim.diagnostic.goto_next()<CR>', opts)
-  buf_set_keymap('n', '<space>q', '<cmd>lua vim.lsp.diagnostic.set_loclist()<CR>', opts)
-  buf_set_keymap('n', '<space>f', '<cmd>lua vim.lsp.buf.format()<CR>', opts)
-  buf_set_keymap('n', '<space>e', '<cmd>lua vim.diagnostic.open_float({source="if_many"})<CR>', opts)
-end
+vim.lsp.config('gopls', { -- https://github.com/golang/tools/blob/master/gopls/doc/settings.md
+  gofumpt = vim.api.nvim_eval('exists("g:nogofumpt_tweak")') == 0, -- true
+  experimentalPostfixCompletions = true,
+  analyses = { -- https://github.com/golang/tools/blob/master/gopls/doc/analyzers.md
+    unusedparams = true,
+    unusedwrite = true,
+    useany = true,
+    shadow = true,
+    ST1000 = false,
+  },
+  staticcheck = true,
+})
+vim.lsp.enable('gopls')
 
 -- brew install lua-language-server
--- brew install python-lsp-server
-local servers = {'gopls', 'intelephense', 'pyright', 'ts_ls', 'ccls', 'lua_ls', 'buf_ls'}
-local capabilities = require('cmp_nvim_lsp').default_capabilities(vim.lsp.protocol.make_client_capabilities())
-for _, lsp in pairs(servers) do
-  require('lspconfig')[lsp].setup {
-    on_attach = on_attach,
-    capabilities = capabilities,
-    flags = {
-      debounce_text_changes = 150, -- This will be the default in neovim 0.7+
-    },
-    settings={
-      gopls = { -- https://github.com/golang/tools/blob/master/gopls/doc/settings.md
-        gofumpt = vim.api.nvim_eval('exists("g:nogofumpt_tweak")') == 0, -- true
-        experimentalPostfixCompletions = true,
-        analyses = { -- https://github.com/golang/tools/blob/master/gopls/doc/analyzers.md
-          unusedparams = true,
-          unusedwrite = true,
-          useany = true,
-          shadow = true,
-          ST1000 = false,
-        },
-        staticcheck = true,
-      },
-      python={
-        analysis={
-          useLibraryCodeForTypes = false,
-          typeCheckingMode = "off"
-        },
-        linting = {
-          pylintEnabled = true,
-          enabled = true
-        }
-      },
-      Lua = {
-        diagnostics = {
-          globals = {'vim'},
-        }
-      },
-    },
+-- https://luals.github.io/wiki/settings/
+vim.lsp.config('lua_ls', {
+  diagnostics = {
+    disable = {'lowercase-global'},
+    globals = {'vim'},
   }
-end
+})
+vim.lsp.enable('lua_ls')
+
+-- brew install python-lsp-server ?
+-- brew install pyright
+vim.lsp.config('pyright', {
+  analysis={
+    useLibraryCodeForTypes = false,
+    typeCheckingMode = "off"
+  },
+  linting = {
+    pylintEnabled = true,
+    enabled = true
+  }
+})
+vim.lsp.enable('pyright')
+
+vim.lsp.config('ts_ls', {
+  cmd = {'typescript-language-server', '--stdio', '--log-level', 'log'},
+  single_file_support = true,
+})
+vim.lsp.enable('ts_ls')
+
+-- + local servers = {'gopls', 'intelephense', 'pyright', 'ts_ls', 'ccls', 'lua_ls', 'buf_ls'}
+-- + local capabilities = require('cmp_nvim_lsp').default_capabilities(vim.lsp.protocol.make_client_capabilities())
+-- + for _, lsp in pairs(servers) do
+-- +   -- require('lspconfig')[lsp].setup {
+-- +   vim.lsp.config[lsp].setup {
+-- +     on_attach = on_attach,
+-- +     capabilities = capabilities,
+-- +     flags = {
+-- +       debounce_text_changes = 150, -- This will be the default in neovim 0.7+
+-- +     },
+-- +     settings={
+-- +       gopls = { -- https://github.com/golang/tools/blob/master/gopls/doc/settings.md
+-- +         gofumpt = vim.api.nvim_eval('exists("g:nogofumpt_tweak")') == 0, -- true
+-- +         experimentalPostfixCompletions = true,
+-- +         analyses = { -- https://github.com/golang/tools/blob/master/gopls/doc/analyzers.md
+-- +           unusedparams = true,
+-- +           unusedwrite = true,
+-- +           useany = true,
+-- +           shadow = true,
+-- +           ST1000 = false,
+-- +         },
+-- +         staticcheck = true,
+-- +       },
+-- +       python={
+-- +         analysis={
+-- +           useLibraryCodeForTypes = false,
+-- +           typeCheckingMode = "off"
+-- +         },
+-- +         linting = {
+-- +           pylintEnabled = true,
+-- +           enabled = true
+-- +         }
+-- +       },
+-- +       Lua = {
+-- +         diagnostics = {
+-- +           globals = {'vim'},
+-- +         }
+-- +       },
+-- +     },
+-- +   }
+-- + end
 LSP_AND_COMPLETION_SETTINTS
+
+lua <<DIAGNOSTIC
+-- https://neovim.io/doc/user/diagnostic.html
+-- consider vim.diagnostic.open_float()
+vim.keymap.set('n', '<space>ds', function() vim.diagnostic.open_float(); end)
+vim.diagnostic.config({
+  virtual_text = true,
+  severity_sort = true,
+  signs = {
+    text = {
+      [vim.diagnostic.severity.ERROR] = '',
+      [vim.diagnostic.severity.WARN] = '',
+      [vim.diagnostic.severity.INFO] = '',
+      [vim.diagnostic.severity.HINT] = '',
+    },
+    -- linehl = {},
+    numhl = {
+      [vim.diagnostic.severity.ERROR] = 'DiagnosticError',
+      [vim.diagnostic.severity.WARN] = 'DiagnosticWarn',
+      [vim.diagnostic.severity.INFO] = 'DiagnosticInfo',
+      [vim.diagnostic.severity.HINT] = 'DiagnosticHint',
+    },
+  },
+-- TODO
+--      signs = {
+--        text = {
+--            [vim.diagnostic.severity.ERROR] = '',
+--            [vim.diagnostic.severity.WARN] = '',
+--        },
+--        linehl = {
+--            [vim.diagnostic.severity.ERROR] = 'ErrorMsg',
+--        },
+--        numhl = {
+--            [vim.diagnostic.severity.WARN] = 'WarningMsg',
+--        },
+--    },
+})
+-- move to my.colors
+vim.api.nvim_set_hl(0, 'DiagnosticError', {fg='#ff0000', bg='#330000'})
+vim.api.nvim_set_hl(0, 'DiagnosticWarn', {fg='#ffff00', bg='#330000'})
+vim.api.nvim_set_hl(0, 'DiagnosticInfo', {fg='#00ff00', bg='#003300'})
+vim.api.nvim_set_hl(0, 'DiagnosticHint', {fg='#00ffff', bg='#003333'})
+vim.api.nvim_set_hl(0, 'DiagnosticOk', {fg='#000000', bg='#ffffff'})
+-- DiagnosticUnderlineError/Warn/Info/Hint/Ok ?
+DIAGNOSTIC
 
 set completeopt=menu,menuone,noselect
 
