@@ -54,7 +54,7 @@ tiling_drag modifier titlebar
 bindsym $mod+Return exec xterm
 
 # kill focused window
-bindsym $mod+Shift+q kill
+bindsym $mod+Escape kill
 
 # start dmenu (a program launcher)
 #bindsym $mod+d exec --no-startup-id dmenu_run
