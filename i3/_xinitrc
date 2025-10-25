@@ -1,0 +1,10 @@
+export LANG=ru_RU.utf8
+
+xset -dpms
+xset s off
+
+xset -b
+
+xsetroot -solid '#0c1c00'
+
+i3
