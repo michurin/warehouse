@@ -81,6 +81,9 @@ function requestHandler(request, response) {
         if (c.mime) {
           headers['Content-Type'] = c.mime;
         }
+        if (c.code) {
+          code = c.code;
+        }
         break;
       } else {
         console.log('Skipped', c.urlRe);
