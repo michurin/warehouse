@@ -7,6 +7,8 @@ for_window [all] title_window_icon on
 
 tiling_drag modifier titlebar
 
+default_border pixel 1
+default_floating_border pixel 1
 hide_edge_borders smart
 
 # Mod4 — Win, Mod1 — Alt
