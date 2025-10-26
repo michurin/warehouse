@@ -1,17 +1,18 @@
 # https://i3wm.org/docs/userguide.html
 
-# Mod4 — Win
-# Mod1 — Alt
-
-set $mod Mod4
-
 font pango:DejaVu Sans Mono 8
 
-floating_modifier $mod
+for_window [all] title_format "[%class] <b>%title</b>"
+for_window [all] title_window_icon on
 
 tiling_drag modifier titlebar
 
 hide_edge_borders smart
+
+# Mod4 — Win, Mod1 — Alt
+# xev -event keyboard
+set $mod Mod4
+floating_modifier $mod
 
 # start applications
 mode "start" {
