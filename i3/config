@@ -25,6 +25,7 @@ mode "start" {
     bindsym d mode "default"; exec --no-startup-id gzdoom
     bindsym t mode "default"; exec --no-startup-id Telegram
     bindsym l mode "default"; exec --no-startup-id i3lock -c '#222222' -f -k
+    bindsym q mode "default"; exec --no-startup-id pkill xclock || xclock -geometry 100x100-0-0
 
     bindsym Escape mode "default"
     bindsym BackSpace mode "default"
