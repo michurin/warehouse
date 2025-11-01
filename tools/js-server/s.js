@@ -33,6 +33,8 @@ function proxyCall(options, data) {
   logJSON(options);
   return new Promise((resolve, reject) => {
     const req = http.request(options, (resp) => {
+      console.log("proxy status:", resp.statusCode);
+      console.log("proxy headers:", resp.headers);
       let d = '';
       resp.on('data', (chunk) => { d += chunk; });
       resp.on('end', () => { resolve(d); });
@@ -46,13 +48,14 @@ function proxyCall(options, data) {
 function requestHandler(request, response) {
   const { headers, method, url } = request;
   console.log(`\x1b[1;44;30m${method} \x1b[96m${url}\x1b[30m ${new Date().toISOString().replace(/T/, ' ').replace(/Z/, '')}\x1b[K\x1b[0m`);
+  logJSON(headers);
   let data = '';
   request.on('data', (chunk) => { data += chunk; });
   request.on('end', async () => {
     let config = JSON.parse(await readFile('config.json'));
     let resp;
     let code = 200;
-    let headers = {};
+    let respHeaders = {};
     for (let i = 0; i < config.length; i++) { // TODO no-await-in-loop
       const c = config[i];
       if ((new RegExp(c.urlRe)).test(url)) {
@@ -63,7 +66,7 @@ function requestHandler(request, response) {
           resp = JSON.stringify(c.payload)
         } else if (c.location) {
           code = 302;
-          headers['Location'] = c.location;
+          respHeaders['Location'] = c.location;
           resp = '';
         } else if (c.proxyHost) {
           const h = { ...headers };
@@ -79,19 +82,19 @@ function requestHandler(request, response) {
           resp = await proxyCall(opts, data);
         }
         if (c.mime) {
-          headers['Content-Type'] = c.mime;
+          respHeaders['Content-Type'] = c.mime;
         }
         if (c.code) {
           code = c.code;
         }
         break;
       } else {
-        console.log('Skipped', c.urlRe);
+        console.log('\x1b[31mSkipped\x1b[0m', c.urlRe);
       }
     }
     logJSON(data);
     logJSON(resp);
-    response.writeHead(code, headers);
+    response.writeHead(code, respHeaders);
     response.end(resp);
   });
 }
