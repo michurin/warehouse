@@ -42,3 +42,6 @@ vim.lsp.config('ts_ls', {
 })
 vim.lsp.enable('ts_ls')
 
+-- brew install bash-language-server
+vim.lsp.enable('bashls')
+
