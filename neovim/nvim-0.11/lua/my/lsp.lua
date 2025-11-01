@@ -1,3 +1,5 @@
+-- https://github.com/neovim/nvim-lspconfig/tree/master/lsp
+
 vim.lsp.config('gopls', { -- https://github.com/golang/tools/blob/master/gopls/doc/settings.md
   gofumpt = vim.api.nvim_eval('exists("g:nogofumpt_tweak")') == 0, -- true
   experimentalPostfixCompletions = true,
