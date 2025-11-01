@@ -70,10 +70,11 @@ func removeLongestCommonPrefix(s, pfx string) (string, bool) {
 	return s[len(pfx):], len(pfx) > 0
 }
 
-func writeStack(out []byte) []byte {
+func writeStack(out []byte) ([]byte, bool) {
+	newLine := false
 	cwd, _ := os.Getwd()
 	home, _ := os.UserHomeDir()
-	pc := make([]uintptr, 20)
+	pc := make([]uintptr, 1024)
 	n := runtime.Callers(4, pc)
 	frames := runtime.CallersFrames(pc[:n])
 LOOP:
@@ -97,9 +98,10 @@ LOOP:
 			fn = fn[i+1:]
 		}
 		if n > 0 {
-			out = append(out, ' ')
+			out = append(out, '\n')
+			newLine = true
 		}
-		out = fmt.Appendf(out, "%s%s\033[0m \033[33m%s\033[93m:%d\033[0m", colors[min(n, 1)], fn, file, frame.Line)
+		out = fmt.Appendf(out, "%s%s:%d\033[0m \033[33m%s\033[0m", colors[min(n, 1)], file, frame.Line, fn)
 		switch frame.Function {
 		case "main.main", "runtime.goexit", "testing.tRunner", "testing.runExample":
 			break LOOP
@@ -108,7 +110,7 @@ LOOP:
 			break
 		}
 	}
-	return out
+	return out, newLine
 }
 
 func appendUnlessNL(out []byte, c byte) []byte {
@@ -131,7 +133,7 @@ func writeOutput(out []byte) {
 }
 
 func p(args ...any) {
-	out := writeStack(nil)
+	out, newLineInStack := writeStack(nil)
 	for _, a := range args {
 		s := ""
 		c := ""
@@ -182,7 +184,7 @@ func p(args ...any) {
 			s = strings.TrimSpace(sp.Sdump(v))
 			c = "33"
 		}
-		if strings.Contains(s, "\n") {
+		if newLineInStack || strings.Contains(s, "\n") {
 			out = appendUnlessNL(out, '\n')
 			x := strings.Split(s, "\n")
 			for _, e := range x {
@@ -233,9 +235,12 @@ func EXIT(args ...any) {
 }
 
 // SLEEP sleeps.
-func SLEEP(d time.Duration) {
-	out := writeStack(nil)
-	out = fmt.Appendf(out, "\033[105;1;35m\033[K SLEEP %v\033[0m\n", d)
+func SLEEP(d time.Duration, args ...any) {
+	out, _ := writeStack(nil)
+	out = fmt.Appendf(out, "\n\033[105;1;35m\033[K[SLEEP] %v\033[0m\n", d)
+	for _, a := range args {
+		out = fmt.Appendf(out, "\033[35;1m[SLEEP] %v\033[0m\n", a)
+	}
 	writeOutput(out)
 	time.Sleep(d)
 }

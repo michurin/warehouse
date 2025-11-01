@@ -1,1 +1,3 @@
-[1;30;102mmxxx_test.TestP[0m [33mmxxx_test.go[93m:31[0m [1;92mtesting.tRunner[0m [33mopt/go/src/testing/testing.go[93m:1934[0m [33m(int) 1[0m
+[1;30;102mmxxx_test.go:31[0m [33mmxxx_test.TestP[0m
+[1;92musr/lib/go/src/testing/testing.go:1934[0m [33mtesting.tRunner[0m
+[33m(int) 1[0m

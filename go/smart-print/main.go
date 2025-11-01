@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"time"
 
 	"mxxx/mxxx"
 )
@@ -17,4 +18,5 @@ func a() {
 
 func main() {
 	a()
+	mxxx.SLEEP(time.Minute, "ok", 1, context.Background())
 }
