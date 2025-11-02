@@ -112,3 +112,28 @@ select * from performance_schema.table_io_waits_summary_by_index_usage where OBJ
 | TABLE       | db            | test        | ID_2       |          0
 +-------------+---------------+-------------+------------+-----------
 ```
+
+View all queries in real time
+
+```
+mysql> SHOW VARIABLES LIKE "general_log%";
++------------------+---------------------------------+
+| Variable_name    | Value                           |
++------------------+---------------------------------+
+| general_log      | OFF                             |
+| general_log_file | /var/lib/mysql/5fcc9e74eaa3.log |
++------------------+---------------------------------+
+mysql> SET GLOBAL general_log = 'ON';
+mysql> SHOW VARIABLES LIKE "general_log%";
++------------------+---------------------------------+
+| Variable_name    | Value                           |
++------------------+---------------------------------+
+| general_log      | ON                              |
+| general_log_file | /var/lib/mysql/5fcc9e74eaa3.log |
++------------------+---------------------------------+
+```
+
+```
+docker ps   # -> 5fcc9e74eaa3 mysql:8.0...
+docker exec -it 5fcc9e74eaa3 tail -f /var/lib/mysql/5fcc9e74eaa3.log | grep -vw Connect
+```
