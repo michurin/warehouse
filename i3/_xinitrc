@@ -5,6 +5,14 @@ xset s off
 
 xset -b
 
-xsetroot -solid '#0c1c00'
+# xsetroot -solid '#0c1c00'
+# https://github.com/dkeg/bitmap-walls
+# brick_diag_block.xbm
+# grid_diag8.xbm
+# line_wave.xbm
+# weave_wide2.xbm
+xsetroot -bitmap ~/p/git/bitmap-walls/patterns/weave_wide2.xbm -bg '#084040' -fg '#021010' -cursor_name X_cursor
 
 i3
+
+# vi:ft=sh:
