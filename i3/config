@@ -154,15 +154,9 @@ mode "resize" {
 
 bindsym $mod+r mode "resize"
 
-for_window [class="XTerm"] border pixel 1
-for_window [class="XClock"] border pixel 1
-for_window [class="XClock"] floating enable
-
-for_window [class="Event Tester"] border pixel 1
-
 bindsym $mod+m sticky toggle
 
-bindsym $mod+q exec pkill xclock || xclock -geometry 100x100-0-0
+for_window [class="XClock"] floating enable
 
 # IDEAS
 #
