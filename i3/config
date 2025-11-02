@@ -38,6 +38,10 @@ bindsym $mod+F1 exec --no-startup-id xterm -fa 'JetBrains Mono' -fs 14 -fg '#777
 # kill focused window
 bindsym $mod+Escape kill
 
+# xdotool (assume screen size 1920x1080)
+bindsym $mod+period exec --no-startup-id xdotool mousemove 1919 1079
+bindsym $mod+comma exec --no-startup-id xdotool mousemove 960 540
+
 # change focus
 bindsym $mod+h focus left
 bindsym $mod+j focus down
