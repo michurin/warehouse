@@ -83,11 +83,9 @@ bindsym $mod+e layout toggle split
 # toggle tiling / floating
 bindsym $mod+Shift+space floating toggle
 
-# change focus between tiling / floating windows
-bindsym $mod+space focus mode_toggle
-
 # focus the parent container
-bindsym $mod+a focus parent
+bindsym $mod+Prior focus parent
+bindsym $mod+Next focus child
 
 set $ws1 "1"
 set $ws2 "2"
