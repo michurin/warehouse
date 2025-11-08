@@ -1,0 +1,41 @@
+<svg height="80%" xmlns="http://www.w3.org/2000/svg" viewBox="-0.2 -0.4 5.6 4.6">
+  <g
+  stroke="black"
+  stroke-width=".18"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+  fill="none"
+  transform="translate(0 4) scale(1 1.04) skewX(-16) translate(0 -4)"
+  >
+    <path d="
+    M 0 0
+    l 0 4
+    a 1 1 0 0 1 2 0
+    l 0 -1
+    a 1 1 0 0 1 1 1
+    l 0 -1
+    a 1 1 0 0 1 1 1
+    l 0 -4
+    a 1 1 0 0 0 -1 1
+    l 0 1
+    l -1 0
+    l 0 -2
+    a 1 1 0 0 1 -2 0
+    z
+
+    m 0 2
+    a 1.2 1.2 0 0 0 2 0
+    a 1.2 1.2 0 0 0 -2 0
+    z
+
+    m 1 -0.5367
+    a 0.7 0.7 0 0 1 0 1.0734
+    a 0.7 0.7 0 0 1 0 -1.0734
+    z
+    " />
+    <!-- 0.5367 = 1-sqrt(1.2**2-1) -->
+    <!-- 1.0734 = 2 * 0.5367 -->
+    <!-- 1.04 = 1/cos(16) -->
+    <!-- 5.6 = 4.4 + 4*tan(16) -->
+  </g>
+</svg>
