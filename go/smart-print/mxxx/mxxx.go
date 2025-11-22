@@ -2,6 +2,8 @@ package mxxx
 
 import (
 	"bytes"
+	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -35,7 +37,7 @@ var (
 func dumpDepth() int {
 	e, ok := os.LookupEnv(envVarDumpDepth)
 	if !ok {
-		return 3 // default
+		return 30 // default
 	}
 	x, err := strconv.ParseInt(e, 10, 64)
 	if err != nil {
@@ -163,8 +165,19 @@ func p(args ...any) {
 			s = strings.TrimSpace(v)
 			c = "95"
 		case error:
-			s = v.Error()
-			c = "103;41;1"
+			s = fmt.Sprintf("%T \033[97m%q\033[93m", v, v.Error())
+			for range 10 {
+				e := errors.Unwrap(v)
+				if e == nil {
+					break
+				}
+				if e == v {
+					break
+				}
+				v = e
+				s += fmt.Sprintf(" ⇐ %T \033[30m%q\033[93m", v, v.Error())
+			}
+			c = "93;41;1"
 		case fmt.Stringer:
 			s = v.String()
 			c = "92"
@@ -211,6 +224,17 @@ func DUMP(x any) wrapper {
 // P dumps arguments
 func P(args ...any) {
 	p(args...)
+}
+
+func JSON(x any) string {
+	b := bytes.NewBuffer(nil)
+	e := json.NewEncoder(b)
+	e.SetIndent("", "  ")
+	err := e.Encode(x)
+	if err != nil {
+		return err.Error()
+	}
+	return b.String()
 }
 
 // NOERR dumps and exits if first argument is non-nil error. Otherwise it does nothing.
