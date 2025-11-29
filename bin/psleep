@@ -23,7 +23,7 @@ el="$(tput el)"
 cl="$(tput setaf 2)$(tput bold)"
 co="$(tput sgr0)"
 
-start="$(date +'%D %T')"
+start="$(date +'%Y-%m-%d %H:%M:%S')"
 
 total=$sec
 echo "$sc\c"
@@ -37,7 +37,7 @@ done
 
 if test -z "$nd"
 then
-    echo "$rc$el$cl[DONE @ $start — $(date +'%D %T')] $label$co"
+    echo "$rc$el$cl[DONE @ $start — $(date +'%Y-%m-%d %H:%M:%S')] $label$co"
 else
     echo "$rc$el\c"
 fi
