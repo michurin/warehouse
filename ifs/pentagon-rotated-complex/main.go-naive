@@ -1,0 +1,102 @@
+package main
+
+import (
+	"image"
+	"image/color"
+	"image/png"
+	"log"
+	"math"
+	"math/cmplx"
+	"os"
+)
+
+var shifts = func() [5]complex128 {
+	s := [5]complex128{}
+	for i := range 5 {
+		s[i] = cmplx.Rect(.5, math.Pi*float64(i)*2/5)
+	}
+	return s
+}()
+
+var rotate = cmplx.Rect(2.497, .384)
+
+func step(c complex128) complex128 {
+	r := complex(0, 0)
+	m := math.MaxFloat64
+	for _, s := range shifts {
+		x := c + s
+		a := cmplx.Abs(x)
+		if a < m {
+			m = a
+			r = x
+		}
+	}
+	return r
+}
+
+func value(x, y float64) float64 {
+	c := complex(x, y)
+
+	r := step(c)
+	r *= rotate
+	r = step(r)
+	r *= rotate
+	r = step(r)
+	r *= rotate
+	r = step(r)
+
+	return cmplx.Abs(r)
+}
+
+const width, height = 512, 512
+
+func valueX(x int) float64 { // 0..width => -1..1
+	return float64(x*2-width) / width
+}
+
+func valueY(y int) float64 { // 0..height => 1..-1
+	return float64(height-y*2) / height
+}
+
+func colorNRGBA(v float64) color.NRGBA {
+	c := uint8(0)
+	if v > 0 {
+		v *= 255
+		if v < 256 {
+			c = uint8(v)
+		} else {
+			c = uint8(255)
+		}
+	}
+	return color.NRGBA{
+		R: c,
+		G: c,
+		B: c,
+		A: 255,
+	}
+}
+
+func main() {
+	// Create a colored image of the given width and height.
+	img := image.NewNRGBA(image.Rect(0, 0, width, height))
+
+	for y := range height {
+		for x := range width {
+			img.Set(x, y, colorNRGBA(value(valueX(x), valueY(y))))
+		}
+	}
+
+	f, err := os.Create("image.png")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	if err := png.Encode(f, img); err != nil {
+		f.Close()
+		log.Fatal(err)
+	}
+
+	if err := f.Close(); err != nil {
+		log.Fatal(err)
+	}
+}
