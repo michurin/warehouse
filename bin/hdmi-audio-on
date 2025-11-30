@@ -1,0 +1,9 @@
+#!/bin/sh
+
+# it has to be off and on
+# if it doesn't help, look at xrandr --verbose, all available audio options
+
+sleep 1
+xrandr --output HDMI-1 --auto --set audio off
+sleep 1
+xrandr --output HDMI-1 --auto --set audio on
