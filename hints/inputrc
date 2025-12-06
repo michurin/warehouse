@@ -1,8 +1,8 @@
-set editing-mode vi
-set emacs-mode-string ""
-set show-mode-in-prompt on
-set vi-cmd-mode-string "\1\e]12;#ff0000\a\e[4 q\2"
-set vi-ins-mode-string "\1\e]12;#cccccc\a\e[2 q\2"
+# set editing-mode vi
+# set emacs-mode-string ""
+# set show-mode-in-prompt on
+# set vi-cmd-mode-string "\1\e]12;#ff0000\a\e[4 q\2"
+# set vi-ins-mode-string "\1\e]12;#cccccc\a\e[2 q\2"
 
 set bell-style visible
 
