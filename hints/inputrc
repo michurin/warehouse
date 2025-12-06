@@ -14,6 +14,9 @@ set completion-ignore-case on
 # Shift-[=>][<=]
 "\e[1;2C" forward-word
 "\e[1;2D" backward-word
+# Ctrl-Shift-[=>][<=]
+"\e[1;6C" undo
+"\e[1;6D" backward-kill-word
 # Shift-[Up][Down]
 "\e[1;2A" history-search-backward
 "\e[1;2B" history-search-forward
