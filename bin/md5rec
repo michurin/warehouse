@@ -2,5 +2,5 @@
 
 for i in "$@"
 do
-    find "$i" -type f -print0 | LC_ALL=C sort -z | xargs -0 cat | md5sum | sed "s#-#$i#"
+    find -L "$i" -type f -print0 | LC_ALL=C sort -z | xargs -0 cat | md5sum | sed "s#-#$i#"
 done
