@@ -157,6 +157,7 @@ bindsym $mod+r mode "resize"
 bindsym $mod+m sticky toggle
 
 for_window [class="XClock"] floating enable
+for_window [class="Display"] floating enable, move position center
 
 # IDEAS
 #
