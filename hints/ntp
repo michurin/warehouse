@@ -1,0 +1,8 @@
+# once
+
+```
+# sync software clock (kernel side)
+sudo ntpd -nq
+# mirror software to hardware clock
+sudo hwclock -w
+```
