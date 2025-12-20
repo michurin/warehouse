@@ -3,6 +3,7 @@
   "api": {
     "tag": "api",
     "services": [
+      "ReflectionService",
       "StatsService"
     ]
   },
