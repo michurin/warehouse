@@ -11,6 +11,9 @@ vim.lsp.config('gopls', { -- https://github.com/golang/tools/blob/master/gopls/d
     ST1000 = false,
   },
   staticcheck = true,
+  gopls =  {
+    buildFlags =  {'-tags=integration_tests'}, -- TODO get from file? Like gofumpt?
+  },
 })
 vim.lsp.enable('gopls')
 
