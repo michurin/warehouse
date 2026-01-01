@@ -1,8 +1,23 @@
 // /pogoda
 (() => {
   setInterval(() => {
-    document.querySelectorAll('.content__right').forEach(e => e.remove());
-    document.querySelectorAll('.content__adv').forEach(e => e.remove());
-    document.querySelectorAll('.card_with-horizontal-extension').forEach(e => e.remove());
-  }, 2000);
-})();
+    if (!location.pathname.includes('/pogoda/')) {
+      console.log('skip page')
+      return
+    }
+    document.querySelectorAll('section').forEach(e => {
+      if (e.className.startsWith('AppWidgetNowcast_container_logo_')) { e.remove() }
+      if (e.className.startsWith('Money_ecomFooter_')) { e.remove() }
+    })
+    document.querySelectorAll('div').forEach(e => {
+      if (e.className.startsWith('MainPage_topBlockWithMoney_')) { e.remove() }
+      if (e.className.startsWith('AppPromoInner_container_')) { e.parentNode.remove() }
+    })
+    document.querySelectorAll('li').forEach(e => {
+      if (e.className.startsWith('AppForecastMoney_wrap_')) { e.remove() }
+    })
+    document.querySelectorAll('aside').forEach(e => {
+      if (e.className.startsWith('AppLayoutTypeMain_right_')) { e.remove() }
+    })
+  }, 2000)
+})()
