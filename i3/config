@@ -147,6 +147,7 @@ bindsym $mod+m sticky toggle
 for_window [class="XClock"] floating enable, sticky enable
 for_window [class="Display"] floating enable, move position center
 for_window [class="MPlayer"] floating enable, move position center
+for_window [class="gzdoom"] floating enable, move position center
 
 # IDEAS
 #
