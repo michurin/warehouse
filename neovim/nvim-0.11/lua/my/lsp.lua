@@ -1,5 +1,7 @@
 -- https://github.com/neovim/nvim-lspconfig/tree/master/lsp
 
+-- vim.lsp.set_log_level("debug")
+
 vim.lsp.config('gopls', { -- https://github.com/golang/tools/blob/master/gopls/doc/settings.md
   gofumpt = vim.api.nvim_eval('exists("g:nogofumpt_tweak")') == 0, -- true
   experimentalPostfixCompletions = true,
@@ -18,12 +20,13 @@ vim.lsp.config('gopls', { -- https://github.com/golang/tools/blob/master/gopls/d
 vim.lsp.enable('gopls')
 
 -- brew install lua-language-server
+-- sudo pacman -Suy lua-language-server
 -- https://luals.github.io/wiki/settings/
 vim.lsp.config('lua_ls', {
   diagnostics = {
     disable = {'lowercase-global'},
     globals = {'vim'},
-  }
+  },
 })
 vim.lsp.enable('lua_ls')
 
@@ -37,7 +40,7 @@ vim.lsp.config('pyright', {
   linting = {
     pylintEnabled = true,
     enabled = true
-  }
+  },
 })
 vim.lsp.enable('pyright')
 
@@ -49,4 +52,3 @@ vim.lsp.enable('ts_ls')
 
 -- brew install bash-language-server
 vim.lsp.enable('bashls')
-
