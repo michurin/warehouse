@@ -23,6 +23,16 @@ vim.lsp.enable('gopls')
 -- sudo pacman -Suy lua-language-server
 -- https://luals.github.io/wiki/settings/
 vim.lsp.config('lua_ls', {
+  settings = {
+    Lua = {
+      diagnostics = {
+        globals = {"vim"}, -- works in modern lsp
+      }
+    }
+  },
+  -- useless settings?
+  telemetry = {enable = false},
+  workspace = {library = vim.api.nvim_get_runtime_file('', true)},
   diagnostics = {
     disable = {'lowercase-global'},
     globals = {'vim'},
