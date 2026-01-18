@@ -1,4 +1,10 @@
 #!/bin/sh
+
+# tunneling
+# adb forward tcp:5555 tcp:8022
+# ssh -p 5555 x@localhost
+
 whoami
 ifconfig -a 2>&1 | perl -ne 'if (s/.*inet\s(\S+)\s.*/$1/) {print}'
-sshd -D -o IPQoS=none
+# sshd -Ddd -o IPQoS=none
+sshd -D
