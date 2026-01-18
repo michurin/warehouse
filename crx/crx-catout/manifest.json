@@ -1,6 +1,6 @@
 {
   "name": "XCutOut",
-  "version": "1.25.11",
+  "version": "1.25.12",
   "description": "Cut out annoying unwanted elements, highlight useful elements",
   "manifest_version": 3,
   "content_scripts": [
@@ -23,6 +23,7 @@
     {"matches": ["https://mail.avito.ru/*"], "js": ["avex.js"]},
     {"matches": ["https://people.avito.ru/users/*"], "js": ["ppl.js"]},
 
-    {"matches": ["https://github.com/inDriver/*/pulls"], "js": ["idprs.js"]}
+    {"matches": ["https://github.com/inDriver/*/pulls"], "js": ["idprs.js"]},
+    {"matches": ["https://boundary.indrive.tech/*"], "js": ["bo.js"]}
   ]
 }
