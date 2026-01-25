@@ -1,3 +1,10 @@
 #!/bin/sh
 
-LESS='FRSXQj.5' LESSCHARSET='utf-8' GIT_PAGER='grcat '"'$0"'.grcat.conf'"'"' 2>/dev/null | less +/HEAD' git log --graph --reflog --branches --remotes --tags --decorate --date='format:%y-%m-%d %H:%M' --format='format:%C(auto)%h%C(reset)%C(auto)%d%C(reset) %C(cyan)%an%C(reset) %C(auto)%s%C(reset) %C(cyan)%ad%C(reset)' "$@"
+LESS='FRSXQj.5' \
+LESSCHARSET='utf-8' \
+GIT_PAGER='grcat '"'$0"'.grcat.conf'"'"' 2>/dev/null | less +/HEAD' \
+git log \
+    --graph --reflog --branches --remotes --tags --decorate \
+    --date='format:%y-%m-%d %H:%M' \
+    --format='format:%C(auto)%h%C(reset)%C(auto)%d%C(reset) %C(green)%ad%C(reset) %C(cyan)%an%C(reset)%n%C(auto)%s%C(reset)'
+    "$@"
