@@ -11,7 +11,7 @@
     })
     document.querySelectorAll('div').forEach(e => {
       if (e.className.startsWith('MainPage_topBlockWithMoney_')) { e.remove() }
-      if (e.className.startsWith('AppPromoInner_container_')) { e.parentNode.remove() }
+      // if (e.className.startsWith('AppPromoInner_container_')) { e.parentNode.remove() } // too aggressive?
     })
     document.querySelectorAll('li').forEach(e => {
       if (e.className.startsWith('AppForecastMoney_wrap_')) { e.remove() }
