@@ -1,0 +1,1 @@
+vim.keymap.set('i', '.', '.<c-x><c-o>', { noremap = true })
