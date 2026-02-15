@@ -25,7 +25,8 @@ for pq in \
   'n google.golang.org/grpc/cmd/protoc-gen-go-grpc' \
   'n github.com/fullstorydev/grpcurl/cmd/grpcurl' \
   'n github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-grpc-gateway' \
-  'n github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-openapiv2'
+  'n github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-openapiv2' \
+  'n github.com/lasorda/protobuf-language-server'
 do
     p="${pq% *}"
     q="${pq#* }"
