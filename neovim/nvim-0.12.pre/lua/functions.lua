@@ -33,7 +33,7 @@ end
 
 function M.input(prompt)
   return function()
-    local ok, res = pcall(vim.fn.input, prompt..' ') -- prevent ctrl-c error
+    local ok, res = pcall(vim.fn.input, prompt .. ' ') -- prevent ctrl-c error
     if ok then
       return res
     end
@@ -42,7 +42,7 @@ function M.input(prompt)
 end
 
 function M.files_from_cmd(cmd)
-  return function ()
+  return function()
     local files = vim.fn.systemlist(cmd)
     table.sort(files)
     return files
@@ -50,7 +50,7 @@ function M.files_from_cmd(cmd)
 end
 
 function M.files_from_find_cdir()
-  local dir = vim.fs.dirname(vim.api.nvim_buf_get_name(0)) -- vim.fn.expand('%:p:h')
+  local dir = vim.fs.dirname(vim.api.nvim_buf_get_name(0))                    -- vim.fn.expand('%:p:h')
   return M.files_from_cmd('find ' .. vim.fn.shellescape(dir) .. ' -type f')() -- will sort
 end
 
@@ -71,7 +71,7 @@ end
 -- -------------------------------
 
 function M.grep_in_files(source, inp)
-  return function ()
+  return function()
     local files = source()
     if #files == 0 then
       print('No files found')
@@ -94,7 +94,7 @@ end
 
 local buff_last_pos = {}
 
-M.qf_buffers_events = {'BufLeave', 'BufEnter', 'WinLeave', 'WinEnter'}
+M.qf_buffers_events = { 'BufLeave', 'BufEnter', 'WinLeave', 'WinEnter' }
 
 function M.qf_buffers_handler()
   local bufnr = vim.api.nvim_get_current_buf()
@@ -122,7 +122,7 @@ function M.qf_buffers()
           end
         end
         local row = pos[1]
-        local col = vim.fn.max({pos[2], 1}) -- can be 0
+        local col = vim.fn.max({ pos[2], 1 }) -- can be 0
         local line = vim.api.nvim_buf_get_lines(buf, row - 1, row, false)[1]
         table.insert(items, {
           filename = name,
@@ -150,7 +150,7 @@ end
 
 local viewing_buffer = -1
 
-local function show_viewing_buffer (content, line)
+local function show_viewing_buffer(content, line)
   if not vim.api.nvim_buf_is_valid(viewing_buffer) then
     viewing_buffer = vim.api.nvim_create_buf(false, true)
 
@@ -166,15 +166,16 @@ local function show_viewing_buffer (content, line)
   vim.api.nvim_buf_set_option(viewing_buffer, 'modifiable', false)
   vim.api.nvim_win_set_buf(0, viewing_buffer) -- TODO in other window?
 
-  vim.api.nvim_win_set_cursor(0, {line, 0})
-  vim.fn.setpos("'<", {0, line, 0, 0})
-  vim.fn.setpos("'>", {0, #content, 0, 0})
+  vim.api.nvim_win_set_cursor(0, { line, 0 })
+  vim.fn.setpos("'<", { 0, line, 0, 0 })
+  vim.fn.setpos("'>", { 0, #content, 0, 0 })
 end
 
-function M.paragraph_block ()
+function M.paragraph_block()
   local check_stop_line = function(r)
-    local ln = vim.api.nvim_buf_get_lines(0, r-1, r, false)[1]
-    return not ln or ln == "" -- or string.sub(ln, 1, 1) == '#' or string.sub(ln, 1, 2) == '--' or string.sub(ln, 1, 3) == '{{{'
+    local ln = vim.api.nvim_buf_get_lines(0, r - 1, r, false)[1]
+    return not ln or ln == ''
+    -- or string.sub(ln, 1, 1) == '#' or string.sub(ln, 1, 2) == '--' or string.sub(ln, 1, 3) == '{{{'
   end
   local pos = vim.api.nvim_win_get_cursor(0)
   local ri = pos[1]
@@ -187,7 +188,7 @@ function M.paragraph_block ()
     if check_stop_line(rj) then break end
     rj = rj + 1
   end
-  return vim.api.nvim_buf_get_lines(0, ri, rj-1, false)
+  return vim.api.nvim_buf_get_lines(0, ri, rj - 1, false)
 end
 
 local function exec_bash(cmd_fetcherer)
@@ -223,7 +224,7 @@ local function exec_sql(cmd_fetcherer)
 end
 
 function M.exec(cmd_fetcherer)
-  return function ()
+  return function()
     local ft = vim.o.filetype
     if ft == 'sql' then
       exec_sql(cmd_fetcherer)
@@ -233,21 +234,21 @@ function M.exec(cmd_fetcherer)
       exec_bash(cmd_fetcherer)
       return
     end
-    show_viewing_buffer({'Unknown type: '..ft}, 1)
+    show_viewing_buffer({ 'Unknown type: ' .. ft }, 1)
   end
 end
 
 function M.exec_git_diff()
   local result = vim.fn.systemlist('git diff --no-prefix ' .. vim.fn.shellescape(vim.api.nvim_buf_get_name(0)))
   show_viewing_buffer(result, 1)
-  vim.opt_local.filetype="diff"
+  vim.opt_local.filetype = 'diff'
 end
 
 function M.exec_git_diff_all(opts)
-  local command = opts.args -- local command = vim.fn.input('git diff> ')
+  local command = opts.args
   local result = vim.fn.systemlist('git diff --no-prefix ' .. command)
   show_viewing_buffer(result, 1)
-  vim.opt_local.filetype="diff"
+  vim.opt_local.filetype = 'diff'
 end
 
 function M.exec_git_blame()
@@ -266,7 +267,7 @@ function M.show_keys()
   local text = {}
   local mappings = vim.api.nvim_get_keymap('n')
   for _, m in ipairs(mappings) do
-    table.insert(text, '{{{ '..m.mode..' "'..m.lhs..'" '..(m.desc or "<nil>"))
+    table.insert(text, '{{{ ' .. m.mode .. ' "' .. m.lhs .. '" ' .. (m.desc or '<nil>'))
     local x = vim.split(vim.inspect(m), '\n')
     for i = 1, #x do
       table.insert(text, x[i])
@@ -275,8 +276,8 @@ function M.show_keys()
   end
   show_viewing_buffer(text, 1)
   vim.api.nvim_buf_call(0, function()
-    vim.opt_local.foldmethod='marker'
-    vim.opt_local.foldlevel=0
+    vim.opt_local.foldmethod = 'marker'
+    vim.opt_local.foldlevel = 0
   end)
 end
 
@@ -298,7 +299,7 @@ end
 local function smart_find_and_fill(file, line)
   local stat = vim.loop.fs_stat(file)
   if stat == nil then
-    local files = vim.fn.systemlist('find . -type f | grep '..vim.fn.shellescape(file))
+    local files = vim.fn.systemlist('find . -type f | grep ' .. vim.fn.shellescape(file))
     if #files == 0 then
       print('nofiles fallback')
       local f = file:gsub('^[^/]+/', '')
@@ -316,23 +317,23 @@ local function smart_find_and_fill(file, line)
       local items = {}
       for _, f in ipairs(files) do
         f = f:gsub('^%./', '')
-        local bufnr = vim.fn.bufnr(vim.fn.fnamemodify(f, ":p"))
+        local bufnr = vim.fn.bufnr(vim.fn.fnamemodify(f, ':p'))
         local text = '-'
         if bufnr > -1 then
-          local lines = vim.api.nvim_buf_get_lines(bufnr, line-1, line, false)
+          local lines = vim.api.nvim_buf_get_lines(bufnr, line - 1, line, false)
           if #lines > 0 then
-            text = lines[1]..' (b='..tostring(bufnr)..')'
+            text = lines[1] .. ' (b=' .. tostring(bufnr) .. ')'
           end
         end
-        table.insert(items, {filename = f, lnum = line, col = 0, text = text})
+        table.insert(items, { filename = f, lnum = line, col = 0, text = text })
       end
-      vim.fn.setqflist({}, 'r', {title = 'FN', items = items})
+      vim.fn.setqflist({}, 'r', { title = 'FN', items = items })
       vim.cmd.copen()
       return
     end
   end
-  vim.api.nvim_cmd({cmd = "edit", args = {file}}, {})
-  vim.api.nvim_win_set_cursor(0, {tonumber(line), 0})
+  vim.api.nvim_cmd({ cmd = 'edit', args = { file } }, {})
+  vim.api.nvim_win_set_cursor(0, { tonumber(line), 0 })
 end
 
 function M.smart_file_locate(opts) -- USAGE: vim.api.nvim_create_user_command('E', F, { nargs = 1 })
@@ -351,7 +352,7 @@ end
 -- -------------------------------
 
 vim.cmd([[
-noremap <A-C-S-Up>  :-tabmove<cr>
+noremap <A-C-S-Up>   :-tabmove<cr>
 noremap <A-C-S-Down> :+tabmove<cr>
 ]])
 
