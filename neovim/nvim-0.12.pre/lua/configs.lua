@@ -29,9 +29,30 @@ opt.hlsearch = true
 opt.foldmethod = 'syntax'
 opt.foldlevelstart = 99
 
-opt.wildmenu=true -- <Tab>
-opt.wildmode='full,longest,noselect'
-opt.wildoptions='pum,tagfile,fuzzy'
+--
+
+function _G.custom_fold_text()
+  local line = vim.fn.getline(vim.v.foldstart) .. ' '
+  local line_count = vim.v.foldend - vim.v.foldstart + 1
+  local count_str = ' ' .. line_count
+  local win_width = vim.api.nvim_win_get_width(0)
+  local gutter_width = vim.fn.getwininfo(vim.api.nvim_get_current_win())[1].textoff
+  local available_width = win_width - gutter_width
+  local line_display_width = vim.fn.strdisplaywidth(line)
+  local padding = available_width - line_display_width - vim.fn.strdisplaywidth(count_str)
+  if padding < 0 then padding = 1 end
+  return line .. string.rep('·', padding) .. count_str
+end
+
+opt.foldtext = "v:lua.custom_fold_text()"
+
+--
+
+opt.wildmenu = true -- <Tab>
+opt.wildmode = 'full,longest,noselect'
+opt.wildoptions = 'pum,tagfile,fuzzy'
+
+vim.opt.whichwrap = 'b,s,<,>,[,],h,l' -- Cursor left/right to move to the previous/next line
 
 opt.modeline = true
 
