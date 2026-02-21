@@ -13,19 +13,22 @@ function M.visual_text()
   if a[2] > b[2] or (a[2] == b[2] and a[3] > b[3]) then
     a, b = b, a
   end
-  -- vim.fn.setreg('g', vim.inspect(m)..'|'..vim.inspect(a)..'|'..vim.inspect(b)..'\n') -- debug
   if m == 'v' then
-    return vim.api.nvim_buf_get_text(0, a[2]-1, a[3]-1, b[2]-1, b[3], {})
+    local ll = vim.api.nvim_buf_get_lines(0, a[2] - 1, b[2], false)
+    local s = vim.str_byteindex(ll[1], 'utf-8', a[3] - 1)
+    local e = vim.str_byteindex(ll[#ll], 'utf-8', b[3])
+    ll[#ll] = string.sub(ll[#ll], 0, e + 1)
+    ll[1] = string.sub(ll[1], s + 1)
+    -- vim.fn.setreg('g', vim.inspect(ll) .. '|' .. vim.inspect(m) .. '|' .. vim.inspect(a) .. '|' .. vim.inspect(b) .. '\n') -- debug
+    return ll
   elseif m == 'V' then
-    return vim.api.nvim_buf_get_lines(0, a[2]-1, b[2], false)
+    return vim.api.nvim_buf_get_lines(0, a[2] - 1, b[2], false)
   end
   return {}
 end
 
-function M.visual_line()
-  local ln = M.visual_text()
-  if #ln == 0 then return '' end
-  return ln[1]
+function M.visual_scalar()
+  return table.concat(M.visual_text(), '\n')
 end
 
 function M.input(prompt)
