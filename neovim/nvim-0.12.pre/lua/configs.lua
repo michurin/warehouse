@@ -37,6 +37,15 @@ opt.modeline = true
 
 vim.cmd.filetype('plugin indent on') -- Enable filetype detection, plugins, and indentation
 
+opt.langmap =
+    'ФИСВУАПРШОЛДЬТЩЗЙКЫЕГМЦЧНЯ;' ..
+    'ABCDEFGHIJKLMNOPQRSTUVWXYZ,' ..
+    'фисвуапршолдьтщзйкыегмцчня;' ..
+    'abcdefghijklmnopqrstuvwxyz,' ..
+    'ΑA,ΒB,ΨC,ΔD,ΕE,ΦF,ΓG,ΗH,ΙI,ΞJ,ΚK,ΛL,ΜM,ΝN,ΟO,ΠP,QQ,ΡR,ΣS,ΤT,ΘU,ΩV,WW,ΧX,ΥY,ΖZ,' ..
+    'αa,βb,ψc,δd,εe,φf,γg,ηh,ιi,ξj,κk,λl,μm,νn,οo,πp,qq,ρr,σs,τt,θu,ωv,ςw,χx,υy,ζz'
+vim.opt.iskeyword = '@,48-57,_,192-255,.,-' -- extra `.` and `-`
+
 -- COLORS
 
 vim.cmd.colorscheme('vim')
