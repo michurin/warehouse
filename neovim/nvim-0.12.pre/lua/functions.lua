@@ -83,8 +83,15 @@ function M.grep_in_files(source, inp)
       return
     end
     word = vim.fn.escape(word, '\\/.*$^~[]')
-    vim.cmd('vimgrep /\\<' .. word .. '\\>/ ' .. table.concat(files, ' '))
-    vim.cmd('copen')
+    -- vim.api.nvim_cmd({cmd = 'vimgrep', args = {'cmd', '%'}}, {})
+    local args = files
+    table.insert(args, 1, '/\\<' .. word .. '\\>/')
+    local ok, _ = pcall(vim.api.nvim_cmd, { cmd = 'vimgrep', args = args }, {})
+    if not ok then
+      vim.notify('No matche') -- print won't work
+      return
+    end
+    vim.cmd.copen()
     vim.fn.setreg('/', '\\<' .. word .. '\\>')
     vim.opt.hlsearch = true -- kick highlighting
   end
