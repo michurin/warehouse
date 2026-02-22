@@ -213,11 +213,28 @@ local function exec_bash(cmd_fetcherer)
 end
 
 local function exec_sql(cmd_fetcherer)
+  -- assume comment like:
+  -- mysql -h 127.0.0.1 --port 10150 -u user -ppass databese -t -e
+  -- do not forget -e
+  -- -E for vertical layout
   local cmd_lines = cmd_fetcherer()
   local cmd = {}
-  if vim.fn.match(cmd_lines[1], '^--') >= 0 then
-    local x = cmd_lines[1]:gsub('^..', '')
-    cmd = vim.fn.split(x)
+  for i = 1, #cmd_lines do
+    if vim.fn.match(cmd_lines[i], '^--') >= 0 then
+      local x = cmd_lines[i]:gsub('^..', '')
+      x = vim.fn.split(x)
+      if #x > 0 and x[1]:sub(1, 3) == '{{{' then
+        table.remove(x, 1)
+      end
+      if #x > 0 and x[1] == 'mysql' then
+        cmd = x
+        break
+      end
+    end
+  end
+  if #cmd == 0 then
+    print('no command')
+    return
   end
   table.insert(cmd, table.concat(cmd_lines, '\n'))
   local cmd_result = vim.fn.systemlist(cmd)
