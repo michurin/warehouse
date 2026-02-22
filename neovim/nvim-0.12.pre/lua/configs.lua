@@ -31,6 +31,61 @@ opt.foldlevelstart = 99
 
 --
 
+function _G.pretty_qf_textfunc(info)
+  local items
+  if info.quickfix == 1 then
+    items = vim.fn.getqflist({ id = info.id, items = 0 }).items
+  else
+    items = vim.fn.getloclist(info.winid, { id = info.id, items = 0 }).items
+  end
+
+  local entries = {}
+  local max_gap = 0
+  for i = info.start_idx, info.end_idx do
+    local item = items[i]
+
+    local filename = "[nofile]"
+    if item.bufnr and item.bufnr > 0 then
+      filename = vim.fn.bufname(item.bufnr)
+      filename = vim.fn.fnamemodify(filename, ":~:.")
+    end
+
+    local lnum = tostring(item.lnum or 0)
+    local text = item.text or ""
+
+    max_gap = math.max(max_gap, vim.fn.strdisplaywidth(filename .. lnum))
+
+    table.insert(entries, {
+      filename = filename,
+      lnum = lnum,
+      text = text:gsub('^%s+', ''),
+    })
+  end
+
+  local lines = {}
+
+  -- TODO limit padding
+  -- TODO limit filenames, crop laft
+  max_gap = max_gap + 1
+
+  for _, e in ipairs(entries) do
+    local line = string.format(
+      '%s%s%d %s',
+      e.filename,
+      string.rep('·', max_gap - vim.fn.strdisplaywidth(e.filename .. e.lnum)),
+      e.lnum,
+      e.text
+    )
+    table.insert(lines, line)
+  end
+
+  return lines
+end
+
+vim.o.quickfixtextfunc = "v:lua.pretty_qf_textfunc"
+
+--
+
 function _G.custom_fold_text()
   local line = vim.fn.getline(vim.v.foldstart) .. ' '
   local line_count = vim.v.foldend - vim.v.foldstart + 1
@@ -141,3 +196,4 @@ vim.api.nvim_set_hl(0, 'diffFile', { fg = '#ffff55' })
 vim.api.nvim_set_hl(0, 'diffOldFile', { fg = '#ffff55' })
 vim.api.nvim_set_hl(0, 'diffNewFile', { fg = '#ffff55' })
 vim.api.nvim_set_hl(0, 'diffIndexLine', { fg = '#cc55cc' })
+vim.api.nvim_set_hl(0, 'qfFileName', { fg = '#888888' }) -- oh. hackish
