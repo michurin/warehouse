@@ -46,7 +46,9 @@ end, { noremap = true, buffer = true })
 vim.fn.matchadd('Comment', [[^[!-~]\+]])
 vim.fn.matchadd('Whitespace', [[·\+]])
 vim.fn.matchadd('LineNr', [[[· ]\@<=\d\+]]) -- \@<= — lookbehind (must have fixed length)
+-- experimental
 vim.fn.matchadd('Statement', [[func]])
+vim.fn.matchadd('Identifier', [[[. ]\zs[a-zA-Z_0-9]\+\ze(]])
 
 vim.opt_local.tabstop = 1 -- just to save space
 vim.opt_local.listchars = 'tab:  '
