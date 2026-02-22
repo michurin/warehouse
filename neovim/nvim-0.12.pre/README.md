@@ -45,6 +45,13 @@ Debug: `:set foldcolumn=5`
 
 # Ideas
 
+## Fuzzy search
+
+```
+:lua xxxx=vim.fn.readfile("README.md")
+:lua =vim.fn.matchfuzzy(xxxx, "ftpx")
+```
+
 ## Manual folding
 
 ```
@@ -169,4 +176,22 @@ end
 vim.opt_local.foldmethod = "expr"
 vim.opt_local.foldexpr = "v:lua.HashSectionFold()"
 vim.opt_local.foldlevel = 99
+```
+
+### Diff folding
+
+```
+vim.cmd([[
+setlocal foldmethod=expr foldexpr=DiffFold(v:lnum)
+function! DiffFold(lnum)
+  let line = getline(a:lnum)
+  if line =~ '^\(diff\|---\|+++\|@@\) '
+    return 1
+  elseif line[0] =~ '[-+ ]'
+    return 2
+  else
+    return 0
+  endif
+endfunction
+]])
 ```
