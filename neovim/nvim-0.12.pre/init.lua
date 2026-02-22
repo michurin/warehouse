@@ -52,6 +52,14 @@ vim.keymap.set('n', '<space>fD', F.grep_in_files(F.files_from_find_cdir, F.input
 vim.keymap.set('n', '<space>ff', F.show_files, { noremap = true })
 vim.keymap.set('n', '<space>fF', F.show_files_by_pattern, { noremap = true })
 
+-- TODO move to go.lua? or to lsp settings?
+-- outgoing_calls looks buggy
+vim.keymap.set('n', '<space>fi', function()
+  local view = vim.fn.winsaveview()
+  vim.cmd('normal [[0lllll')
+  vim.lsp.buf.incoming_calls()
+  vim.fn.winrestview(view)
+end, { noremap = true })
 --
 
 vim.api.nvim_create_autocmd(F.qf_buffers_events, { callback = F.qf_buffers_handler })
