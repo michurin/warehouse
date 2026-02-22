@@ -114,7 +114,7 @@ function M.qf_buffers()
       local name = vim.api.nvim_buf_get_name(buf)
       if name ~= '' and vim.fn.buflisted(buf) == 1 then
         local pos = buff_last_pos[buf]
-        local debug = buf -- debugging
+        local debug = tostring(buf) -- debugging
         for _, win in ipairs(wins) do
           if vim.api.nvim_win_get_buf(win) == buf then
             pos = vim.api.nvim_win_get_cursor(win)
