@@ -10,35 +10,44 @@
 -- set search reg:
 -- =vim.fn.setreg("/", "Id")
 
-vim.api.nvim_win_set_height(0, vim.fn.min({5, vim.api.nvim_buf_line_count(0)}))
+vim.api.nvim_win_set_height(0, vim.fn.min({ 5, vim.api.nvim_buf_line_count(0) }))
 
 --vim.keymap.set('n', '<Enter>', function()
 --  vim.cmd.cclose() -- vim.api.nvim_win_close(0, false)
 --end, {noremap=true, buffer=true})
 
 -- vim.keymap.set('n', '<Enter>', function()
-  -- vim.api.nvim_win_close(0, false)
-  -- vim.cmd.cclose()
+-- vim.api.nvim_win_close(0, false)
+-- vim.cmd.cclose()
 -- end, {noremap=true})
 
 -- nnoremap <buffer> <Down> <Down><CR><C-w>p
 -- vim.keymap.set('n', '<S-Down>', '<Down><CR><C-w>p', {noremap=true, buffer=true})
-vim.keymap.set('n', '<S-j>', function ()
+vim.keymap.set('n', '<S-j>', function()
   local count = #vim.fn.getqflist()
   if count == 0 then return end
   local idx = vim.fn.getqflist({ idx = 0 }).idx
   if idx == count then vim.cmd('cfirst') else vim.cmd('cnext') end
   vim.api.nvim_feedkeys('<CR>', 'n', false)
   vim.cmd('wincmd p')
-end, {noremap=true, buffer=true})
+end, { noremap = true, buffer = true })
 
 -- nnoremap <buffer> <Up> <Up><CR><C-w>p
 -- vim.keymap.set('n', '<S-Up>', '<Up><CR><C-w>p', {noremap=true, buffer=true})
-vim.keymap.set('n', '<S-k>', function ()
+vim.keymap.set('n', '<S-k>', function()
   local count = #vim.fn.getqflist()
   if count == 0 then return end
   local idx = vim.fn.getqflist({ idx = 0 }).idx
   if idx == 1 then vim.cmd('clast') else vim.cmd('cprev') end
   vim.api.nvim_feedkeys('<CR>', 'n', false)
   vim.cmd('wincmd p')
-end, {noremap=true, buffer=true})
+end, { noremap = true, buffer = true })
+
+vim.fn.matchadd('Comment', [[^[!-~]\+]])
+vim.fn.matchadd('Whitespace', [[·\+]])
+vim.fn.matchadd('LineNr', [[[· ]\@<=\d\+]]) -- \@<= — lookbehind (must have fixed length)
+vim.fn.matchadd('Statement', [[func]])
+
+vim.opt_local.tabstop = 1 -- just to save space
+vim.opt_local.listchars = 'tab:  '
+vim.opt_local.number = false
