@@ -16,6 +16,9 @@ return {
       runtime = {
         version = 'Lua 5.4',
       },
+      codeLens = {
+        enable = true,
+      },
       completion = {
         enable = true,
       },
