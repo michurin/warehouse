@@ -375,9 +375,72 @@ end
 
 -- -------------------------------
 
-vim.cmd([[
-noremap <A-C-S-Up>   :-tabmove<cr>
-noremap <A-C-S-Down> :+tabmove<cr>
-]])
+function M.fuzzy_search() -- TODO just idea; lua require('functions').fuzzy_search()
+  local s = vim.fn.input('>')
+  -- print(s)
+  local bufs = vim.api.nvim_list_bufs()
+  local items = {}
+  for _, buf in ipairs(bufs) do
+    if vim.api.nvim_buf_is_loaded(buf) then
+      local name = vim.api.nvim_buf_get_name(buf)
+      if name ~= '' and vim.fn.buflisted(buf) == 1 then
+        local l = vim.api.nvim_buf_get_lines(buf, 0, -1, false)
+        local rx = vim.fn.matchfuzzypos(l, s, { matchseq = 1 }) -- matchfuzzypos? sort by score?
+        local r = rx[1]
+        local scores = rx[3]
+        if #r > 0 then
+          local filename = vim.fn.fnamemodify(name, ':~:.')
+          for i = 1, #l do
+            for j = 1, #r do -- TODO nested loop
+              if l[i] == r[j] then
+                table.insert(items, { filename = filename, lnum = i, col = 0, text = tostring(scores[j]) .. '|' .. l[i] })
+                break
+              end
+            end
+          end
+        end
+      end
+    end
+  end
+  vim.fn.setqflist({}, 'r', { title = 'FN', items = items }) -- TODO items? or list argument?
+  vim.cmd.copen()
+end
+
+-- -------------------------------
+
+function M.qf_do(command)
+  return function()
+    local ok, _ = pcall(function() vim.cmd(command) end)
+    if not ok then
+      print('no list')
+    end
+  end
+end
+
+-- -------------------------------
+
+function M.copy_bookmark_to_f()
+  if vim.bo.filetype == 'qf' then
+    local it = vim.fn.getqflist()
+    local s = {}
+    for _, i in ipairs(it) do
+      table.insert(s,
+        vim.fn.fnamemodify(vim.api.nvim_buf_get_name(i.bufnr), ':~:.') ..
+        ':' .. tostring(i.lnum) .. ' ' .. i.text:gsub('^%s+', ''):gsub('%s+$', ''))
+    end
+    local m = table.concat(s, '\n')
+    vim.fn.setreg('f', m)
+    print('f:' .. tostring(#s) .. ' lines (qf)')
+    return
+  end
+  local l = vim.api.nvim_win_get_cursor(0)[1]
+  local t = vim.api.nvim_buf_get_lines(0, l - 1, l, false)[1]
+  local p = vim.api.nvim_buf_get_name(0)
+  local m = vim.fn.fnamemodify(p, ':~:.') .. ':' .. tostring(l) .. ' ' .. t:gsub('^%s+', ''):gsub('%s+$', '')
+  vim.fn.setreg('f', m)
+  print('f:' .. m)
+end
+
+-- -------------------------------
 
 return M

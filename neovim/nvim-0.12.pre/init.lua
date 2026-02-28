@@ -20,6 +20,11 @@ vim.api.nvim_create_autocmd('BufWritePre', { callback = function() vim.lsp.buf.f
 
 --
 
+vim.keymap.set('n', ']j', F.qf_do('cnewer'), { noremap = true })
+vim.keymap.set('n', '[j', F.qf_do('colder'), { noremap = true })
+
+--
+
 vim.keymap.set('n', '<space>fl', F.grep_in_files(F.files_from_cmd('git ls-files "*.go" ":!*_test.go"'), F.cword),
   { noremap = true })
 vim.keymap.set('v', '<space>fl',
@@ -75,6 +80,10 @@ vim.api.nvim_create_user_command('CC', function() vim.opt.colorcolumn = { 120 } 
 
 --
 
+vim.keymap.set('n', '<space>gf', F.copy_bookmark_to_f, { noremap = true })
+
+--
+
 vim.keymap.set('n', '<space>www', F.exec(F.paragraph_block), { noremap = true })
 vim.keymap.set('v', '<space>www', F.exec(F.visual_text), { noremap = true })
 
@@ -99,4 +108,37 @@ end, { noremap = true })
 
 vim.keymap.set('n', '<space>bb', F.show_keys, { noremap = true })
 
-vim.keymap.set("n", "<leader>hi", function() vim.cmd("Inspect") end, { noremap = true })
+vim.keymap.set("n", "<space>hi", function() vim.cmd("Inspect") end, { noremap = true })
+
+-- experimental
+
+-- vim.api.nvim_create_user_command('QFSave', function()
+--   local result = {}
+--   local info = vim.fn.getqflist({ nr = '$' })
+--   for i = 1, info.nr do
+--     local items = vim.fn.getqflist({ id = i, all = 1 })
+--     for _, item in ipairs(items) do
+--       if item.bufnr and item.bufnr ~= 0 then
+--         item.filename = vim.api.nvim_buf_get_name(item.bufnr)
+--         item.bufnr = nil
+--       end
+--     end
+--     table.insert(result, items)
+--   end
+--   vim.fn.writefile({ vim.fn.json_encode(result) }, 'qf.json')
+-- end, {})
+--
+-- vim.api.nvim_create_user_command("QFLoad", function()
+--   local data = vim.fn.json_decode(table.concat(vim.fn.readfile("qf.json"), "\n"))
+--   for _, qf in ipairs(data) do
+--     vim.fn.setqflist({}, 'a', qf)
+--   end
+-- end, {})
+
+--
+
+vim.cmd([[
+noremap <A-C-S-Up>   :-tabmove<cr>
+noremap <A-C-S-Down> :+tabmove<cr>
+set spell spelllang=en_us,ru_yo,el spelloptions=camel
+]])

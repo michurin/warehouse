@@ -1,3 +1,5 @@
+local F = require('functions')
+
 -- IDEAS:
 -- ALL BINDINGS
 -- lua =vim.api.nvim_get_current_buf()
@@ -53,3 +55,7 @@ vim.fn.matchadd('Identifier', [[[. ]\zs[a-zA-Z_0-9]\+\ze(]])
 vim.opt_local.tabstop = 1 -- just to save space
 vim.opt_local.listchars = 'tab:  '
 vim.opt_local.number = false
+vim.opt_local.cursorline = true
+
+vim.keymap.set('n', '<C-i>', F.qf_do('cnewer'), { noremap = true, buffer = 0 })
+vim.keymap.set('n', '<C-o>', F.qf_do('colder'), { noremap = true, buffer = 0 })
