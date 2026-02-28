@@ -44,14 +44,14 @@ function _G.pretty_qf_textfunc(info)
   for i = info.start_idx, info.end_idx do
     local item = items[i]
 
-    local filename = "[nofile]"
+    local filename = '[nofile]'
     if item.bufnr and item.bufnr > 0 then
       filename = vim.fn.bufname(item.bufnr)
-      filename = vim.fn.fnamemodify(filename, ":~:.")
+      filename = vim.fn.fnamemodify(filename, ':~:.')
     end
 
     local lnum = tostring(item.lnum or 0)
-    local text = item.text or ""
+    local text = item.text or ''
 
     max_gap = math.max(max_gap, vim.fn.strdisplaywidth(filename .. lnum))
 
@@ -82,7 +82,7 @@ function _G.pretty_qf_textfunc(info)
   return lines
 end
 
-vim.o.quickfixtextfunc = "v:lua.pretty_qf_textfunc"
+vim.o.quickfixtextfunc = 'v:lua.pretty_qf_textfunc'
 
 --
 
@@ -99,7 +99,7 @@ function _G.custom_fold_text()
   return line .. string.rep('·', padding) .. count_str
 end
 
-opt.foldtext = "v:lua.custom_fold_text()"
+opt.foldtext = 'v:lua.custom_fold_text()'
 
 --
 
@@ -135,20 +135,35 @@ vim.api.nvim_create_autocmd('TextYankPost', {
   end,
 })
 
-vim.api.nvim_set_hl(0, 'TelescopeNormal', { fg = '#c0c0c0' })
-vim.api.nvim_set_hl(0, 'TelescopeMatching', { bg = '#005f5f', fg = 'none' })
+vim.diagnostic.config({ virtual_text = true, underline = false, })
+--[[
+vim.diagnostic.config({
+  signs = {
+    text = {
+      [vim.diagnostic.severity.ERROR] = '',
+      [vim.diagnostic.severity.WARN] = '',
+    },
+    linehl = {
+      [vim.diagnostic.severity.ERROR] = 'ErrorMsg',
+    },
+    numhl = {
+      [vim.diagnostic.severity.WARN] = 'WarningMsg',
+    },
+  },
+})
+]] --
+
+-- vim.api.nvim_set_hl(0, 'TelescopeNormal', { fg = '#c0c0c0' })
+-- vim.api.nvim_set_hl(0, 'TelescopeMatching', { bg = '#005f5f', fg = 'none' })
 vim.api.nvim_set_hl(0, 'Pmenu', { bg = '#1c1c1c', fg = '#afd7ff' })
 vim.api.nvim_set_hl(0, 'PmenuSel', { bg = '#585858', fg = '#afd7ff' })
-vim.api.nvim_set_hl(0, 'LspDiagnosticsDefaultHint', { bg = '#1c1c1c', fg = '#5f8700' })
-vim.api.nvim_set_hl(0, 'LspDiagnosticsDefaultInformation', { bg = '#1c1c1c', fg = '#0087af' })
-vim.api.nvim_set_hl(0, 'LspDiagnosticsDefaultWarning', { bg = '#1c1c1c', fg = '#af875f' })
-vim.api.nvim_set_hl(0, 'LspDiagnosticsDefaultError', { bg = '#1c1c1c', fg = '#af0000' })
-vim.api.nvim_set_hl(0, 'TreesitterContext', { bg = '#444444' })
-vim.api.nvim_set_hl(0, 'TreesitterContextLineNumber', { bg = '#444444', fg = '#ff00d7' })
+-- vim.api.nvim_set_hl(0, 'TreesitterContext', { bg = '#444444' })
+-- vim.api.nvim_set_hl(0, 'TreesitterContextLineNumber', { bg = '#444444', fg = '#ff00d7' })
 vim.api.nvim_set_hl(0, 'Whitespace', { fg = '#555555' })
 vim.api.nvim_set_hl(0, 'NonText', { fg = '#555555' })
 vim.api.nvim_set_hl(0, 'EndOfBuffer', { fg = '#888888' })
 vim.api.nvim_set_hl(0, 'LineNr', { fg = '#557755' })
+vim.api.nvim_set_hl(0, 'SignColumn', { bg = 'none' })
 vim.api.nvim_set_hl(0, 'FoldColumn', { bg = '#000000', fg = '#557755' })
 vim.api.nvim_set_hl(0, 'StatusLineNC', { bg = '#444444', fg = '#000000' })
 vim.api.nvim_set_hl(0, 'StatusLine', { bg = '#444444', fg = '#ffffff' })
@@ -157,9 +172,10 @@ vim.api.nvim_set_hl(0, 'VertSplit', { fg = '#444444' })
 vim.api.nvim_set_hl(0, 'TabLine', { bg = '#444444', fg = '#000000' })
 vim.api.nvim_set_hl(0, 'TabLineSel', { bg = '#444444', fg = '#ffffff' })
 vim.api.nvim_set_hl(0, 'TabLineFill', { bg = '#444444' })
-vim.api.nvim_set_hl(0, 'CursorLine', { bg = '#6c6c6c' })
-vim.api.nvim_set_hl(0, 'CursorLineNr', { bg = '#6c6c6c' })
-vim.api.nvim_set_hl(0, 'CursorColumn', { bg = '#6c6c6c' })
+vim.api.nvim_set_hl(0, 'CursorLine', { bg = '#2c2c2c' })
+vim.api.nvim_set_hl(0, 'CursorLineNr', { bg = '#2c2c2c' })
+vim.api.nvim_set_hl(0, 'CursorColumn', { bg = '#2c2c2c' })
+vim.api.nvim_set_hl(0, 'QuickFixLine', { bg = '#004444' })
 vim.api.nvim_set_hl(0, 'Normal', {})
 vim.api.nvim_set_hl(0, 'NormalFloat', {})
 vim.api.nvim_set_hl(0, 'FloatBorder', {})
@@ -188,7 +204,6 @@ vim.api.nvim_set_hl(0, 'markdownCodeBlock', { fg = '#5fafaf' })
 vim.api.nvim_set_hl(0, 'markdownCode', { fg = '#5fafaf' })
 vim.api.nvim_set_hl(0, 'markdownStrike', { fg = '#5f8787' })
 vim.api.nvim_set_hl(0, 'markdownItalic', { fg = '#ffffff' })
-vim.api.nvim_set_hl(0, 'SignColumn', { bg = '#1c1c1c', fg = '#ff0077' })
 vim.api.nvim_set_hl(0, 'diffRemoved', { fg = '#ee7777' })
 vim.api.nvim_set_hl(0, 'diffAdded', { fg = '#55cc55' })
 vim.api.nvim_set_hl(0, 'diffLine', { fg = '#ffff55' })

@@ -351,7 +351,7 @@ local function smart_find_and_fill(file, line)
         end
         table.insert(items, { filename = f, lnum = line, col = 0, text = text })
       end
-      vim.fn.setqflist({}, 'r', { title = 'FN', items = items })
+      vim.fn.setqflist({}, 'r', { title = 'FN', items = items }) -- TODO items? or list argument?
       vim.cmd.copen()
       return
     end
