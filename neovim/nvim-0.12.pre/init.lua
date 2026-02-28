@@ -5,11 +5,11 @@ local F = require('functions')
 
 vim.lsp.enable({
   'gopls',
-  'lua_ls',
-  'bashls',
-  'pyright',
-  'ts_ls',
-  'protols',
+  'lua_ls',  -- sudo pacman -Suy lua-language-server
+  'bashls',  -- sudo pacman -Suy bash-language-server
+  'pyright', -- sudo pacman -Suy pyright
+  'ts_ls',   -- sudp pacman -Suy typescript-language-server
+  'protols', -- go install github.com/lasorda/protobuf-language-server@master
 })
 
 vim.diagnostic.config({ virtual_text = true })
