@@ -65,7 +65,12 @@ end, { noremap = true })
 vim.api.nvim_create_autocmd(F.qf_buffers_events, { callback = F.qf_buffers_handler })
 vim.api.nvim_create_user_command('BUF', F.qf_buffers, {})
 vim.api.nvim_create_user_command('E', F.smart_file_locate, { nargs = 1 })
-vim.api.nvim_create_user_command('D', F.exec_git_diff_all, { nargs = 1 })
+vim.api.nvim_create_user_command('D', F.exec_git_diff_all, {
+  nargs = '*',
+  complete = function()
+    return vim.fn.systemlist('git branch -q -a --sort=-committerdate --format="%(refname:short)" --no-color')
+  end
+})
 vim.api.nvim_create_user_command('CC', function() vim.opt.colorcolumn = { 120 } end, {})
 
 --
