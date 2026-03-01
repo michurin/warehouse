@@ -22,4 +22,12 @@ Change password:
 ssh-keygen -p -f ~/.ssh/id_rsa
 ```
 
+# Add keys with restrictions
+
+`ssh/authorized_keys`:
+
+```
+restrict,port-forwarding,command="/usr/bin/echo BYE" ssh-ed25519 AA...yx x@xxx
+```
+
 <!-- vi: set ft=markdown: -->
