@@ -142,3 +142,97 @@ noremap <A-C-S-Up>   :-tabmove<cr>
 noremap <A-C-S-Down> :+tabmove<cr>
 set spell spelllang=en_us,ru_yo,el spelloptions=camel
 ]])
+
+-- ideas:
+
+-- TODO MOVE TO SOMEWHERE
+function _G.x(items, opts, callback)
+  -- print(vim.inspect(opts))
+  -- if true then return end
+  -- local items = {'one', 'two', 'three', 'x', 'xx', 'xxx'}
+  -- local opts = {prompt = 'PROMPT>'}
+  -- local callback = function (c, i)
+  --    print(c, i)
+  -- end
+  -- vim.ui.select(items, opts, callback)
+  -- print('ok')
+  --
+  opts = opts or {}
+  local prompt = opts.prompt or "Select"
+  local format = opts.format_item or tostring
+  local max_height = opts.max_height or 12
+  local title = ' ' .. prompt:gsub('^%s+', ''):gsub('[%s:]+$', '') .. ' '
+
+  local labels = {}
+  for _, item in ipairs(items) do
+    table.insert(labels, format(item))
+  end
+
+  local buf = vim.api.nvim_create_buf(false, true)
+  local width = #title
+  for _, item in ipairs(labels) do
+    width = math.max(width, vim.fn.strdisplaywidth(item))
+  end
+  width = width + 0 -- TODO
+
+  local height = math.min(#items, max_height)
+  local win = vim.api.nvim_open_win(buf, true, {
+    relative = 'editor',
+    width = width,
+    height = height,
+    row = 0,
+    col = 0,
+    style = 'minimal',
+    border = 'rounded',
+    title = title,
+    footer = ' ' .. tostring(#items) .. ' ',
+  })
+
+  vim.wo[win].cursorline = true
+  vim.wo[win].number = false
+  vim.wo[win].relativenumber = false
+  vim.wo[win].signcolumn = 'no'
+  vim.bo[buf].bufhidden = 'wipe'
+  vim.bo[buf].filetype = 'custom_select'
+
+  vim.fn.matchadd('Comment', [[^Fill]]) -- very experimental. What about scope of this definition?
+  vim.fn.matchadd('Statement', [[^Fill \zs\S\+\ze]])
+  vim.fn.matchadd('Type', [[\zs"[^"]\+"\ze]])
+
+  vim.bo[buf].modifiable = true
+  vim.api.nvim_buf_set_lines(buf, 0, -1, false, labels)
+  vim.bo[buf].modifiable = false
+
+  vim.api.nvim_win_set_cursor(win, { 1, 0 }) -- TODO?
+
+  local function close()
+    if vim.api.nvim_win_is_valid(win) then
+      vim.api.nvim_win_close(win, true)
+    end
+  end
+
+  local function confirm()
+    local row = vim.api.nvim_win_get_cursor(win)[1]
+    close()
+    if callback then
+      callback(items[row], row)
+    end
+  end
+
+  local function map(lhs, rhs)
+    vim.keymap.set('n', lhs, rhs, { buffer = buf, nowait = true })
+  end
+
+  map('<CR>', confirm)
+  map('<Esc>', close)
+  map('q', close)
+end
+
+-- TODO MOVE TO CONFIG
+vim.api.nvim_set_hl(0, 'FloatTitle', { fg = '#00cccc' })
+vim.api.nvim_set_hl(0, 'FloatFooter', { fg = '#00cccc' })
+vim.api.nvim_set_hl(0, 'FloatBorder', { fg = '#00cccc' })
+vim.api.nvim_set_hl(0, 'NormalFloat', { fg = '#cccccc' })
+
+-- TODO SETUP IT HERE
+vim.ui.select = _G.x
