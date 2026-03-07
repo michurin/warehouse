@@ -263,7 +263,7 @@ function M.exec(cmd_fetcherer)
 end
 
 function M.exec_git_diff()
-  local result = vim.fn.systemlist('git diff --no-prefix ' .. vim.fn.shellescape(vim.api.nvim_buf_get_name(0)))
+  local result = vim.fn.systemlist({ 'git', 'diff', '--no-prefix', '--no-color', vim.api.nvim_buf_get_name(0) })
   show_viewing_buffer(result, 1)
   vim.opt_local.filetype = 'diff'
 end
