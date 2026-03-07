@@ -221,8 +221,8 @@ local function exec_sql(cmd_fetcherer)
   local cmd = {}
   for i = 1, #cmd_lines do
     if vim.fn.match(cmd_lines[i], '^--') >= 0 then
-      local x = cmd_lines[i]:gsub('^..', '')
-      x = vim.fn.split(x)
+      local s = cmd_lines[i]:gsub('^..', '')
+      local x = vim.fn.split(s)
       if #x > 0 and x[1]:sub(1, 3) == '{{{' then
         table.remove(x, 1)
       end
