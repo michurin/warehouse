@@ -243,3 +243,22 @@ vim.api.nvim_set_hl(0, 'NormalFloat', { fg = '#cccccc' })
 
 -- TODO SETUP IT HERE
 vim.ui.select = _G.x
+
+-- ONE MORE IDEA
+vim.keymap.set('n', 'z=', function()
+  local word = vim.fn.expand('<cword>')
+  local suggestions = vim.fn.spellsuggest(word)
+
+  if #suggestions == 0 then
+    print('no suggestions')
+    return
+  end
+
+  vim.ui.select(suggestions, {
+    prompt = 'Spell suggest' .. word,
+  }, function(choice)
+    if choice then
+      vim.cmd('normal! ciw' .. choice)
+    end
+  end)
+end, { desc = 'Spell suggestions with select UI' })
