@@ -323,7 +323,7 @@ end
 local function smart_find_and_fill(file, line)
   local stat = vim.loop.fs_stat(file)
   if stat == nil then
-    local files = vim.fn.systemlist('find . -type f | grep ' .. vim.fn.shellescape(file))
+    local files = vim.fn.systemlist('find . -type f -print0 | xargs -0 -n 500 -P 16 grep ' .. vim.fn.shellescape(file))
     if #files == 0 then
       print('nofiles fallback')
       local f = file:gsub('^[^/]+/', '')
