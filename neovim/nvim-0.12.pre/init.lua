@@ -76,6 +76,7 @@ vim.api.nvim_create_user_command('D', F.exec_git_diff_all, {
     return vim.fn.systemlist('git branch -q -a --sort=-committerdate --format="%(refname:short)" --no-color')
   end
 })
+vim.api.nvim_create_user_command('L', F.exec_lua, { nargs = '+', complete = 'lua' })
 vim.api.nvim_create_user_command('CC', function() vim.opt.colorcolumn = { 120 } end, {})
 
 --

@@ -287,6 +287,27 @@ function M.exec_command()
   show_viewing_buffer(result, 1)
 end
 
+function M.exec_lua(opts)
+  local command = opts.args
+  local chunk = load('return ' .. command)
+  if not chunk then
+    print('no chunk')
+    return
+  end
+  local ok, result = pcall(chunk)
+  if not ok then
+    print('not ok')
+    return
+  end
+  local lines = vim.split(vim.inspect(result), '\n')
+  if #lines == 1 and #lines[1] < 40 then
+    print(lines[1])
+    return
+  end
+  show_viewing_buffer(lines, 1)
+  vim.opt_local.filetype = 'lua'
+end
+
 function M.show_keys()
   local text = {}
   local mappings = vim.api.nvim_get_keymap('n')
