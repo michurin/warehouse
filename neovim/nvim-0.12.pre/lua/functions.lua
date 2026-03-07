@@ -277,8 +277,7 @@ M.exec_git_diff_all = {
     end
   },
   act = function(opts)
-    local command = opts.args
-    local result = vim.fn.systemlist({ 'git', 'diff', '--no-prefix', '--no-color', command })
+    local result = vim.fn.systemlist({ 'git', 'diff', '--no-prefix', '--no-color', unpack(opts.fargs) })
     show_viewing_buffer(result, 1)
     vim.opt_local.filetype = 'diff'
   end
