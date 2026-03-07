@@ -71,7 +71,7 @@ vim.api.nvim_create_autocmd(F.qf_buffers_events, { callback = F.qf_buffers_handl
 vim.api.nvim_create_user_command('BUF', F.qf_buffers, {})
 vim.api.nvim_create_user_command('E', F.smart_file_locate, { nargs = 1 })
 vim.api.nvim_create_user_command('D', F.exec_git_diff_all.act, F.exec_git_diff_all.opts)
-vim.api.nvim_create_user_command('L', F.exec_lua, { nargs = '+', complete = 'lua' })
+vim.api.nvim_create_user_command('L', F.exec_lua_command.act, F.exec_lua_command.opts)
 vim.api.nvim_create_user_command('SH', F.exec_shell_command.act, F.exec_shell_command.opts)
 vim.api.nvim_create_user_command('CC', function() vim.opt.colorcolumn = { 120 } end, {})
 
