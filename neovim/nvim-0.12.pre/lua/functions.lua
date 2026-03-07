@@ -268,12 +268,21 @@ function M.exec_git_diff()
   vim.opt_local.filetype = 'diff'
 end
 
-function M.exec_git_diff_all(opts)
-  local command = opts.args
-  local result = vim.fn.systemlist('git diff --no-prefix ' .. command)
-  show_viewing_buffer(result, 1)
-  vim.opt_local.filetype = 'diff'
-end
+M.exec_git_diff_all = {
+  opts = {
+    nargs = '*',
+    complete = function()
+      return vim.fn.systemlist({
+        'git', 'branch', '-q', '-a', '--sort=-committerdate', '--format=%(refname:short)', '--no-color' })
+    end
+  },
+  act = function(opts)
+    local command = opts.args
+    local result = vim.fn.systemlist({ 'git', 'diff', '--no-prefix', '--no-color', command })
+    show_viewing_buffer(result, 1)
+    vim.opt_local.filetype = 'diff'
+  end
+}
 
 function M.exec_git_blame()
   local result = vim.fn.systemlist({
