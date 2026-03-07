@@ -276,7 +276,9 @@ function M.exec_git_diff_all(opts)
 end
 
 function M.exec_git_blame()
-  local result = vim.fn.systemlist('git blame ' .. vim.fn.shellescape(vim.api.nvim_buf_get_name(0)))
+  local result = vim.fn.systemlist({
+    'git', 'blame', '--date=format:%y-%m-%d %H:%M', '--',
+    vim.api.nvim_buf_get_name(0) })
   local line = vim.api.nvim_win_get_cursor(0)[1]
   show_viewing_buffer(result, line)
 end
