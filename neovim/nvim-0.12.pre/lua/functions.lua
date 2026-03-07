@@ -268,6 +268,11 @@ function M.exec_git_diff()
   vim.opt_local.filetype = 'diff'
 end
 
+M.exec_shell_command = {
+  opts = { nargs = '+' },
+  act = function(opts) show_viewing_buffer(vim.fn.systemlist(opts.args), 1) end,
+}
+
 M.exec_git_diff_all = {
   opts = {
     nargs = '*',
@@ -289,12 +294,6 @@ function M.exec_git_blame()
     vim.api.nvim_buf_get_name(0) })
   local line = vim.api.nvim_win_get_cursor(0)[1]
   show_viewing_buffer(result, line)
-end
-
-function M.exec_command()
-  local command = vim.fn.input('SH> ')
-  local result = vim.fn.systemlist(command)
-  show_viewing_buffer(result, 1)
 end
 
 function M.exec_lua(opts)
