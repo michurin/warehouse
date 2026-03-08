@@ -269,7 +269,7 @@ function M.exec_git_diff()
 end
 
 M.exec_shell_command = {
-  opts = { nargs = '+' },
+  opts = { nargs = '+', complete = 'shellcmdline' },
   act = function(opts) show_viewing_buffer(vim.fn.systemlist(opts.args), 1) end,
 }
 
