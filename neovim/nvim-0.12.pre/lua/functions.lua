@@ -161,16 +161,16 @@ local function show_viewing_buffer(content, line)
   if not vim.api.nvim_buf_is_valid(viewing_buffer) then
     viewing_buffer = vim.api.nvim_create_buf(false, true)
 
-    vim.api.nvim_buf_set_option(viewing_buffer, 'buftype', 'nofile') -- nvim_buf_set_option is legacy! TODO
-    vim.api.nvim_buf_set_option(viewing_buffer, 'bufhidden', 'hide') -- важно
-    vim.api.nvim_buf_set_option(viewing_buffer, 'swapfile', false)
-    vim.api.nvim_buf_set_option(viewing_buffer, 'modifiable', false)
+    vim.api.nvim_set_option_value('buftype', 'nofile', { buf = viewing_buffer })
+    vim.api.nvim_set_option_value('bufhidden', 'hide', { buf = viewing_buffer }) -- важно
+    vim.api.nvim_set_option_value('swapfile', false, { buf = viewing_buffer })
+    vim.api.nvim_set_option_value('modifiable', false, { buf = viewing_buffer })
 
     vim.api.nvim_buf_set_name(viewing_buffer, '[OUTPUT]') -- nvim_buf_get_name всегда добавляет путь
   end
-  vim.api.nvim_buf_set_option(viewing_buffer, 'modifiable', true)
+  vim.api.nvim_set_option_value('modifiable', true, { buf = viewing_buffer })
   vim.api.nvim_buf_set_lines(viewing_buffer, 0, -1, false, content)
-  vim.api.nvim_buf_set_option(viewing_buffer, 'modifiable', false)
+  vim.api.nvim_set_option_value('modifiable', false, { buf = viewing_buffer })
   vim.api.nvim_win_set_buf(0, viewing_buffer) -- TODO in other window?
 
   vim.api.nvim_win_set_cursor(0, { line, 0 })
