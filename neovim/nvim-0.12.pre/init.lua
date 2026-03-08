@@ -81,8 +81,8 @@ vim.keymap.set('n', '<space>gf', F.copy_bookmark_to_f, { noremap = true })
 
 --
 
-vim.keymap.set('n', '<space>www', F.exec(F.paragraph_block), { noremap = true })
-vim.keymap.set('v', '<space>www', F.exec(F.visual_text), { noremap = true })
+vim.keymap.set('n', '<space>www', F.exec(F.paragraph_text_block), { noremap = true })
+vim.keymap.set('v', '<space>www', F.exec(F.visual_text_block), { noremap = true })
 
 vim.keymap.set('n', '<space>wwd', F.exec_git_diff, { noremap = true })
 vim.keymap.set('n', '<space>wwg', F.exec_git_blame, { noremap = true })

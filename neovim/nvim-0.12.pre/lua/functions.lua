@@ -6,29 +6,8 @@ function M.cword()
   return vim.fn.expand('<cword>')
 end
 
-function M.visual_text()
-  local m = vim.fn.mode() -- visualmode() предыдущий
-  local a = vim.fn.getpos('v')
-  local b = vim.fn.getpos('.')
-  if a[2] > b[2] or (a[2] == b[2] and a[3] > b[3]) then
-    a, b = b, a
-  end
-  if m == 'v' then
-    local ll = vim.api.nvim_buf_get_lines(0, a[2] - 1, b[2], false)
-    local s = vim.str_byteindex(ll[1], 'utf-8', a[3] - 1)
-    local e = vim.str_byteindex(ll[#ll], 'utf-8', b[3])
-    ll[#ll] = string.sub(ll[#ll], 0, e + 1)
-    ll[1] = string.sub(ll[1], s + 1)
-    -- vim.fn.setreg('g', vim.inspect(ll) .. '|' .. vim.inspect(m) .. '|' .. vim.inspect(a) .. '|' .. vim.inspect(b) .. '\n') -- debug
-    return ll
-  elseif m == 'V' then
-    return vim.api.nvim_buf_get_lines(0, a[2] - 1, b[2], false)
-  end
-  return {}
-end
-
 function M.visual_scalar()
-  return table.concat(M.visual_text(), '\n')
+  return table.concat(M.visual_text_block(), '\n')
 end
 
 function M.input(prompt)
@@ -178,7 +157,7 @@ local function show_viewing_buffer(content, line)
   vim.fn.setpos("'>", { 0, #content, 0, 0 })
 end
 
-function M.paragraph_block()
+function M.paragraph_text_block()
   local check_stop_line = function(r)
     local ln = vim.api.nvim_buf_get_lines(0, r - 1, r, false)[1]
     return not ln or ln == ''
@@ -196,6 +175,27 @@ function M.paragraph_block()
     rj = rj + 1
   end
   return vim.api.nvim_buf_get_lines(0, ri, rj - 1, false)
+end
+
+function M.visual_text_block()
+  local m = vim.fn.mode() -- visualmode() предыдущий
+  local a = vim.fn.getpos('v')
+  local b = vim.fn.getpos('.')
+  if a[2] > b[2] or (a[2] == b[2] and a[3] > b[3]) then
+    a, b = b, a
+  end
+  if m == 'v' then
+    local ll = vim.api.nvim_buf_get_lines(0, a[2] - 1, b[2], false)
+    local s = vim.str_byteindex(ll[1], 'utf-8', a[3] - 1)
+    local e = vim.str_byteindex(ll[#ll], 'utf-8', b[3])
+    ll[#ll] = string.sub(ll[#ll], 0, e + 1)
+    ll[1] = string.sub(ll[1], s + 1)
+    -- vim.fn.setreg('g', vim.inspect(ll) .. '|' .. vim.inspect(m) .. '|' .. vim.inspect(a) .. '|' .. vim.inspect(b) .. '\n') -- debug
+    return ll
+  elseif m == 'V' then
+    return vim.api.nvim_buf_get_lines(0, a[2] - 1, b[2], false)
+  end
+  return {}
 end
 
 local function exec_bash(cmd_fetcherer)
