@@ -14,7 +14,7 @@ return {
   settings = {
     Lua = {
       runtime = {
-        version = 'Lua 5.4',
+        version = 'Lua 5.1', -- 5.4 is newest, however neovim uses 5.1
       },
       codeLens = {
         enable = true,
