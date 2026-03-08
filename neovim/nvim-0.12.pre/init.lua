@@ -65,6 +65,7 @@ vim.keymap.set('n', '<space>fi', function()
   vim.lsp.buf.incoming_calls()
   vim.fn.winrestview(view)
 end, { noremap = true })
+
 --
 
 vim.api.nvim_create_autocmd(F.qf_buffers_events, { callback = F.qf_buffers_handler })
@@ -74,6 +75,30 @@ vim.api.nvim_create_user_command('D', F.exec_git_diff_all.act, F.exec_git_diff_a
 vim.api.nvim_create_user_command('L', F.exec_lua_command.act, F.exec_lua_command.opts)
 vim.api.nvim_create_user_command('SH', F.exec_shell_command.act, F.exec_shell_command.opts)
 vim.api.nvim_create_user_command('CC', function() vim.opt.colorcolumn = { 120 } end, {})
+vim.api.nvim_create_user_command('J', function() -- TODO idea: put jumplist to QF
+  local jumplist, idx = unpack(vim.fn.getjumplist())
+  local items = {}
+  for i = #jumplist, 1, -1 do
+    local jmp = jumplist[i]
+    local buf = jmp.bufnr
+    if not (vim.api.nvim_buf_is_loaded(buf) and vim.api.nvim_buf_is_valid(buf) and vim.bo[buf].buflisted) then
+      break
+    end
+    table.insert(items, {
+      filename = vim.api.nvim_buf_get_name(buf),
+      lnum = jmp.lnum,
+      col = jmp.col, -- TODO +jmp.addcol?
+      text = vim.api.nvim_buf_get_lines(buf, jmp.lnum - 1, jmp.lnum, false)[1],
+    })
+  end
+  vim.fn.setqflist({}, 'r', {
+    title = 'Jumps',
+    items = items,
+  })
+  -- TODO vim.cmd('cc ' .. tostring(#jumplist - idx + 1))
+  print(#jumplist, idx)
+  vim.cmd.copen()
+end, {})
 
 --
 
