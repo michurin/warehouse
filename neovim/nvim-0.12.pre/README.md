@@ -45,6 +45,13 @@ Debug: `:set foldcolumn=5`
 
 # Ideas
 
+# Useful topics
+
+```
+h :command-complete
+h :command-nargs
+```
+
 ## Fuzzy search
 
 ```
