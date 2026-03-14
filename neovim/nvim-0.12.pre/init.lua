@@ -239,6 +239,7 @@ function _G.x(items, opts, callback)
   vim.fn.matchadd('Comment', [[^Fill]])              -- win level. Use nvim_buf_add_highlight for buffer level
   vim.fn.matchadd('Statement', [[^Fill \zs\S\+\ze]]) -- TODO make highlighting based on file type
   vim.fn.matchadd('Type', [[\zs"[^"]\+"\ze]])
+  vim.fn.matchadd('Constant', [[^Browse documentation]])
 
   vim.bo[buf].modifiable = true
   vim.api.nvim_buf_set_lines(buf, 0, -1, false, labels)
