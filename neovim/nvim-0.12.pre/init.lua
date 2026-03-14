@@ -14,6 +14,10 @@ vim.lsp.enable({
 
 vim.diagnostic.config({ virtual_text = true })
 
+vim.keymap.set('n', 'grs', function() -- like gra but filling structures only
+  vim.lsp.buf.code_action({ apply = true, filter = function(action) return action.kind == "refactor.rewrite.fillStruct" end })
+end, { noremap = true })
+
 vim.keymap.set('n', 'gd', function()
   vim.lsp.buf.definition()
 end, { noremap = true })
