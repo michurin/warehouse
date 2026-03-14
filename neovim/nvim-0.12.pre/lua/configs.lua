@@ -22,7 +22,9 @@ opt.scrolloff = 8 -- Keep 8 lines above and below the cursor
 opt.inccommand = 'nosplit' -- Shows the effects of a command incrementally in the buffer
 opt.undodir = vim.fn.stdpath('state') .. '/undodir' -- Directory for undo files
 opt.undofile = true -- Enable persistent undo
-opt.completeopt = { 'menuone', 'popup', 'noinsert' } -- Options for completion menu
+opt.completeopt = { 'menu', 'menuone', 'fuzzy', 'noselect' } -- Options for completion menu
+opt.complete = { '.', 'w', 'b', 'u', 't' }
+opt.pumheight = 15
 opt.winborder = 'rounded' -- Use rounded borders for windows
 opt.hlsearch = true
 
