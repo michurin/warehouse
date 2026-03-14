@@ -14,7 +14,13 @@ vim.lsp.enable({
 
 vim.diagnostic.config({ virtual_text = true })
 
-vim.keymap.set('n', 'gd', function() vim.lsp.buf.definition() end, { noremap = true })
+vim.keymap.set('n', 'gd', function()
+  vim.lsp.buf.definition()
+end, { noremap = true })
+vim.keymap.set('n', '<C-w>gd', function()
+  vim.cmd('tab split')
+  vim.lsp.buf.definition()
+end, { noremap = true })
 
 vim.api.nvim_create_autocmd('BufWritePre', { -- TODO move to ft
   callback = function()
