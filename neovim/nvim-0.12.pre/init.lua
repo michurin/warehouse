@@ -16,7 +16,14 @@ vim.diagnostic.config({ virtual_text = true })
 
 vim.keymap.set('n', 'gd', function() vim.lsp.buf.definition() end, { noremap = true })
 
-vim.api.nvim_create_autocmd('BufWritePre', { callback = function() vim.lsp.buf.format() end })
+vim.api.nvim_create_autocmd('BufWritePre', { -- TODO move to ft
+  callback = function()
+    if vim.bo.filetype == 'go' then
+      vim.lsp.buf.code_action({ context = { only = { "source.organizeImports" } }, apply = true }) -- TODO sync
+    end
+    vim.lsp.buf.format()
+  end
+})
 
 --
 
