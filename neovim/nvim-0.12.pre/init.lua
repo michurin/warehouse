@@ -1,5 +1,6 @@
 require('configs')
 local F = require('functions')
+local S = require('sync_imports')
 
 --
 
@@ -29,7 +30,7 @@ end, { noremap = true })
 vim.api.nvim_create_autocmd('BufWritePre', { -- TODO move to ft
   callback = function()
     if vim.bo.filetype == 'go' then
-      vim.lsp.buf.code_action({ context = { only = { "source.organizeImports" } }, apply = true }) -- TODO sync
+      S.organize_imports_sync(1000)
     end
     vim.lsp.buf.format()
   end
