@@ -3,6 +3,7 @@ local F = require('functions')
 local S = require('sync_imports')
 local RG = require('rg')
 local CustomSelect = require('select')
+local CustomSpelling = require('spell')
 
 --
 
@@ -218,32 +219,8 @@ noremap <A-C-S-Down> :+tabmove<cr>
 set spell spelllang=en_us,ru_yo,el spelloptions=camel
 ]])
 
--- ideas:
-
--- TODO MOVE TO CONFIG
-vim.api.nvim_set_hl(0, 'FloatTitle', { fg = '#00cccc' })
-vim.api.nvim_set_hl(0, 'FloatFooter', { fg = '#00cccc' })
-vim.api.nvim_set_hl(0, 'FloatBorder', { fg = '#00cccc' })
-vim.api.nvim_set_hl(0, 'NormalFloat', { fg = '#cccccc' })
-
 -- custom select
 vim.ui.select = CustomSelect.select
 
--- ONE MORE IDEA
-vim.keymap.set('n', 'z=', function()
-  local word = vim.fn.expand('<cword>')
-  local suggestions = vim.fn.spellsuggest(word)
-
-  if #suggestions == 0 then
-    print('no suggestions')
-    return
-  end
-
-  vim.ui.select(suggestions, {
-    prompt = 'Spell suggest' .. word,
-  }, function(choice)
-    if choice then
-      vim.cmd('normal! ciw' .. choice)
-    end
-  end)
-end, { desc = 'Spell suggestions with select UI' })
+-- custom spelling suggestion
+vim.keymap.set('n', 'z=', CustomSpelling.act, CustomSpelling.opts)
