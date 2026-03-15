@@ -224,3 +224,17 @@ vim.ui.select = CustomSelect.select
 
 -- custom spelling suggestion
 vim.keymap.set('n', 'z=', CustomSpelling.act, CustomSpelling.opts)
+
+-- idea
+vim.api.nvim_create_autocmd('BufWritePre', {
+  callback = function(event)
+    local file = event.match
+    local dir = vim.fn.fnamemodify(file, ':p:h')
+
+    if vim.fn.isdirectory(dir) == 0 then
+      vim.fn.mkdir(dir, 'p')
+    end
+  end,
+})
+
+vim.keymap.set('n', 'gf', function() vim.cmd.edit(vim.fn.expand('<cfile>')) end)
