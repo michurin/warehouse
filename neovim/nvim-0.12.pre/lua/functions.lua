@@ -124,7 +124,7 @@ function M.qf_buffers()
     return a.filename < b.filename
   end)
 
-  vim.fn.setqflist({}, 'r', {
+  vim.fn.setqflist({}, ' ', {
     title = 'Buffers',
     items = items,
   })
@@ -341,13 +341,13 @@ end
 -- -------------------------------
 
 function M.show_files()
-  local content = vim.fn.systemlist('git ls-files "*.go"')
+  local content = vim.fn.systemlist('git ls-files "*.go"') -- TODO split
   show_viewing_buffer(content, 1)
 end
 
 function M.show_files_by_pattern()
   local pattern = vim.fn.input('*> ')
-  local content = vim.fn.systemlist('find . -type f -name ' .. vim.fn.shellescape(pattern))
+  local content = vim.fn.systemlist('find . -type f -name ' .. vim.fn.shellescape(pattern)) -- TODO split
   show_viewing_buffer(content, 1)
 end
 
@@ -384,7 +384,7 @@ local function smart_find_and_fill(file, line)
         end
         table.insert(items, { filename = f, lnum = line, col = 0, text = text })
       end
-      vim.fn.setqflist({}, 'r', { title = 'FN', items = items }) -- TODO items? or list argument?
+      vim.fn.setqflist({}, ' ', { title = 'FN', items = items }) -- TODO items? or list argument?
       vim.cmd.copen()
       return
     end
@@ -435,7 +435,7 @@ function M.fuzzy_search() -- TODO just idea; lua require('functions').fuzzy_sear
       end
     end
   end
-  vim.fn.setqflist({}, 'r', { title = 'FN', items = items }) -- TODO items? or list argument?
+  vim.fn.setqflist({}, ' ', { title = 'FN', items = items }) -- TODO items? or list argument?
   vim.cmd.copen()
 end
 
@@ -473,6 +473,48 @@ function M.copy_bookmark_to_f()
   vim.fn.setreg('f', m)
   print('f:' .. m)
 end
+
+-- -------------------------------
+
+local function list_of_files_to_qf_items(ff)
+  local items = {}
+  for _, f in ipairs(ff) do
+    local lnum = 1
+    local text = '-'
+    local bufnr = vim.fn.bufnr(vim.fn.fnamemodify(f, ':p'))
+    if bufnr >= 0 then
+      local pos = vim.api.nvim_buf_get_mark(bufnr, '"')
+      lnum = pos[1]
+      text = vim.api.nvim_buf_get_lines(bufnr, lnum - 1, lnum, false)[1]
+    end
+    table.insert(items, { filename = f, lnum = lnum, col = 0, text = text })
+  end
+  return items
+end
+
+M.gitls_search_command = {
+  opts = { nargs = '+' },
+  act = function(opts)
+    local pattern = opts.args
+    local ff = vim.fn.systemlist({ 'git', 'ls-tree', '--name-only', '-r', 'HEAD' })
+    ff = vim.fn.matchfuzzy(ff, pattern) -- filter and sort as well
+    local items = list_of_files_to_qf_items(ff)
+    vim.fn.setqflist({}, ' ', { title = 'Files (' .. pattern .. ')', items = items })
+    vim.cmd.copen()
+  end,
+}
+
+M.file_search_command = {
+  opts = { nargs = '+' },
+  act = function(opts)
+    local pattern = opts.args
+    local ff = vim.fn.systemlist({ 'find', '.', '-type', 'f' })
+    ff = vim.fn.matchfuzzy(ff, pattern) -- filter and sort as well
+    local items = list_of_files_to_qf_items(ff)
+    vim.fn.setqflist({}, ' ', { title = 'Files (' .. pattern .. ')', items = items })
+    vim.cmd.copen()
+  end,
+}
 
 -- -------------------------------
 

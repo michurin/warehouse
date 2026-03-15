@@ -49,18 +49,13 @@ vim.keymap.set('n', '<space>fl', F.grep_in_files(F.files_from_cmd('git ls-files 
 vim.keymap.set('v', '<space>fl',
   F.grep_in_files(F.files_from_cmd('git ls-files "*.go" ":!*_test.go"'), F.visual_scalar),
   { noremap = true })
-vim.keymap.set('n', '<space>fL',
-  F.grep_in_files(F.files_from_cmd('git ls-files "*.go" ":!*_test.go"'), F.input('PATTERN>')), { noremap = true })
 vim.keymap.set('n', '<space>ft', F.grep_in_files(F.files_from_cmd('git ls-files "*_test.go"'), F.cword),
   { noremap = true })
 vim.keymap.set('v', '<space>ft',
   F.grep_in_files(F.files_from_cmd('git ls-files "*_test.go"'), F.visual_scalar),
   { noremap = true })
-vim.keymap.set('n', '<space>fT', F.grep_in_files(F.files_from_cmd('git ls-files "*_test.go"'), F.input('PATTERN>')),
-  { noremap = true })
 vim.keymap.set('n', '<space>fb', F.grep_in_files(F.files_buffers, F.cword), { noremap = true })
 vim.keymap.set('v', '<space>fb', F.grep_in_files(F.files_buffers, F.visual_scalar), { noremap = true })
-vim.keymap.set('n', '<space>fB', F.grep_in_files(F.files_buffers, F.input('PATTERN>')), { noremap = true })
 vim.keymap.set('n', '<space>fa', F.grep_in_files(F.files_from_cmd('find . -type f'), F.cword), { noremap = true })
 vim.keymap.set('v', '<space>fa', F.grep_in_files(F.files_from_cmd('find . -type f'), F.visual_scalar),
   { noremap = true })
@@ -90,10 +85,49 @@ end, { noremap = true })
 vim.api.nvim_create_autocmd(F.qf_buffers_events, { callback = F.qf_buffers_handler })
 vim.api.nvim_create_user_command('BUF', F.qf_buffers, {})
 vim.api.nvim_create_user_command('E', F.smart_file_locate, { nargs = 1 })
-vim.api.nvim_create_user_command('D', F.exec_git_diff_all.act, F.exec_git_diff_all.opts)
 vim.api.nvim_create_user_command('L', F.exec_lua_command.act, F.exec_lua_command.opts)
 vim.api.nvim_create_user_command('SH', F.exec_shell_command.act, F.exec_shell_command.opts)
 vim.api.nvim_create_user_command('CC', function() vim.opt.colorcolumn = { 120 } end, {})
+
+-- git
+vim.api.nvim_create_user_command('GD', F.exec_git_diff_all.act, F.exec_git_diff_all.opts)
+vim.api.nvim_create_user_command('GBL', function() print("TODO GIT BLAME") end, {})
+vim.api.nvim_create_user_command('GL', function() print("TODO GIT LOG (with hightlighting, with --name-status)") end, {})
+
+-- find by file name
+vim.api.nvim_create_user_command('FF', F.file_search_command.act, F.file_search_command.opts)
+vim.api.nvim_create_user_command('FG', F.gitls_search_command.act, F.gitls_search_command.opts)
+vim.api.nvim_create_user_command('FB', function() print("TODO FIND BUFFER") end, {})
+
+-- grep: find by content
+vim.api.nvim_create_user_command('G', RG.search(), RG.opts)
+vim.api.nvim_create_user_command('GL', RG.search('--glob', '*.go', '--glob', '!*_test.go'), RG.opts)
+vim.api.nvim_create_user_command('GT', RG.search('--glob', '*_test.go'), RG.opts)
+vim.api.nvim_create_user_command('GB', function(opts)
+  local pattern = opts.args
+  local bufs = vim.api.nvim_list_bufs()
+  local items = {}
+  for _, buf in ipairs(bufs) do
+    if vim.api.nvim_buf_is_loaded(buf) then
+      local name = vim.api.nvim_buf_get_name(buf)
+      if name ~= '' and vim.fn.buflisted(buf) == 1 then
+        local lines = vim.api.nvim_buf_get_lines(buf, 0, -1, false)
+        for j, l in ipairs(lines) do
+          table.insert(items, { filename = name, lnum = j, col = 0, text = l })
+        end
+      end
+    end
+  end
+  items = vim.fn.matchfuzzy(items, pattern, { key = 'text' }) -- filter and sort as well
+  vim.fn.setqflist({}, ' ', { title = 'Files (' .. pattern .. ')', items = items })
+  vim.cmd.copen()
+end, { nargs = '+' })
+
+-- misc
+vim.api.nvim_create_user_command('U', function()
+  vim.cmd.edit(vim.fn.fnamemodify(vim.api.nvim_buf_get_name(0), ':h'))
+end, {})
+
 vim.api.nvim_create_user_command('J', function() -- TODO idea: put jumplist to QF
   local jumplist, idx = unpack(vim.fn.getjumplist())
   local items = {}
@@ -110,7 +144,7 @@ vim.api.nvim_create_user_command('J', function() -- TODO idea: put jumplist to Q
       text = vim.api.nvim_buf_get_lines(buf, jmp.lnum - 1, jmp.lnum, false)[1],
     })
   end
-  vim.fn.setqflist({}, 'r', {
+  vim.fn.setqflist({}, ' ', {
     title = 'Jumps',
     items = items,
   })
@@ -119,9 +153,6 @@ vim.api.nvim_create_user_command('J', function() -- TODO idea: put jumplist to Q
   vim.cmd.copen()
 end, {})
 
-vim.api.nvim_create_user_command('RG', RG.search(), RG.opts)
-vim.api.nvim_create_user_command('FL', RG.search('--glob', '*.go', '--glob', '!*_test.go'), RG.opts)
-vim.api.nvim_create_user_command('FT', RG.search('--glob', '*_test.go'), RG.opts)
 --
 
 vim.keymap.set('n', '<space>gf', F.copy_bookmark_to_f, { noremap = true })
