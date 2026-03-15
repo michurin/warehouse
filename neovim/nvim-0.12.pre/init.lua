@@ -1,6 +1,7 @@
 require('configs')
 local F = require('functions')
 local S = require('sync_imports')
+local RG = require('rg')
 
 --
 
@@ -118,6 +119,9 @@ vim.api.nvim_create_user_command('J', function() -- TODO idea: put jumplist to Q
   vim.cmd.copen()
 end, {})
 
+vim.api.nvim_create_user_command('RG', RG.search(), RG.opts)
+vim.api.nvim_create_user_command('FL', RG.search('--glob', '*.go', '--glob', '!*_test.go'), RG.opts)
+vim.api.nvim_create_user_command('FT', RG.search('--glob', '*_test.go'), RG.opts)
 --
 
 vim.keymap.set('n', '<space>gf', F.copy_bookmark_to_f, { noremap = true })
