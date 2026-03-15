@@ -1,10 +1,8 @@
-scriptencoding utf-8
 " Vim syntax file
 " Language:     PlantUML
-" Maintainer:   Anders Thøgersen <first name at bladre dot dk>
 " License:      VIM LICENSE
 if exists('b:current_syntax')
-  " finish
+  finish
 endif
 
 if v:version < 600
@@ -18,14 +16,21 @@ let b:current_syntax = 'plantuml'
 
 syntax sync minlines=100
 
-syntax match plantumlPreProc /\%(\%(^@start\|^@end\)\%(dot\|mindmap\|uml\|salt\|wbs\|gantt\)\)\|!\%(define\|definelong\|else\|enddefinelong\|endif\|exit\|if\|ifdef\|ifndef\|include\|pragma\|undef\|gantt\)\s*.*/ contains=plantumlDir
+syntax match plantumlPreProc /\%(^@start\|^@end\)\%(board\|bpm\|chen\|chronology\|creole\|cute\|def\|ditaa\|dot\|ebnf\|files\|flow\|gantt\|git\|hcl\|jcckit\|json\|latex\|math\|mindmap\|nwdiag\|project\|regex\|salt\|tree\|uml\|wbs\|wire\|yaml\)/
+syntax match plantumlPreProc /!\?\%(function\|procedure\|endprocedure\|endfunction\|unquoted\)/
+syntax match plantumlPreProc /!\%(assert\|define\|definelong\|dump_memory\|else\|enddefinelong\|endif\|endsub\|exit\|if\|ifdef\|ifndef\|import\|include\|local\|log\|pragma\|return\|startsub\|theme\|undef\)\s*.*/ contains=plantumlDir
 syntax region plantumlDir start=/\s\+/ms=s+1 end=/$/ contained
+
+" Procedure and function definitions
+syntax region plantumlParameters contained matchgroup=Function keepend start="(" end=")\s*$" contains=TOP
+syntax match plantumlFunction "\%(!\%(unquoted\s\+\)\?\%(procedure\|function\)\s*\)\@<=\$\?\w\+\s*(.*)" contains=plantumlParameters
 
 " type
 " From 'java - jar plantuml.jar - language' results {{{
-syntax keyword plantumlTypeKeyword abstract actor agent archimate artifact boundary card cloud component control
-syntax keyword plantumlTypeKeyword database detach diamond entity enum file folder frame node object package
-syntax keyword plantumlTypeKeyword participant queue rectangle stack state storage usecase
+syntax keyword plantumlTypeKeyword abstract action actor agent annotation archimate artifact boundary card cloud
+syntax keyword plantumlTypeKeyword collections component control database diamond entity enum exception file folder
+syntax keyword plantumlTypeKeyword frame hexagon json label map metaclass node object package participant person
+syntax keyword plantumlTypeKeyword process protocol queue rectangle relationship stack state storage struct usecase
 " class and interface are defined as plantumlClassKeyword
 syntax keyword plantumlClassKeyword class interface
 "}}}
@@ -34,23 +39,31 @@ syntax keyword plantumlTypeKeyword concise robust
 
 " keyword
 " From 'java - jar plantuml.jar - language' results {{{
-" Since "syntax keyword" can handle only words, "top to bottom direction" is excluded.
-syntax keyword plantumlKeyword accross activate again allow_mixing allowmixing also alt as autonumber bottom
-syntax keyword plantumlKeyword box break caption center create critical deactivate destroy down else elseif end
-syntax keyword plantumlKeyword endif endwhile footbox footer fork group header hide hnote if is kill left
-syntax keyword plantumlKeyword legend link loop mainframe namespace newpage note of on opt order over package
-syntax keyword plantumlKeyword page par partition ref repeat return right rnote rotate show skin skinparam
-syntax keyword plantumlKeyword split start stereotype stop title top up while
+" Since "syntax keyword" can handle only words, "top to bottom direction", "left to right direction" are excluded.
+syntax keyword plantumlKeyword across activate again allow_mixing allowmixing also alt as attribute attributes
+syntax keyword plantumlKeyword autonumber bold bottom box break caption center circle circled circles color
+syntax keyword plantumlKeyword create critical dashed deactivate description destroy detach dotted down else
+syntax keyword plantumlKeyword elseif empty end endcaption endfooter endheader endif endlegend endtitle
+syntax keyword plantumlKeyword endwhile false field fields footbox footer fork group header hide hnote if is
+syntax keyword plantumlKeyword italic kill left legend link loop mainframe member members method methods
+syntax keyword plantumlKeyword namespace newpage normal note of on opt order over page par partition
+syntax keyword plantumlKeyword plain private protected public ref repeat return right rnote rotate show skin
+syntax keyword plantumlKeyword skinparam split sprite start stereotype stereotypes stop style then title
+syntax keyword plantumlKeyword together top true up while
+
 "}}}
 " Not in 'java - jar plantuml.jar - language' results
 syntax keyword plantumlKeyword endlegend sprite then
 " gantt
-syntax keyword plantumlTypeKeyword project monday tuesday wednesday thursday friday saturday sunday
-syntax keyword plantumlKeyword starts ends start end closed day after colored lasts happens in at are to the and
-
+syntax keyword plantumlTypeKeyword monday tuesday wednesday thursday friday saturday sunday today
+syntax keyword plantumlTypeKeyword project Project labels Labels last first column
+syntax keyword plantumlKeyword starts ends closed after colored lasts happens in at are to the and
+syntax keyword plantumlKeyword printscale ganttscale projectscale daily weekly monthly quarterly yearly zoom
+syntax keyword plantumlKeyword day days week weeks today then complete displays same row pauses
 
 syntax keyword plantumlCommentTODO XXX TODO FIXME NOTE contained
-syntax match plantumlColor /#[0-9A-Fa-f]\{6\}\>/
+" PlantUML colors are 6 hexa digit long plus optionaly 2 more to code transparency
+syntax match plantumlColor /#\x\{6\}\%(\x\{2\}\)\?\>/
 syntax case ignore
 syntax keyword plantumlColor APPLICATION AliceBlue AntiqueWhite Aqua Aquamarine Azure BUSINESS Beige Bisque
 syntax keyword plantumlColor Black BlanchedAlmond Blue BlueViolet Brown BurlyWood CadetBlue Chartreuse
@@ -116,15 +129,15 @@ syntax cluster plantumlClassOp contains=plantumlClassPublic,
 " Strings
 syntax match plantumlSpecialString /\\n/ contained
 syntax region plantumlString start=/"/ skip=/\\\\\|\\"/ end=/"/ contains=plantumlSpecialString
-syntax region plantumlString start=/'/ skip=/\\\\\|\\'/ end=/'/ contains=plantumlSpecialString
-syntax match plantumlComment /'.*$/ contains=plantumlCommentTODO
+syntax region plantumlString start=/'/ skip=/\\\\\|\\'/ end=/'/ oneline contains=plantumlSpecialString
+syntax match plantumlComment /^\s*'.*$/ contains=plantumlCommentTODO
 syntax region plantumlMultilineComment start=/\/'/ end=/'\// contains=plantumlCommentTODO
 
 syntax match plantumlTag /<\/\?[bi]>/
 syntax region plantumlTag start=/<\/\?\%(back\|color\|del\|font\|img\|s\|size\|strike\|u\|w\)/ end=/>/
 
 " Labels with a colon
-syntax match plantumlColonLine /\S\@<=\s*\zs : .\+$/ contains=plantumlSpecialString
+syntax match plantumlColonLine /\S\@<=\s*:\s*\zs.\+$/ contains=plantumlSpecialString
 
 " Stereotypes
 syntax match plantumlStereotype /<<[^-.]\+>>/ contains=plantumlSpecialString
@@ -152,69 +165,69 @@ let s:mindmapHilightLinks = [
       \ 'Function', 'Todo'
       \  ]
 
-let i = 1
-let contained = []
-while i < len(s:mindmapHilightLinks)
-  execute 'syntax match plantumlMindmap' . i . ' /^\([-+*]\)\1\{' . (i - 1) . '}_\?\s\+/ contained'
-  execute 'syntax match plantumlMindmap' . i . ' /^\s\{' . (i - 1) . '}\*_\?\s\+/ contained'
-  execute 'highlight default link plantumlMindmap' . i . ' ' . s:mindmapHilightLinks[i - 1]
-  call add(contained, 'plantumlMindmap' . i)
-  let i = i + 1
+let s:i = 1
+let s:contained = []
+let s:mindmap_color = '\(\[#[^\]]\+\]\)\?'
+let s:mindmap_removing_box = '_\?'
+let s:mindmap_options = join([s:mindmap_color, s:mindmap_removing_box], '')
+while s:i < len(s:mindmapHilightLinks)
+  execute 'syntax match plantumlMindmap' . s:i . ' /^\([-+*]\)\1\{' . (s:i - 1) . '}' . s:mindmap_options . '\(:\|\s\+\)/ contained'
+  execute 'syntax match plantumlMindmap' . s:i . ' /^\s\{' . (s:i - 1) . '}\*' . s:mindmap_options . '\(:\|\s\+\)/ contained'
+  execute 'highlight default link plantumlMindmap' . s:i . ' ' . s:mindmapHilightLinks[s:i - 1]
+  call add(s:contained, 'plantumlMindmap' . s:i)
+  let s:i = s:i + 1
 endwhile
 
-execute 'syntax region plantumlMindmap oneline start=/^\([-+*]\)\1*_\?\s/ end=/$/ contains=' . join(contained, ',')
+execute 'syntax region plantumlMindmap oneline start=/^\([-+*]\)\1*' . s:mindmap_options . '\s/ end=/$/ contains=' . join(s:contained, ',')
+" Multilines
+execute 'syntax region plantumlMindmap start=/^\([-+*]\)\1*' . s:mindmap_options . ':/ end=/;$/ contains=' . join(s:contained, ',')
 " Markdown syntax
-execute 'syntax region plantumlMindmap oneline start=/^\s*\*_\?\s/ end=/$/ contains=' . join(contained, ',')
+execute 'syntax region plantumlMindmap oneline start=/^\s*\*' . s:mindmap_options . '\s/ end=/$/ contains=' . join(s:contained, ',')
+
+" Gantt diagram
+syntax match plantumlGanttTask /\[[^\]]\{-}\]\%('s\)\?/ contains=plantumlSpecialString
 
 
 " Skinparam keywords
 syntax case ignore
-syntax keyword plantumlSkinparamKeyword ActivityBackgroundColor ActivityBarColor ActivityBorderColor
-syntax keyword plantumlSkinparamKeyword ActivityBorderThickness ActivityDiamondBackgroundColor
-syntax keyword plantumlSkinparamKeyword ActivityDiamondBorderColor ActivityDiamondFontColor ActivityDiamondFontName
-syntax keyword plantumlSkinparamKeyword ActivityDiamondFontSize ActivityDiamondFontStyle ActivityEndColor
-syntax keyword plantumlSkinparamKeyword ActivityFontColor ActivityFontName ActivityFontSize ActivityFontStyle
-syntax keyword plantumlSkinparamKeyword ActivityStartColor ActorBackgroundColor ActorBorderColor ActorFontColor
+syntax keyword plantumlSkinparamKeyword ActivityBackgroundColor ActivityBorderColor ActivityBorderThickness
+syntax keyword plantumlSkinparamKeyword ActivityDiamondFontColor ActivityDiamondFontName ActivityDiamondFontSize
+syntax keyword plantumlSkinparamKeyword ActivityDiamondFontStyle ActivityFontColor ActivityFontName ActivityFontSize
+syntax keyword plantumlSkinparamKeyword ActivityFontStyle ActorBackgroundColor ActorBorderColor ActorFontColor
 syntax keyword plantumlSkinparamKeyword ActorFontName ActorFontSize ActorFontStyle ActorStereotypeFontColor
 syntax keyword plantumlSkinparamKeyword ActorStereotypeFontName ActorStereotypeFontSize ActorStereotypeFontStyle
-syntax keyword plantumlSkinparamKeyword AgentBackgroundColor AgentBorderColor AgentBorderThickness AgentFontColor
-syntax keyword plantumlSkinparamKeyword AgentFontName AgentFontSize AgentFontStyle AgentStereotypeFontColor
-syntax keyword plantumlSkinparamKeyword AgentStereotypeFontName AgentStereotypeFontSize AgentStereotypeFontStyle
-syntax keyword plantumlSkinparamKeyword ArchimateBackgroundColor ArchimateBorderColor ArchimateBorderThickness
-syntax keyword plantumlSkinparamKeyword ArchimateFontColor ArchimateFontName ArchimateFontSize ArchimateFontStyle
+syntax keyword plantumlSkinparamKeyword AgentBorderThickness AgentFontColor AgentFontName AgentFontSize AgentFontStyle
+syntax keyword plantumlSkinparamKeyword AgentStereotypeFontColor AgentStereotypeFontName AgentStereotypeFontSize
+syntax keyword plantumlSkinparamKeyword AgentStereotypeFontStyle ArchimateBorderThickness ArchimateFontColor
+syntax keyword plantumlSkinparamKeyword ArchimateFontName ArchimateFontSize ArchimateFontStyle
 syntax keyword plantumlSkinparamKeyword ArchimateStereotypeFontColor ArchimateStereotypeFontName
-syntax keyword plantumlSkinparamKeyword ArchimateStereotypeFontSize ArchimateStereotypeFontStyle ArrowColor BoxBorderColor
-syntax keyword plantumlSkinparamKeyword ArrowFontColor ArrowFontName ArrowFontSize ArrowFontStyle ArrowLollipopColor
-syntax keyword plantumlSkinparamKeyword ArrowMessageAlignment ArrowThickness ArtifactBackgroundColor ArtifactBorderColor
-syntax keyword plantumlSkinparamKeyword ArtifactFontColor ArtifactFontName ArtifactFontSize ArtifactFontStyle
-syntax keyword plantumlSkinparamKeyword ArtifactStereotypeFontColor ArtifactStereotypeFontName
-syntax keyword plantumlSkinparamKeyword ArtifactStereotypeFontSize ArtifactStereotypeFontStyle BackgroundColor
-syntax keyword plantumlSkinparamKeyword BiddableBackgroundColor BiddableBorderColor BoundaryBackgroundColor
-syntax keyword plantumlSkinparamKeyword BoundaryBorderColor BoundaryFontColor BoundaryFontName BoundaryFontSize
+syntax keyword plantumlSkinparamKeyword ArchimateStereotypeFontSize ArchimateStereotypeFontStyle ArrowFontColor
+syntax keyword plantumlSkinparamKeyword ArrowFontName ArrowFontSize ArrowFontStyle ArrowHeadColor ArrowLollipopColor
+syntax keyword plantumlSkinparamKeyword ArrowMessageAlignment ArrowThickness ArtifactFontColor ArtifactFontName
+syntax keyword plantumlSkinparamKeyword ArtifactFontSize ArtifactFontStyle ArtifactStereotypeFontColor
+syntax keyword plantumlSkinparamKeyword ArtifactStereotypeFontName ArtifactStereotypeFontSize
+syntax keyword plantumlSkinparamKeyword ArtifactStereotypeFontStyle BackgroundColor BiddableBackgroundColor
+syntax keyword plantumlSkinparamKeyword BiddableBorderColor BoundaryFontColor BoundaryFontName BoundaryFontSize
 syntax keyword plantumlSkinparamKeyword BoundaryFontStyle BoundaryStereotypeFontColor BoundaryStereotypeFontName
 syntax keyword plantumlSkinparamKeyword BoundaryStereotypeFontSize BoundaryStereotypeFontStyle BoxPadding
 syntax keyword plantumlSkinparamKeyword CaptionFontColor CaptionFontName CaptionFontSize CaptionFontStyle
-syntax keyword plantumlSkinparamKeyword CardBackgroundColor CardBorderColor CardBorderThickness CardFontColor
-syntax keyword plantumlSkinparamKeyword CardFontName CardFontSize CardFontStyle CardStereotypeFontColor
-syntax keyword plantumlSkinparamKeyword CardStereotypeFontName CardStereotypeFontSize CardStereotypeFontStyle
-syntax keyword plantumlSkinparamKeyword CircledCharacterFontColor CircledCharacterFontName CircledCharacterFontSize
-syntax keyword plantumlSkinparamKeyword CircledCharacterFontStyle CircledCharacterRadius ClassAttributeFontColor
-syntax keyword plantumlSkinparamKeyword ClassAttributeFontName ClassAttributeFontSize ClassAttributeFontStyle
-syntax keyword plantumlSkinparamKeyword ClassAttributeIconSize ClassBackgroundColor ClassBorderColor
-syntax keyword plantumlSkinparamKeyword ClassBorderThickness ClassFontColor ClassFontName ClassFontSize ClassFontStyle
-syntax keyword plantumlSkinparamKeyword ClassHeaderBackgroundColor ClassStereotypeFontColor ClassStereotypeFontName
-syntax keyword plantumlSkinparamKeyword ClassStereotypeFontSize ClassStereotypeFontStyle CloudBackgroundColor
-syntax keyword plantumlSkinparamKeyword CloudBorderColor CloudFontColor CloudFontName CloudFontSize CloudFontStyle
-syntax keyword plantumlSkinparamKeyword CloudStereotypeFontColor CloudStereotypeFontName CloudStereotypeFontSize
-syntax keyword plantumlSkinparamKeyword CloudStereotypeFontStyle CollectionsBackgroundColor CollectionsBorderColor
-syntax keyword plantumlSkinparamKeyword ColorArrowSeparationSpace ComponentBackgroundColor ComponentBorderColor
+syntax keyword plantumlSkinparamKeyword CardBorderThickness CardFontColor CardFontName CardFontSize CardFontStyle
+syntax keyword plantumlSkinparamKeyword CardStereotypeFontColor CardStereotypeFontName CardStereotypeFontSize
+syntax keyword plantumlSkinparamKeyword CardStereotypeFontStyle CircledCharacterFontColor CircledCharacterFontName
+syntax keyword plantumlSkinparamKeyword CircledCharacterFontSize CircledCharacterFontStyle CircledCharacterRadius
+syntax keyword plantumlSkinparamKeyword ClassAttributeFontColor ClassAttributeFontName ClassAttributeFontSize
+syntax keyword plantumlSkinparamKeyword ClassAttributeFontStyle ClassAttributeIconSize ClassBackgroundColor
+syntax keyword plantumlSkinparamKeyword ClassBorderColor ClassBorderThickness ClassFontColor ClassFontName ClassFontSize
+syntax keyword plantumlSkinparamKeyword ClassFontStyle ClassStereotypeFontColor ClassStereotypeFontName
+syntax keyword plantumlSkinparamKeyword ClassStereotypeFontSize ClassStereotypeFontStyle CloudFontColor CloudFontName
+syntax keyword plantumlSkinparamKeyword CloudFontSize CloudFontStyle CloudStereotypeFontColor CloudStereotypeFontName
+syntax keyword plantumlSkinparamKeyword CloudStereotypeFontSize CloudStereotypeFontStyle ColorArrowSeparationSpace
 syntax keyword plantumlSkinparamKeyword ComponentBorderThickness ComponentFontColor ComponentFontName ComponentFontSize
 syntax keyword plantumlSkinparamKeyword ComponentFontStyle ComponentStereotypeFontColor ComponentStereotypeFontName
 syntax keyword plantumlSkinparamKeyword ComponentStereotypeFontSize ComponentStereotypeFontStyle ComponentStyle
-syntax keyword plantumlSkinparamKeyword ConditionEndStyle ConditionStyle ControlBackgroundColor ControlBorderColor
-syntax keyword plantumlSkinparamKeyword ControlFontColor ControlFontName ControlFontSize ControlFontStyle
-syntax keyword plantumlSkinparamKeyword ControlStereotypeFontColor ControlStereotypeFontName ControlStereotypeFontSize
-syntax keyword plantumlSkinparamKeyword ControlStereotypeFontStyle DatabaseBackgroundColor DatabaseBorderColor
+syntax keyword plantumlSkinparamKeyword ConditionEndStyle ConditionStyle ControlFontColor ControlFontName
+syntax keyword plantumlSkinparamKeyword ControlFontSize ControlFontStyle ControlStereotypeFontColor
+syntax keyword plantumlSkinparamKeyword ControlStereotypeFontName ControlStereotypeFontSize ControlStereotypeFontStyle
 syntax keyword plantumlSkinparamKeyword DatabaseFontColor DatabaseFontName DatabaseFontSize DatabaseFontStyle
 syntax keyword plantumlSkinparamKeyword DatabaseStereotypeFontColor DatabaseStereotypeFontName
 syntax keyword plantumlSkinparamKeyword DatabaseStereotypeFontSize DatabaseStereotypeFontStyle DefaultFontColor
@@ -227,60 +240,60 @@ syntax keyword plantumlSkinparamKeyword DesignedDomainStereotypeFontStyle Diagra
 syntax keyword plantumlSkinparamKeyword DomainBackgroundColor DomainBorderColor DomainBorderThickness DomainFontColor
 syntax keyword plantumlSkinparamKeyword DomainFontName DomainFontSize DomainFontStyle DomainStereotypeFontColor
 syntax keyword plantumlSkinparamKeyword DomainStereotypeFontName DomainStereotypeFontSize DomainStereotypeFontStyle Dpi
-syntax keyword plantumlSkinparamKeyword EntityBackgroundColor EntityBorderColor EntityFontColor EntityFontName
-syntax keyword plantumlSkinparamKeyword EntityFontSize EntityFontStyle EntityStereotypeFontColor
-syntax keyword plantumlSkinparamKeyword EntityStereotypeFontName EntityStereotypeFontSize EntityStereotypeFontStyle
-syntax keyword plantumlSkinparamKeyword EnumBackgroundColor FileBackgroundColor FileBorderColor FileFontColor
-syntax keyword plantumlSkinparamKeyword FileFontName FileFontSize FileFontStyle FileStereotypeFontColor
-syntax keyword plantumlSkinparamKeyword FileStereotypeFontName FileStereotypeFontSize FileStereotypeFontStyle
-syntax keyword plantumlSkinparamKeyword FixCircleLabelOverlapping FolderBackgroundColor FolderBorderColor
-syntax keyword plantumlSkinparamKeyword FolderFontColor FolderFontName FolderFontSize FolderFontStyle
-syntax keyword plantumlSkinparamKeyword FolderStereotypeFontColor FolderStereotypeFontName FolderStereotypeFontSize
-syntax keyword plantumlSkinparamKeyword FolderStereotypeFontStyle FooterFontColor FooterFontName FooterFontSize
-syntax keyword plantumlSkinparamKeyword FooterFontStyle FrameBackgroundColor FrameBorderColor FrameFontColor
+syntax keyword plantumlSkinparamKeyword EntityFontColor EntityFontName EntityFontSize EntityFontStyle
+syntax keyword plantumlSkinparamKeyword EntityStereotypeFontColor EntityStereotypeFontName EntityStereotypeFontSize
+syntax keyword plantumlSkinparamKeyword EntityStereotypeFontStyle FileFontColor FileFontName FileFontSize FileFontStyle
+syntax keyword plantumlSkinparamKeyword FileStereotypeFontColor FileStereotypeFontName FileStereotypeFontSize
+syntax keyword plantumlSkinparamKeyword FileStereotypeFontStyle FixCircleLabelOverlapping FolderFontColor FolderFontName
+syntax keyword plantumlSkinparamKeyword FolderFontSize FolderFontStyle FolderStereotypeFontColor
+syntax keyword plantumlSkinparamKeyword FolderStereotypeFontName FolderStereotypeFontSize FolderStereotypeFontStyle
+syntax keyword plantumlSkinparamKeyword FooterFontColor FooterFontName FooterFontSize FooterFontStyle FrameFontColor
 syntax keyword plantumlSkinparamKeyword FrameFontName FrameFontSize FrameFontStyle FrameStereotypeFontColor
 syntax keyword plantumlSkinparamKeyword FrameStereotypeFontName FrameStereotypeFontSize FrameStereotypeFontStyle
 syntax keyword plantumlSkinparamKeyword GenericDisplay Guillemet Handwritten HeaderFontColor HeaderFontName
-syntax keyword plantumlSkinparamKeyword HeaderFontSize HeaderFontStyle HyperlinkColor HyperlinkUnderline
-syntax keyword plantumlSkinparamKeyword IconIEMandatoryColor IconPackageBackgroundColor IconPackageColor
-syntax keyword plantumlSkinparamKeyword IconPrivateBackgroundColor IconPrivateColor IconProtectedBackgroundColor
-syntax keyword plantumlSkinparamKeyword IconProtectedColor IconPublicBackgroundColor IconPublicColor
-syntax keyword plantumlSkinparamKeyword InterfaceBackgroundColor InterfaceBorderColor InterfaceFontColor
-syntax keyword plantumlSkinparamKeyword InterfaceFontName InterfaceFontSize InterfaceFontStyle
-syntax keyword plantumlSkinparamKeyword InterfaceStereotypeFontColor InterfaceStereotypeFontName
-syntax keyword plantumlSkinparamKeyword InterfaceStereotypeFontSize InterfaceStereotypeFontStyle LegendBackgroundColor
-syntax keyword plantumlSkinparamKeyword LegendBorderColor LegendBorderThickness LegendFontColor LegendFontName
-syntax keyword plantumlSkinparamKeyword LegendFontSize LegendFontStyle LexicalBackgroundColor LexicalBorderColor
-syntax keyword plantumlSkinparamKeyword LifelineStrategy Linetype MachineBackgroundColor MachineBorderColor
-syntax keyword plantumlSkinparamKeyword MachineBorderThickness MachineFontColor MachineFontName MachineFontSize
-syntax keyword plantumlSkinparamKeyword MachineFontStyle MachineStereotypeFontColor MachineStereotypeFontName
-syntax keyword plantumlSkinparamKeyword MachineStereotypeFontSize MachineStereotypeFontStyle MaxAsciiMessageLength
-syntax keyword plantumlSkinparamKeyword MaxMessageSize MinClassWidth Monochrome NodeBackgroundColor NodeBorderColor
-syntax keyword plantumlSkinparamKeyword NodeFontColor NodeFontName NodeFontSize NodeFontStyle NodeStereotypeFontColor
-syntax keyword plantumlSkinparamKeyword NodeStereotypeFontName NodeStereotypeFontSize NodeStereotypeFontStyle Nodesep
-syntax keyword plantumlSkinparamKeyword NoteBackgroundColor NoteBorderColor NoteBorderThickness NoteFontColor
-syntax keyword plantumlSkinparamKeyword NoteFontName NoteFontSize NoteFontStyle NoteShadowing NoteTextAlignment
-syntax keyword plantumlSkinparamKeyword ObjectAttributeFontColor ObjectAttributeFontName ObjectAttributeFontSize
-syntax keyword plantumlSkinparamKeyword ObjectAttributeFontStyle ObjectBackgroundColor ObjectBorderColor
-syntax keyword plantumlSkinparamKeyword ObjectBorderThickness ObjectFontColor ObjectFontName ObjectFontSize
-syntax keyword plantumlSkinparamKeyword ObjectFontStyle ObjectStereotypeFontColor ObjectStereotypeFontName
-syntax keyword plantumlSkinparamKeyword ObjectStereotypeFontSize ObjectStereotypeFontStyle PackageBackgroundColor
-syntax keyword plantumlSkinparamKeyword PackageBorderColor PackageBorderThickness PackageFontColor PackageFontName
-syntax keyword plantumlSkinparamKeyword PackageFontSize PackageFontStyle PackageStereotypeFontColor
+syntax keyword plantumlSkinparamKeyword HeaderFontSize HeaderFontStyle HexagonBorderThickness HexagonFontColor
+syntax keyword plantumlSkinparamKeyword HexagonFontName HexagonFontSize HexagonFontStyle HexagonStereotypeFontColor
+syntax keyword plantumlSkinparamKeyword HexagonStereotypeFontName HexagonStereotypeFontSize HexagonStereotypeFontStyle
+syntax keyword plantumlSkinparamKeyword HyperlinkColor HyperlinkUnderline IconIEMandatoryColor
+syntax keyword plantumlSkinparamKeyword IconPackageBackgroundColor IconPackageColor IconPrivateBackgroundColor
+syntax keyword plantumlSkinparamKeyword IconPrivateColor IconProtectedBackgroundColor IconProtectedColor
+syntax keyword plantumlSkinparamKeyword IconPublicBackgroundColor IconPublicColor InterfaceFontColor InterfaceFontName
+syntax keyword plantumlSkinparamKeyword InterfaceFontSize InterfaceFontStyle InterfaceStereotypeFontColor
+syntax keyword plantumlSkinparamKeyword InterfaceStereotypeFontName InterfaceStereotypeFontSize
+syntax keyword plantumlSkinparamKeyword InterfaceStereotypeFontStyle LabelFontColor LabelFontName LabelFontSize
+syntax keyword plantumlSkinparamKeyword LabelFontStyle LabelStereotypeFontColor LabelStereotypeFontName
+syntax keyword plantumlSkinparamKeyword LabelStereotypeFontSize LabelStereotypeFontStyle LegendBorderThickness
+syntax keyword plantumlSkinparamKeyword LegendFontColor LegendFontName LegendFontSize LegendFontStyle
+syntax keyword plantumlSkinparamKeyword LexicalBackgroundColor LexicalBorderColor LifelineStrategy Linetype
+syntax keyword plantumlSkinparamKeyword MachineBackgroundColor MachineBorderColor MachineBorderThickness
+syntax keyword plantumlSkinparamKeyword MachineFontColor MachineFontName MachineFontSize MachineFontStyle
+syntax keyword plantumlSkinparamKeyword MachineStereotypeFontColor MachineStereotypeFontName MachineStereotypeFontSize
+syntax keyword plantumlSkinparamKeyword MachineStereotypeFontStyle MaxAsciiMessageLength MaxMessageSize MinClassWidth
+syntax keyword plantumlSkinparamKeyword Monochrome NodeFontColor NodeFontName NodeFontSize NodeFontStyle
+syntax keyword plantumlSkinparamKeyword NodeStereotypeFontColor NodeStereotypeFontName NodeStereotypeFontSize
+syntax keyword plantumlSkinparamKeyword NodeStereotypeFontStyle Nodesep NoteBackgroundColor NoteBorderColor
+syntax keyword plantumlSkinparamKeyword NoteBorderThickness NoteFontColor NoteFontName NoteFontSize NoteFontStyle
+syntax keyword plantumlSkinparamKeyword NoteShadowing NoteTextAlignment ObjectAttributeFontColor ObjectAttributeFontName
+syntax keyword plantumlSkinparamKeyword ObjectAttributeFontSize ObjectAttributeFontStyle ObjectBorderThickness
+syntax keyword plantumlSkinparamKeyword ObjectFontColor ObjectFontName ObjectFontSize ObjectFontStyle
+syntax keyword plantumlSkinparamKeyword ObjectStereotypeFontColor ObjectStereotypeFontName ObjectStereotypeFontSize
+syntax keyword plantumlSkinparamKeyword ObjectStereotypeFontStyle PackageBorderThickness PackageFontColor
+syntax keyword plantumlSkinparamKeyword PackageFontName PackageFontSize PackageFontStyle PackageStereotypeFontColor
 syntax keyword plantumlSkinparamKeyword PackageStereotypeFontName PackageStereotypeFontSize PackageStereotypeFontStyle
 syntax keyword plantumlSkinparamKeyword PackageStyle PackageTitleAlignment Padding PageBorderColor PageExternalColor
-syntax keyword plantumlSkinparamKeyword PageMargin ParticipantBackgroundColor ParticipantBorderColor
-syntax keyword plantumlSkinparamKeyword ParticipantFontColor ParticipantFontName ParticipantFontSize
+syntax keyword plantumlSkinparamKeyword PageMargin ParticipantFontColor ParticipantFontName ParticipantFontSize
 syntax keyword plantumlSkinparamKeyword ParticipantFontStyle ParticipantPadding ParticipantStereotypeFontColor
 syntax keyword plantumlSkinparamKeyword ParticipantStereotypeFontName ParticipantStereotypeFontSize
-syntax keyword plantumlSkinparamKeyword ParticipantStereotypeFontStyle PartitionBackgroundColor PartitionBorderColor
-syntax keyword plantumlSkinparamKeyword PartitionBorderThickness PartitionFontColor PartitionFontName PartitionFontSize
-syntax keyword plantumlSkinparamKeyword PartitionFontStyle PathHoverColor QueueBackgroundColor QueueBorderColor
-syntax keyword plantumlSkinparamKeyword QueueBorderThickness QueueFontColor QueueFontName QueueFontSize QueueFontStyle
+syntax keyword plantumlSkinparamKeyword ParticipantStereotypeFontStyle PartitionBorderThickness PartitionFontColor
+syntax keyword plantumlSkinparamKeyword PartitionFontName PartitionFontSize PartitionFontStyle PathHoverColor
+syntax keyword plantumlSkinparamKeyword PersonBorderThickness PersonFontColor PersonFontName PersonFontSize
+syntax keyword plantumlSkinparamKeyword PersonFontStyle PersonStereotypeFontColor PersonStereotypeFontName
+syntax keyword plantumlSkinparamKeyword PersonStereotypeFontSize PersonStereotypeFontStyle QueueBorderThickness
+syntax keyword plantumlSkinparamKeyword QueueFontColor QueueFontName QueueFontSize QueueFontStyle
 syntax keyword plantumlSkinparamKeyword QueueStereotypeFontColor QueueStereotypeFontName QueueStereotypeFontSize
-syntax keyword plantumlSkinparamKeyword QueueStereotypeFontStyle Ranksep RectangleBackgroundColor RectangleBorderColor
-syntax keyword plantumlSkinparamKeyword RectangleBorderThickness RectangleFontColor RectangleFontName RectangleFontSize
-syntax keyword plantumlSkinparamKeyword RectangleFontStyle RectangleStereotypeFontColor RectangleStereotypeFontName
+syntax keyword plantumlSkinparamKeyword QueueStereotypeFontStyle Ranksep RectangleBorderThickness RectangleFontColor
+syntax keyword plantumlSkinparamKeyword RectangleFontName RectangleFontSize RectangleFontStyle
+syntax keyword plantumlSkinparamKeyword RectangleStereotypeFontColor RectangleStereotypeFontName
 syntax keyword plantumlSkinparamKeyword RectangleStereotypeFontSize RectangleStereotypeFontStyle
 syntax keyword plantumlSkinparamKeyword RequirementBackgroundColor RequirementBorderColor RequirementBorderThickness
 syntax keyword plantumlSkinparamKeyword RequirementFontColor RequirementFontName RequirementFontSize
@@ -288,49 +301,41 @@ syntax keyword plantumlSkinparamKeyword RequirementFontStyle RequirementStereoty
 syntax keyword plantumlSkinparamKeyword RequirementStereotypeFontName RequirementStereotypeFontSize
 syntax keyword plantumlSkinparamKeyword RequirementStereotypeFontStyle ResponseMessageBelowArrow RoundCorner
 syntax keyword plantumlSkinparamKeyword SameClassWidth SequenceActorBorderThickness SequenceArrowThickness
-syntax keyword plantumlSkinparamKeyword SequenceBoxBackgroundColor SequenceBoxBorderColor SequenceBoxFontColor
-syntax keyword plantumlSkinparamKeyword SequenceBoxFontName SequenceBoxFontSize SequenceBoxFontStyle
-syntax keyword plantumlSkinparamKeyword SequenceDelayFontColor SequenceDelayFontName SequenceDelayFontSize
-syntax keyword plantumlSkinparamKeyword SequenceDelayFontStyle SequenceDividerBackgroundColor SequenceDividerBorderColor
+syntax keyword plantumlSkinparamKeyword SequenceBoxBorderColor SequenceBoxFontColor SequenceBoxFontName
+syntax keyword plantumlSkinparamKeyword SequenceBoxFontSize SequenceBoxFontStyle SequenceDelayFontColor
+syntax keyword plantumlSkinparamKeyword SequenceDelayFontName SequenceDelayFontSize SequenceDelayFontStyle
 syntax keyword plantumlSkinparamKeyword SequenceDividerBorderThickness SequenceDividerFontColor SequenceDividerFontName
-syntax keyword plantumlSkinparamKeyword SequenceDividerFontSize SequenceDividerFontStyle SequenceGroupBackgroundColor
-syntax keyword plantumlSkinparamKeyword SequenceGroupBodyBackgroundColor SequenceGroupBorderColor
-syntax keyword plantumlSkinparamKeyword SequenceGroupBorderThickness SequenceGroupFontColor SequenceGroupFontName
-syntax keyword plantumlSkinparamKeyword SequenceGroupFontSize SequenceGroupFontStyle SequenceGroupHeaderFontColor
-syntax keyword plantumlSkinparamKeyword SequenceGroupHeaderFontName SequenceGroupHeaderFontSize
-syntax keyword plantumlSkinparamKeyword SequenceGroupHeaderFontStyle SequenceLifeLineBackgroundColor
+syntax keyword plantumlSkinparamKeyword SequenceDividerFontSize SequenceDividerFontStyle
+syntax keyword plantumlSkinparamKeyword SequenceGroupBodyBackgroundColor SequenceGroupBorderThickness
+syntax keyword plantumlSkinparamKeyword SequenceGroupFontColor SequenceGroupFontName SequenceGroupFontSize
+syntax keyword plantumlSkinparamKeyword SequenceGroupFontStyle SequenceGroupHeaderFontColor SequenceGroupHeaderFontName
+syntax keyword plantumlSkinparamKeyword SequenceGroupHeaderFontSize SequenceGroupHeaderFontStyle
 syntax keyword plantumlSkinparamKeyword SequenceLifeLineBorderColor SequenceLifeLineBorderThickness
 syntax keyword plantumlSkinparamKeyword SequenceMessageAlignment SequenceMessageTextAlignment
 syntax keyword plantumlSkinparamKeyword SequenceNewpageSeparatorColor SequenceParticipant
 syntax keyword plantumlSkinparamKeyword SequenceParticipantBorderThickness SequenceReferenceAlignment
-syntax keyword plantumlSkinparamKeyword SequenceReferenceBackgroundColor SequenceReferenceBorderColor
-syntax keyword plantumlSkinparamKeyword SequenceReferenceBorderThickness SequenceReferenceFontColor
-syntax keyword plantumlSkinparamKeyword SequenceReferenceFontName SequenceReferenceFontSize SequenceReferenceFontStyle
-syntax keyword plantumlSkinparamKeyword SequenceReferenceHeaderBackgroundColor SequenceStereotypeFontColor
-syntax keyword plantumlSkinparamKeyword SequenceStereotypeFontName SequenceStereotypeFontSize
-syntax keyword plantumlSkinparamKeyword SequenceStereotypeFontStyle Shadowing StackBackgroundColor StackBorderColor
-syntax keyword plantumlSkinparamKeyword StackFontColor StackFontName StackFontSize StackFontStyle
-syntax keyword plantumlSkinparamKeyword StackStereotypeFontColor StackStereotypeFontName StackStereotypeFontSize
-syntax keyword plantumlSkinparamKeyword StackStereotypeFontStyle StateAttributeFontColor StateAttributeFontName
-syntax keyword plantumlSkinparamKeyword StateAttributeFontSize StateAttributeFontStyle StateBackgroundColor
-syntax keyword plantumlSkinparamKeyword StateBorderColor StateEndColor StateFontColor StateFontName StateFontSize
-syntax keyword plantumlSkinparamKeyword StateFontStyle StateMessageAlignment StateStartColor StereotypeABackgroundColor
-syntax keyword plantumlSkinparamKeyword StereotypeABorderColor StereotypeCBackgroundColor StereotypeCBorderColor
-syntax keyword plantumlSkinparamKeyword StereotypeEBackgroundColor StereotypeEBorderColor StereotypeIBackgroundColor
-syntax keyword plantumlSkinparamKeyword StereotypeIBorderColor StereotypeNBackgroundColor StereotypeNBorderColor
-syntax keyword plantumlSkinparamKeyword StereotypePosition StorageBackgroundColor StorageBorderColor StorageFontColor
-syntax keyword plantumlSkinparamKeyword StorageFontName StorageFontSize StorageFontStyle StorageStereotypeFontColor
-syntax keyword plantumlSkinparamKeyword StorageStereotypeFontName StorageStereotypeFontSize StorageStereotypeFontStyle
-syntax keyword plantumlSkinparamKeyword Style SvglinkTarget SwimlaneBorderColor SwimlaneBorderThickness
-syntax keyword plantumlSkinparamKeyword SwimlaneTitleBackgroundColor SwimlaneTitleFontColor SwimlaneTitleFontName
-syntax keyword plantumlSkinparamKeyword SwimlaneTitleFontSize SwimlaneTitleFontStyle SwimlaneWidth
-syntax keyword plantumlSkinparamKeyword SwimlaneWrapTitleWidth TabSize TimingFontColor TimingFontName TimingFontSize
-syntax keyword plantumlSkinparamKeyword TimingFontStyle TitleBackgroundColor TitleBorderColor TitleBorderRoundCorner
-syntax keyword plantumlSkinparamKeyword TitleBorderThickness TitleFontColor TitleFontName TitleFontSize TitleFontStyle
-syntax keyword plantumlSkinparamKeyword UsecaseBackgroundColor UsecaseBorderColor UsecaseBorderThickness
-syntax keyword plantumlSkinparamKeyword UsecaseFontColor UsecaseFontName UsecaseFontSize UsecaseFontStyle
-syntax keyword plantumlSkinparamKeyword UsecaseStereotypeFontColor UsecaseStereotypeFontName UsecaseStereotypeFontSize
-syntax keyword plantumlSkinparamKeyword UsecaseStereotypeFontStyle WrapWidth
+syntax keyword plantumlSkinparamKeyword SequenceReferenceBackgroundColor SequenceReferenceBorderThickness
+syntax keyword plantumlSkinparamKeyword SequenceReferenceFontColor SequenceReferenceFontName SequenceReferenceFontSize
+syntax keyword plantumlSkinparamKeyword SequenceReferenceFontStyle SequenceReferenceHeaderBackgroundColor
+syntax keyword plantumlSkinparamKeyword SequenceStereotypeFontColor SequenceStereotypeFontName
+syntax keyword plantumlSkinparamKeyword SequenceStereotypeFontSize SequenceStereotypeFontStyle Shadowing StackFontColor
+syntax keyword plantumlSkinparamKeyword StackFontName StackFontSize StackFontStyle StackStereotypeFontColor
+syntax keyword plantumlSkinparamKeyword StackStereotypeFontName StackStereotypeFontSize StackStereotypeFontStyle
+syntax keyword plantumlSkinparamKeyword StateAttributeFontColor StateAttributeFontName StateAttributeFontSize
+syntax keyword plantumlSkinparamKeyword StateAttributeFontStyle StateBorderColor StateFontColor StateFontName
+syntax keyword plantumlSkinparamKeyword StateFontSize StateFontStyle StateMessageAlignment StereotypePosition
+syntax keyword plantumlSkinparamKeyword StorageFontColor StorageFontName StorageFontSize StorageFontStyle
+syntax keyword plantumlSkinparamKeyword StorageStereotypeFontColor StorageStereotypeFontName StorageStereotypeFontSize
+syntax keyword plantumlSkinparamKeyword StorageStereotypeFontStyle Style SvglinkTarget SwimlaneBorderThickness
+syntax keyword plantumlSkinparamKeyword SwimlaneTitleFontColor SwimlaneTitleFontName SwimlaneTitleFontSize
+syntax keyword plantumlSkinparamKeyword SwimlaneTitleFontStyle SwimlaneWidth SwimlaneWrapTitleWidth TabSize
+syntax keyword plantumlSkinparamKeyword TimingFontColor TimingFontName TimingFontSize TimingFontStyle
+syntax keyword plantumlSkinparamKeyword TitleBorderRoundCorner TitleBorderThickness TitleFontColor TitleFontName
+syntax keyword plantumlSkinparamKeyword TitleFontSize TitleFontStyle UsecaseBorderThickness UsecaseFontColor
+syntax keyword plantumlSkinparamKeyword UsecaseFontName UsecaseFontSize UsecaseFontStyle UsecaseStereotypeFontColor
+syntax keyword plantumlSkinparamKeyword UsecaseStereotypeFontName UsecaseStereotypeFontSize UsecaseStereotypeFontStyle
+syntax keyword plantumlSkinparamKeyword WrapWidth
+
 " Not in 'java - jar plantuml.jar - language' output
 syntax keyword plantumlSkinparamKeyword activityArrowColor activityArrowFontColor activityArrowFontName
 syntax keyword plantumlSkinparamKeyword activityArrowFontSize activityArrowFontStyle BarColor BorderColor
@@ -345,6 +350,7 @@ syntax keyword plantumlSkinparamKeyword FontSize FontStyle GroupBackgroundColor 
 syntax keyword plantumlSkinparamKeyword GroupingFontSize GroupingFontStyle GroupingHeaderFontColor
 syntax keyword plantumlSkinparamKeyword GroupingHeaderFontName GroupingHeaderFontSize GroupingHeaderFontStyle
 syntax keyword plantumlSkinparamKeyword LifeLineBackgroundColor LifeLineBorderColor
+syntax keyword plantumlSkinparamKeyword LineColor LineStyle LineThickness
 syntax keyword plantumlSkinparamKeyword sequenceActorBackgroundColor sequenceActorBorderColor sequenceActorFontColor
 syntax keyword plantumlSkinparamKeyword sequenceActorFontName sequenceActorFontSize sequenceActorFontStyle
 syntax keyword plantumlSkinparamKeyword sequenceArrowColor sequenceArrowFontColor sequenceArrowFontName
@@ -364,6 +370,18 @@ syntax keyword plantumlSkinparamKeyword usecaseActorStereotypeFontName usecaseAc
 syntax keyword plantumlSkinparamKeyword usecaseActorStereotypeFontStyle usecaseArrowColor usecaseArrowFontColor
 syntax keyword plantumlSkinparamKeyword usecaseArrowFontName usecaseArrowFontSize usecaseArrowFontStyle
 syntax case match
+
+" Other style keywords not found in plantumlSkinparamKeyword
+" Some are not implemented (yet)
+" see https://plantuml.com/fr/style-evolution
+" TODO: put those keywords in a new "<style>" region
+syntax case ignore
+syntax keyword plantumlSkinparamKeyword Margin HorizontalAlignment DiagonalCorner ExportedName Image ImagePosition MinimumWidth WordWrap MaximumWidth
+syntax case match
+
+" Builtin Function
+" https://plantuml.com/ja/preprocessing
+syntax match plantumlBuiltinFunction /%\%(chr\|darken\|date\|dec2hex\|dirpath\|feature\|false\|file_exists\|filename\|function_exists\|get_variable_value\|getenv\|hex2dec\|hsl_color\|intval\|is_dark\|is_light\|lighten\|loadJSON\|lower\|newline\|not\|lighten\|reverse_color\|reverse_hsluv_color\|set_variable_value\|size\|string\|strlen\|strpos\|substr\|true\|upper\|variable_exists\|version\)/
 
 " Highlight
 highlight default link plantumlCommentTODO Todo
@@ -403,6 +421,9 @@ highlight default link plantumlSkinparamKeyword Identifier
 highlight default link plantumlNoteMultiLine String
 highlight default link plantumlUsecaseActor String
 highlight default link plantumlStereotype Type
+highlight default link plantumlBuiltinFunction Function
+highlight default link plantumlFunction Function
+highlight default link plantumlGanttTask Type
 
 let &cpoptions=s:cpo_orig
 unlet s:cpo_orig
