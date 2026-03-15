@@ -2,7 +2,7 @@ local M = {}
 
 function M.select(items, opts, callback)
   opts = opts or {}
-  local prompt = opts.prompt or "Select"
+  local prompt = opts.prompt or 'Select'
   local format = opts.format_item or tostring
   local max_height = opts.max_height or 12 -- TODO hardcoded hard limit
   local title = ' ' .. prompt:gsub('^%s+', ''):gsub('[%s:]+$', '') .. ' '
