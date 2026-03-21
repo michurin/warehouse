@@ -30,23 +30,10 @@ colorElement.onclick = () => {
 nameElement.value = localStorage.getItem('name') || 'me'
 inputElement.focus()
 
-function scrool() {
-  bodyElement.scrollTop = bodyElement.scrollHeight
-  requestAnimationFrame(() => {
-    bodyElement.scrollTop = bodyElement.scrollHeight
-    requestAnimationFrame(() => {
-      bodyElement.scrollTop = bodyElement.scrollHeight
-    })
-  })
-}
-
 function bar(text) {
   statusElement.textContent = text
 }
 
-setTimeout(scrool, 10)
-setTimeout(scrool, 100)
-setTimeout(scrool, 1000)
 bar('loading...')
 
 // --- sending
@@ -83,12 +70,11 @@ evtSource.onmessage = (e) => {
     newElement.textContent = text.slice(5)
     newElement.style.color = text.slice(0, 4)
     rootElement.append(newElement)
-    scrool()
   })
 }
 
 evtSource.onerror = () => {
-  bar('...connection lost, wait a moment...')
+  bar('connection lost, wait a moment...')
 }
 
 evtSource.onopen = () => {
