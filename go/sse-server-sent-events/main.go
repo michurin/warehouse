@@ -9,6 +9,7 @@ import (
 	"io/fs"
 	"log"
 	"net/http"
+	"net/http/httputil"
 	"strconv"
 	"sync"
 	"time"
@@ -98,7 +99,11 @@ func main() {
 	http.HandleFunc("/", handleStatic(fsh))
 	http.HandleFunc("/fetch", handleFetch(ch))
 	http.HandleFunc("/send", handleSend(ch))
-	err := http.ListenAndServe(":7011", nil)
+	err = http.ListenAndServe(":7011", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		b, _ := httputil.DumpRequest(r, true)
+		log.Print(string(b))
+		http.DefaultServeMux.ServeHTTP(w, r)
+	}))
 	if err != nil {
 		log.Printf("Listener error: %s", err.Error())
 	}
