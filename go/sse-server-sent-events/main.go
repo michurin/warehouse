@@ -89,7 +89,7 @@ func main() {
 	fsh := http.FileServerFS(fsst)
 
 	ch := &room{
-		lastID: 0,
+		lastID: time.Now().UnixNano(), // let lastID grow between restart (naive)
 		wall:   list.New(),
 		lock:   new(sync.Mutex),
 		signal: make(chan struct{}),
