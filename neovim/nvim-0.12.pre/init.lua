@@ -245,3 +245,39 @@ vim.keymap.set('n', 'gf', function()
   end
   vim.cmd.edit(found)
 end)
+
+-- idea
+
+-- bad thing, choice.cmd is not so good as :tag
+vim.keymap.set('n', '<C-]>', function()
+  local tags = vim.fn.taglist(vim.fn.expand('<cword>'))
+  print(#tags)
+  if #tags == 0 then
+    print('no tags')
+    return
+  end
+  if #tags == 1 then
+    local choice = tags[1]
+    vim.cmd.edit(choice.filename)
+    vim.cmd(choice.cmd)
+    return
+  end
+  vim.ui.select(tags, {
+    prompt = 'Select tag',
+    format_item = function(item)
+      return item.name .. ' -> ' .. item.filename
+    end,
+  }, function(choice)
+    if choice then
+      vim.cmd.edit(choice.filename)
+      vim.cmd(choice.cmd)
+    end
+  end)
+end)
+
+-- idea
+-- do something like that
+-- nvim -o $(git diff --name-only --diff-filter=U --relative)
+--
+-- idea for git log
+-- git log --graph --name-status
