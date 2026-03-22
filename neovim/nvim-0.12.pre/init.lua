@@ -94,7 +94,7 @@ vim.api.nvim_create_user_command('CC', function() vim.opt.colorcolumn = { 120 } 
 -- git
 vim.api.nvim_create_user_command('GD', F.exec_git_diff_all.act, F.exec_git_diff_all.opts)
 vim.api.nvim_create_user_command('GBL', function() print("TODO GIT BLAME") end, {})
-vim.api.nvim_create_user_command('GL', function() print("TODO GIT LOG (with hightlighting, with --name-status)") end, {})
+vim.api.nvim_create_user_command('GL', function() print("TODO GIT LOG (with hightlighting, with --name-status)") end, {}) -- TODO rename!
 
 -- find by file name
 vim.api.nvim_create_user_command('FF', F.file_search_command.act, F.file_search_command.opts)
@@ -103,7 +103,7 @@ vim.api.nvim_create_user_command('FB', function() print("TODO FIND BUFFER") end,
 
 -- grep: find by content
 vim.api.nvim_create_user_command('G', RG.search(), RG.opts)
-vim.api.nvim_create_user_command('GL', RG.search('--glob', '*.go', '--glob', '!*_test.go'), RG.opts)
+vim.api.nvim_create_user_command('GL', RG.search('--glob', '*.go', '--glob', '!*_test.go'), RG.opts) -- TODO dedup
 vim.api.nvim_create_user_command('GT', RG.search('--glob', '*_test.go'), RG.opts)
 vim.api.nvim_create_user_command('GB', function(opts)
   local pattern = opts.args
