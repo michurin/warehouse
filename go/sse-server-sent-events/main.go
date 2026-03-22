@@ -6,6 +6,7 @@ import (
 	"context"
 	"embed"
 	"io"
+	"io/fs"
 	"log"
 	"net/http"
 	"strconv"
@@ -13,10 +14,7 @@ import (
 	"time"
 )
 
-//go:embed index.html
-//go:embed script.js
-//go:embed styles.css
-//go:embed favicon.ico
+//go:embed static
 var emgedFS embed.FS
 
 func handleStatic(fsh http.Handler) http.HandlerFunc {
@@ -84,7 +82,11 @@ func handleSend(ch *room) http.HandlerFunc {
 }
 
 func main() {
-	fsh := http.FileServerFS(emgedFS)
+	fsst, err := fs.Sub(emgedFS, "static")
+	if err != nil {
+		log.Panic(err)
+	}
+	fsh := http.FileServerFS(fsst)
 
 	ch := &room{
 		lastID: 0,
@@ -94,9 +96,6 @@ func main() {
 	}
 
 	http.HandleFunc("/", handleStatic(fsh))
-	http.HandleFunc("/script.js", handleStatic(fsh))
-	http.HandleFunc("/styles.css", handleStatic(fsh))
-	http.HandleFunc("/favicon.ico", handleStatic(fsh))
 	http.HandleFunc("/fetch", handleFetch(ch))
 	http.HandleFunc("/send", handleSend(ch))
 	err := http.ListenAndServe(":7011", nil)
