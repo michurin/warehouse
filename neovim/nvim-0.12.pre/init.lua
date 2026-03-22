@@ -237,4 +237,11 @@ vim.api.nvim_create_autocmd('BufWritePre', {
   end,
 })
 
-vim.keymap.set('n', 'gf', function() vim.cmd.edit(vim.fn.expand('<cfile>')) end)
+vim.keymap.set('n', 'gf', function()
+  local file = vim.fn.expand('<cfile>')
+  local found = vim.fn.findfile(file, vim.o.path)
+  if found == '' then
+    found = vim.fn.fnamemodify(vim.fn.expand('%:p:h') .. '/' .. file, ':p')
+  end
+  vim.cmd.edit(found)
+end)
