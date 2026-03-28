@@ -3,19 +3,16 @@ package main
 import (
 	"bytes"
 	"context"
-	"embed"
 	"io"
-	"io/fs"
 	"log"
 	"net/http"
-	"sse/loggingmw"
-	"sse/wall"
 	"strconv"
 	"time"
-)
 
-//go:embed static
-var emgedFS embed.FS
+	"sse/loggingmw"
+	"sse/static"
+	"sse/wall"
+)
 
 func handleStatic(fsh http.Handler) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -82,18 +79,14 @@ func handleSend(ch *wall.Wall) http.HandlerFunc {
 }
 
 func main() {
-	fsst, err := fs.Sub(emgedFS, "static")
-	if err != nil {
-		log.Panic(err)
-	}
-	fsh := http.FileServerFS(fsst)
+	fsh := http.FileServerFS(static.FS)
 
 	ch := wall.New(time.Now().UnixNano())
 
 	http.HandleFunc("/", handleStatic(fsh))
 	http.HandleFunc("/fetch", handleFetch(ch))
 	http.HandleFunc("/send", handleSend(ch))
-	err = http.ListenAndServe(":7011", http.MaxBytesHandler(loggingmw.MW(http.DefaultServeMux), 4000))
+	err := http.ListenAndServe(":7011", http.MaxBytesHandler(loggingmw.MW(http.DefaultServeMux), 4000))
 	if err != nil {
 		log.Printf("Listener error: %s", err.Error())
 	}
