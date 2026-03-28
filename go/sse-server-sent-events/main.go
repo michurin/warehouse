@@ -7,7 +7,9 @@ import (
 	"log"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
+	"unicode"
 
 	"sse/loggingmw"
 	"sse/static"
@@ -63,7 +65,7 @@ func handleFetch(ch *wall.Wall) http.HandlerFunc {
 	}
 }
 
-func handleSend(ch *wall.Wall) http.HandlerFunc {
+func handlePub(ch *wall.Wall) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		b := new(bytes.Buffer)
 		_, err := io.Copy(b, r.Body)
@@ -71,9 +73,18 @@ func handleSend(ch *wall.Wall) http.HandlerFunc {
 			http.Error(w, "Error", http.StatusInternalServerError)
 			return
 		}
-		for e := range bytes.FieldsFuncSeq(b.Bytes(), func(r rune) bool { return r == 10 || r == 13 }) {
-			ch.Pub(e)
+		text := strings.Map(func(x rune) rune {
+			if unicode.IsControl(x) { // clean up \n as well, useful in JSON sanitizing perspective
+				return '\x20'
+			}
+			return x
+		}, strings.TrimSpace(b.String()))
+		if len(text) < 2 {
+			http.Error(w, "Error", http.StatusBadRequest)
+			return
 		}
+		text = text[:len(text)-1] + `,"ts":` + strconv.FormatInt(time.Now().UnixMilli(), 10) + "}"
+		ch.Pub([]byte(text))
 		w.WriteHeader(http.StatusOK)
 	}
 }
@@ -85,7 +96,7 @@ func main() {
 
 	http.HandleFunc("/", handleStatic(fsh))
 	http.HandleFunc("/fetch", handleFetch(ch))
-	http.HandleFunc("/send", handleSend(ch))
+	http.HandleFunc("/pub", handlePub(ch))
 	err := http.ListenAndServe(":7011", http.MaxBytesHandler(loggingmw.MW(http.DefaultServeMux), 4000))
 	if err != nil {
 		log.Printf("Listener error: %s", err.Error())

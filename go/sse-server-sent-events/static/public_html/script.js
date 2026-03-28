@@ -11,22 +11,18 @@
 /*eslint arrow-body-style: "error"*/
 
 function randomColor() {
-  return '#' + (Math.round((Math.random() + 1) * 4096)).toString(16).slice(-3)
+  return '#' + (Math.round((Math.random() + 1) * 16777216)).toString(16).slice(-6)
 }
 
 const bodyElement = document.body
-const rootElement = document.getElementById('board')
+const boardElement = document.getElementById('board')
 const statusElement = document.getElementById('status')
 const colorElement = document.getElementById('color')
 const nameElement = document.getElementById('name')
 const inputElement = document.getElementById('input')
-let color = localStorage.getItem('color') || randomColor()
+const sendElement = document.getElementById('send')
 
-colorElement.style.color = color
-colorElement.onclick = () => {
-  color = randomColor()
-  colorElement.style.color = color
-}
+colorElement.value = localStorage.getItem('color') || randomColor() // TODO validate
 nameElement.value = localStorage.getItem('name') || 'me'
 inputElement.focus()
 
@@ -35,42 +31,68 @@ function bar(text, title) {
   statusElement.title = title
 }
 
+const roomID = 'main' // TODO: get from URL with fallback
+
+const userID = '00000000-4444-4444-4444-000000000000' // TODO: save to localStorage, get from localStorage, validate, use
+console.log(userID)
+
 bar('loading...')
 
 // --- sending
 
-inputElement.onkeyup = async (e) => {
-  if (e.which === 10 || e.which === 13) {
-    localStorage.setItem('name', nameElement.value)
-    localStorage.setItem('color', color)
-    const msg = inputElement.value.replaceAll(/[\n\r\t\s]/g, ' ')
-    if (msg === '') {
-      return
-    }
-    await fetch('/send', {
-      method: 'POST',
-      body: color + '|' + nameElement.value.replaceAll(/[\n\r\t\s]/g, ' ') + ': ' + inputElement.value.replaceAll(/[\n\r\t\s]/g, ' '),
+async function send() {
+  localStorage.setItem('name', nameElement.value) // TODO set default if empty
+  localStorage.setItem('color', colorElement.value) // TODO validate, set default
+  const msg = inputElement.value.replaceAll(/\p{Cc}+/gu, ' ')
+  if (msg === '') {
+    return
+  }
+  await fetch('/pub', {
+    method: 'POST',
+    body: JSON.stringify({
+      room: roomID,
+      user: userID,
+      color: colorElement.value.replaceAll(/\p{Cc}+/gu, ' '),
+      name: nameElement.value.replaceAll(/\p{Cc}+/gu, ' '),
+      message: msg,
     })
-    inputElement.value = ''
-    inputElement.focus()
+  })
+  inputElement.value = ''
+  inputElement.focus()
+}
+
+inputElement.onkeyup = (e) => {
+  if (e.which === 10 || e.which === 13) { // it won't work on Androd Chrome
+    send()
   }
 }
 
+sendElement.onclick = send
+sendElement.ontouchstart = send // android
+sendElement.onmousedown = send // android with chrome bug
+
 // --- fetching
 
-const evtSource = new EventSource('/fetch')
+const evtSource = new EventSource('/fetch?' + new URLSearchParams({ room: roomID, user: userID }).toString())
 
 evtSource.onmessage = (e) => {
   const a = e.data.split(/[\n\r]+/)
   a.reverse()
-  a.forEach((text) => {
-    while (rootElement.children.length > 1000) {
-      rootElement.firstChild.remove()
+  a.forEach((bytes) => {
+    const dto = JSON.parse(bytes)
+    while (boardElement.children.length > 1000) {
+      boardElement.firstChild.remove()
     }
-    const newElement = document.createElement('div')
-    newElement.textContent = text.slice(5)
-    newElement.style.color = text.slice(0, 4)
-    rootElement.append(newElement)
+    const eDiv = document.createElement('div')
+    const eTS = document.createElement('code')
+    const eB = document.createElement('b')
+    const eSpan = document.createElement('span')
+    eTS.textContent = new Date(dto.ts).toLocaleTimeString().slice(0, -3) + ' '
+    eB.textContent = dto.name + ': '
+    eSpan.textContent = dto.message
+    eDiv.append(eTS, eB, eSpan)
+    eDiv.style.color = dto.color
+    boardElement.append(eDiv)
   })
 }
 

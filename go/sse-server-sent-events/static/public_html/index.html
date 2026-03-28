@@ -7,12 +7,15 @@
 <body>
   <div id="body">
     <div id="board"></div>
-    <input id="input" type="text" inputmode="text" autocomplete="off" enterkeyhint="enter"></input>
-    <div id="control">
-      <input id="name" type="text"></input>
-      <div id="color">color</div>
+    <div class="control">
+      <input id="input" type="text" inputmode="search" autocomplete="off" enterkeyhint="done"></input>
+      <div id="send">⏎</div>
     </div>
-    <div id="status"></div>
+    <div class="control">
+      <input id="name" type="text"></input>
+      <div id="color-wrapper"><input id="color" type="color"></input></div>
+      <div id="status"></div>
+    </div>
   </div>
   <script src="script.js"></script>
 </body>
