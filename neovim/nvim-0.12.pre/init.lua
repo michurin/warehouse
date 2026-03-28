@@ -130,6 +130,10 @@ vim.api.nvim_create_user_command('U', function()
   vim.cmd.edit(vim.fn.fnamemodify(vim.api.nvim_buf_get_name(0), ':h'))
 end, {})
 
+vim.api.nvim_create_user_command('UT', function()
+  vim.cmd.tabnew(vim.fn.fnamemodify(vim.api.nvim_buf_get_name(0), ':h'))
+end, {})
+
 vim.api.nvim_create_user_command('J', function() -- TODO idea: put jumplist to QF
   local jumplist, idx = unpack(vim.fn.getjumplist())
   local items = {}
