@@ -30,8 +30,9 @@ colorElement.onclick = () => {
 nameElement.value = localStorage.getItem('name') || 'me'
 inputElement.focus()
 
-function bar(text) {
+function bar(text, title) {
   statusElement.textContent = text
+  statusElement.title = title
 }
 
 bar('loading...')
@@ -63,7 +64,7 @@ evtSource.onmessage = (e) => {
   const a = e.data.split(/[\n\r]+/)
   a.reverse()
   a.forEach((text) => {
-    while (rootElement.children.length > 10) {
+    while (rootElement.children.length > 1000) {
       rootElement.firstChild.remove()
     }
     const newElement = document.createElement('div')
@@ -74,9 +75,9 @@ evtSource.onmessage = (e) => {
 }
 
 evtSource.onerror = () => {
-  bar('connection lost, wait a moment...')
+  bar('❌', 'offline')
 }
 
 evtSource.onopen = () => {
-  bar('online')
+  bar('✅', 'online')
 }
