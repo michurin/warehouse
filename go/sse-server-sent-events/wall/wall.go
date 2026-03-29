@@ -6,6 +6,9 @@ import (
 	"sync"
 )
 
+// Wall is a thread safe storage for messages.
+// It cares about synchronization. But it do not
+// care about users, permissions, message structure and type.
 type Wall struct {
 	lastID  int64
 	wall    *list.List
