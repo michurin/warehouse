@@ -90,47 +90,50 @@ function M.qf_buffers_handler()
   end
 end
 
-function M.qf_buffers()
-  local items = {}
-  local wins = vim.api.nvim_list_wins()
-  local bufs = vim.api.nvim_list_bufs()
+M.qf_buffers = {
+  opts = {},
+  act = function()
+    local items = {}
+    local wins = vim.api.nvim_list_wins()
+    local bufs = vim.api.nvim_list_bufs()
 
-  for _, buf in ipairs(bufs) do
-    if vim.api.nvim_buf_is_loaded(buf) then
-      local name = vim.api.nvim_buf_get_name(buf)
-      if name ~= '' and vim.fn.buflisted(buf) == 1 then
-        local pos = buff_last_pos[buf]
-        local debug = tostring(buf) -- debugging
-        for _, win in ipairs(wins) do
-          if vim.api.nvim_win_get_buf(win) == buf then
-            pos = vim.api.nvim_win_get_cursor(win)
-            debug = debug .. '/' .. win
+    for _, buf in ipairs(bufs) do
+      if vim.api.nvim_buf_is_loaded(buf) then
+        local name = vim.api.nvim_buf_get_name(buf)
+        if name ~= '' and vim.fn.buflisted(buf) == 1 then
+          local pos = buff_last_pos[buf]
+          local debug = tostring(buf) -- debugging
+          for _, win in ipairs(wins) do
+            if vim.api.nvim_win_get_buf(win) == buf then
+              pos = vim.api.nvim_win_get_cursor(win)
+              debug = debug .. '/' .. win
+            end
           end
+          local row = pos[1]
+          local col = vim.fn.max({ pos[2], 1 }) -- can be 0
+          local line = vim.api.nvim_buf_get_lines(buf, row - 1, row, false)[1]
+          table.insert(items, {
+            filename = name,
+            lnum = row,
+            col = col,
+            text = line .. ' [' .. debug .. ']',
+          })
         end
-        local row = pos[1]
-        local col = vim.fn.max({ pos[2], 1 }) -- can be 0
-        local line = vim.api.nvim_buf_get_lines(buf, row - 1, row, false)[1]
-        table.insert(items, {
-          filename = name,
-          lnum = row,
-          col = col,
-          text = line .. ' [' .. debug .. ']',
-        })
       end
     end
+
+    table.sort(items, function(a, b)
+      return a.filename < b.filename
+    end)
+
+    vim.fn.setqflist({}, ' ', {
+      title = 'Buffers',
+      items = items,
+    })
+
+    vim.cmd.copen()
   end
-
-  table.sort(items, function(a, b)
-    return a.filename < b.filename
-  end)
-
-  vim.fn.setqflist({}, ' ', {
-    title = 'Buffers',
-    items = items,
-  })
-
-  vim.cmd.copen()
-end
+}
 
 -- -------------------------------
 
