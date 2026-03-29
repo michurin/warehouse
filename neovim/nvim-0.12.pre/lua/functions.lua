@@ -262,12 +262,6 @@ function M.exec(cmd_fetcherer)
   end
 end
 
-function M.exec_git_diff()
-  local result = vim.fn.systemlist({ 'git', 'diff', '--no-prefix', '--no-color', vim.api.nvim_buf_get_name(0) })
-  show_viewing_buffer(result, 1)
-  vim.opt_local.filetype = 'diff'
-end
-
 M.exec_shell_command = {
   opts = { nargs = '+', complete = 'shellcmdline' },
   act = function(opts) show_viewing_buffer(vim.fn.systemlist(opts.args), 1) end,
@@ -288,13 +282,31 @@ M.exec_git_diff_all = {
   end
 }
 
-function M.exec_git_blame()
-  local result = vim.fn.systemlist({
-    'git', 'blame', '--date=format:%y-%m-%d %H:%M', '--',
-    vim.api.nvim_buf_get_name(0) })
-  local line = vim.api.nvim_win_get_cursor(0)[1]
-  show_viewing_buffer(result, line)
-end
+M.exec_git_log = {
+  opts = {},
+  act = function()
+    local result = vim.fn.systemlist({
+      'git', 'log', '--graph', '--reflog', '--branches', '--remotes', '--tags', '--decorate', '-n', '120',
+      '--date=format:%y-%m-%d %H:%M',
+      '--format=format:%C(auto)%h%C(reset)%C(auto)%d%C(reset) %C(green)%ad%C(reset) %C(cyan)%an%C(reset)%n%C(auto)%s%C(reset)%n',
+      '--name-status',
+    })
+    show_viewing_buffer(result, 1)
+    vim.opt_local.filetype = 'gitlog' -- TODO
+    vim.opt_local.listchars = 'trail: ,tab:  ,nbsp: ,extends:▶,precedes:◀'
+  end
+}
+
+M.exec_git_blame = {
+  opts = {},
+  act = function()
+    local result = vim.fn.systemlist({
+      'git', 'blame', '--date=format:%y-%m-%d %H:%M', '--',
+      vim.api.nvim_buf_get_name(0) })
+    local line = vim.api.nvim_win_get_cursor(0)[1]
+    show_viewing_buffer(result, line)
+  end
+}
 
 M.exec_lua_command = {
   opts = { nargs = '+', complete = 'lua' },

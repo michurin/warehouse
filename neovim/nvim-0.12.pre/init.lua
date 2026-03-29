@@ -93,8 +93,8 @@ vim.api.nvim_create_user_command('CC', function() vim.opt.colorcolumn = { 120 } 
 
 -- git
 vim.api.nvim_create_user_command('GD', F.exec_git_diff_all.act, F.exec_git_diff_all.opts)
-vim.api.nvim_create_user_command('GBL', function() print("TODO GIT BLAME") end, {})
-vim.api.nvim_create_user_command('GL', function() print("TODO GIT LOG (with hightlighting, with --name-status)") end, {}) -- TODO rename!
+vim.api.nvim_create_user_command('GBL', F.exec_git_blame.act, F.exec_git_blame.opts)
+vim.api.nvim_create_user_command('GLO', F.exec_git_log.act, F.exec_git_log.opts)
 
 -- find by file name
 vim.api.nvim_create_user_command('FF', F.file_search_command.act, F.file_search_command.opts)
@@ -167,9 +167,6 @@ vim.keymap.set('n', '<space>gf', F.copy_bookmark_to_f, { noremap = true })
 
 vim.keymap.set('n', '<space>www', F.exec(F.paragraph_text_block), { noremap = true })
 vim.keymap.set('v', '<space>www', F.exec(F.visual_text_block), { noremap = true })
-
-vim.keymap.set('n', '<space>wwd', F.exec_git_diff, { noremap = true })
-vim.keymap.set('n', '<space>wwg', F.exec_git_blame, { noremap = true })
 
 vim.keymap.set('n', '<space>wee', function()
   vim.system(
