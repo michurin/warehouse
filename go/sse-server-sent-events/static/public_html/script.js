@@ -14,6 +14,15 @@ function randomColor() {
   return '#' + (Math.round((Math.random() + 1) * 16777216)).toString(16).slice(-6)
 }
 
+function pad(x) { // naive
+  return (x < 10 ? '0' : '') + x
+}
+
+function timeFormat(ts) {
+  const d = new Date(ts)
+  return pad(d.getHours()) + ':' + pad(d.getMinutes())
+}
+
 const bodyElement = document.body
 const boardElement = document.getElementById('board')
 const statusElement = document.getElementById('status')
@@ -87,7 +96,7 @@ evtSource.onmessage = (e) => {
     const eTS = document.createElement('code')
     const eB = document.createElement('b')
     const eSpan = document.createElement('span')
-    eTS.textContent = new Date(dto.ts).toLocaleTimeString().slice(0, -3) + ' '
+    eTS.textContent = timeFormat(dto.ts) + ' '
     eB.textContent = dto.name + ': '
     eSpan.textContent = dto.message
     eDiv.append(eTS, eB, eSpan)
