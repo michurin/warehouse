@@ -2,26 +2,29 @@ package room
 
 import (
 	"context"
-	"sse/wall"
 	"sync"
 	"time"
+
+	"sse/user"
+	"sse/wall"
 )
 
 type Room struct {
-	users  map[string]struct{} // TODO: name and count of connections
+	users  *user.Users
 	locked bool
 	mu     *sync.Mutex
 	wall   *wall.Wall
 }
 
-func (r *Room) Pub(user string, message []byte) {
-	// TODO check user if locked
+func (r *Room) Pub(userID string, message []byte) {
+	r.users.Update(userID)
 	r.wall.Pub(message)
 }
 
 func (r *Room) Fetch(ctx context.Context, user string, lastID int64) ([][]byte, int64) {
 	// TODO check user if locked
 	// TODO manage users list and connections counters
+	// TODO user.Inc defer user.Dec
 	return r.wall.Fetch(ctx, lastID)
 }
 
@@ -44,7 +47,7 @@ func (h *House) room(name string) *Room {
 	if !ok {
 		// TODO check len
 		r = &Room{
-			users:  map[string]struct{}{},
+			users:  user.New(),
 			locked: false,
 			mu:     new(sync.Mutex),
 			wall:   wall.New(time.Now().UnixNano()),

@@ -3,19 +3,23 @@ package main
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"io"
 	"io/fs"
 	"log"
 	"net/http"
 	"net/url"
-	"sse/loggingmw"
-	"sse/room"
-	"sse/static"
 	"strconv"
 	"strings"
 	"time"
 	"unicode"
+
+	"sse/loggingmw"
+	"sse/room"
+	"sse/static"
 )
+
+const pollingTimeout = 28 * time.Second
 
 func handleStatic(fsh http.Handler) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -30,13 +34,12 @@ func handleFetch(ch *room.House) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		io.Copy(io.Discard, r.Body) // just drop body. We do not need to close it. Oh. It works without ctx
 		roomID, userID := roomAndUser(r.URL.Query())
-		log.Printf("room/user = %s/%s", roomID, userID)
 		leid, err := strconv.ParseInt(r.Header.Get("Last-Event-Id"), 10, 64)
 		if err != nil {
 			leid = 0
 		}
 		ctx := r.Context()
-		ctx, cancel := context.WithTimeout(ctx, 28*time.Second)
+		ctx, cancel := context.WithTimeout(ctx, pollingTimeout)
 		defer cancel()
 		h := w.Header()
 		h.Add("X-Accel-Buffering", "no")
@@ -68,6 +71,30 @@ func handleFetch(ch *room.House) http.HandlerFunc {
 	}
 }
 
+type dtoIn struct {
+	Color   string `json:"color"`
+	Message string `json:"message"`
+	Name    string `json:"name"`
+	Room    string `json:"room"`
+	User    string `json:"user"`
+}
+
+type dtoOut struct {
+	Color      string `json:"color"`
+	Message    string `json:"message"`
+	Name       string `json:"name"`
+	TimeStamep int64  `json:"ts"`
+}
+
+func sanitize(x string) string {
+	return strings.Map(func(x rune) rune {
+		if unicode.IsControl(x) { // clean up \n as well, useful in JSON sanitizing perspective
+			return '\x20'
+		}
+		return x
+	}, x)
+}
+
 func handlePub(ch *room.House) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		b := new(bytes.Buffer)
@@ -76,19 +103,27 @@ func handlePub(ch *room.House) http.HandlerFunc {
 			http.Error(w, "Error", http.StatusInternalServerError)
 			return
 		}
-		text := strings.Map(func(x rune) rune {
-			if unicode.IsControl(x) { // clean up \n as well, useful in JSON sanitizing perspective
-				return '\x20'
-			}
-			return x
-		}, strings.TrimSpace(b.String()))
-		if len(text) < 2 {
-			http.Error(w, "Error", http.StatusBadRequest)
+		req := new(dtoIn)
+		err = json.Unmarshal(b.Bytes(), req)
+		if err != nil {
+			http.Error(w, "Error", http.StatusInternalServerError)
 			return
 		}
-		text = text[:len(text)-1] + `,"ts":` + strconv.FormatInt(time.Now().UnixMilli(), 10) + "}"
-		roomID, userID := roomAndUser(r.URL.Query())
-		ch.Pub(roomID, userID, []byte(text))
+		ms := time.Now().UnixMilli()
+		resp := dtoOut{
+			Color:      sanitize(req.Color), // TODO validate
+			Message:    sanitize(req.Message),
+			Name:       sanitize(req.Name),
+			TimeStamep: ms,
+		}
+		roomID := req.Room // TODO validate
+		userID := req.User // TODO validate
+		respBytes, err := json.Marshal(resp)
+		if err != nil {
+			http.Error(w, "Error", http.StatusInternalServerError)
+			return
+		}
+		ch.Pub(roomID, userID, respBytes)
 		w.WriteHeader(http.StatusOK)
 	}
 }
@@ -137,7 +172,7 @@ func roomAndUser(v url.Values) (string, string) {
 
 func main() {
 	house := room.New()
-	err := http.ListenAndServe(":7011", http.MaxBytesHandler(loggingmw.MW(handler(static.FS, house)), 4000))
+	err := http.ListenAndServe(":7011", loggingmw.MW(handler(static.FS, house)))
 	if err != nil {
 		log.Printf("Listener error: %s", err.Error())
 	}

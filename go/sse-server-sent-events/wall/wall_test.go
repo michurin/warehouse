@@ -3,8 +3,9 @@ package wall_test
 import (
 	"context"
 	"encoding/json"
-	"sse/wall"
 	"testing"
+
+	"sse/wall"
 )
 
 func TestWall(t *testing.T) {

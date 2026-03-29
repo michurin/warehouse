@@ -58,7 +58,7 @@ async function send() {
   if (msg === '') {
     return
   }
-  await fetch('/pub?' + queryString, {
+  await fetch('/pub', {
     method: 'POST',
     body: JSON.stringify({
       room: roomID,
