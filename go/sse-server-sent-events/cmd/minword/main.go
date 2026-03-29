@@ -14,6 +14,7 @@ import (
 	"time"
 	"unicode"
 
+	"sse/dto"
 	"sse/loggingmw"
 	"sse/room"
 	"sse/static"
@@ -79,13 +80,6 @@ type dtoIn struct {
 	User    string `json:"user"`
 }
 
-type dtoOut struct {
-	Color      string `json:"color"`
-	Message    string `json:"message"`
-	Name       string `json:"name"`
-	TimeStamep int64  `json:"ts"`
-}
-
 func sanitize(x string) string {
 	return strings.Map(func(x rune) rune {
 		if unicode.IsControl(x) { // clean up \n as well, useful in JSON sanitizing perspective
@@ -110,12 +104,12 @@ func handlePub(ch *room.House) http.HandlerFunc {
 			return
 		}
 		ms := time.Now().UnixMilli()
-		resp := dtoOut{
+		resp := dto.StreamMessage{Message: &dto.Message{
 			Color:      sanitize(req.Color), // TODO validate
 			Message:    sanitize(req.Message),
 			Name:       sanitize(req.Name),
 			TimeStamep: ms,
-		}
+		}}
 		roomID := req.Room // TODO validate
 		userID := req.User // TODO validate
 		respBytes, err := json.Marshal(resp)

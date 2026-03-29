@@ -2,9 +2,11 @@ package room
 
 import (
 	"context"
+	"encoding/json"
 	"sync"
 	"time"
 
+	"sse/dto"
 	"sse/user"
 	"sse/wall"
 )
@@ -45,12 +47,25 @@ func (h *House) room(name string) *Room {
 	defer h.mu.Unlock()
 	r, ok := h.rooms[name]
 	if !ok {
-		// TODO check len
+		// TODO check len, can we add one more room
+		u := user.New()
+		// TODO and current user
+		w := wall.New(time.Now().UnixNano())
+		b, err := json.Marshal(dto.StreamMessage{
+			RoomStatus: &dto.RoomStatus{
+				Locked: false,
+				Users:  []string{}, // get from u?
+			},
+		})
+		if err != nil {
+			panic(err) // it is impossible
+		}
+		w.Pub(b)
 		r = &Room{
-			users:  user.New(),
+			users:  u,
 			locked: false,
 			mu:     new(sync.Mutex),
-			wall:   wall.New(time.Now().UnixNano()),
+			wall:   w,
 		}
 		h.rooms[name] = r
 	}

@@ -91,19 +91,26 @@ evtSource.onmessage = (e) => {
   a.reverse()
   a.forEach((bytes) => {
     const dto = JSON.parse(bytes)
-    while (boardElement.children.length > 1000) {
-      boardElement.firstChild.remove()
+    if (dto.message) {
+      while (boardElement.children.length > 1000) {
+        boardElement.firstChild.remove()
+      }
+      const m = dto.message
+      const eDiv = document.createElement('div')
+      const eTS = document.createElement('code')
+      const eB = document.createElement('b')
+      const eSpan = document.createElement('span')
+      eTS.textContent = timeFormat(m.ts) + ' '
+      eB.textContent = m.name + ': '
+      eSpan.textContent = m.message
+      eDiv.append(eTS, eB, eSpan)
+      eDiv.style.color = m.color
+      boardElement.append(eDiv)
+    } else {
+      const eDiv = document.createElement('div')
+      eDiv.textContent = JSON.stringify(dto)
+      boardElement.append(eDiv)
     }
-    const eDiv = document.createElement('div')
-    const eTS = document.createElement('code')
-    const eB = document.createElement('b')
-    const eSpan = document.createElement('span')
-    eTS.textContent = timeFormat(dto.ts) + ' '
-    eB.textContent = dto.name + ': '
-    eSpan.textContent = dto.message
-    eDiv.append(eTS, eB, eSpan)
-    eDiv.style.color = dto.color
-    boardElement.append(eDiv)
   })
 }
 
