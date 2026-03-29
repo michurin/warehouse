@@ -45,6 +45,8 @@ const roomID = 'main' // TODO: get from URL with fallback
 const userID = Date.now().toString(36) + '-' + Math.random().toString(36).substring(2) // TODO: save to localStorage, get from localStorage, validate, use
 console.log(userID)
 
+const queryString = new URLSearchParams({ room: roomID, user: userID }).toString()
+
 bar('loading...')
 
 // --- sending
@@ -56,7 +58,7 @@ async function send() {
   if (msg === '') {
     return
   }
-  await fetch('/pub', {
+  await fetch('/pub?' + queryString, {
     method: 'POST',
     body: JSON.stringify({
       room: roomID,
@@ -82,7 +84,7 @@ sendElement.onmousedown = send // android with chrome bug
 
 // --- fetching
 
-const evtSource = new EventSource('/fetch?' + new URLSearchParams({ room: roomID, user: userID }).toString())
+const evtSource = new EventSource('/fetch?' + queryString)
 
 evtSource.onmessage = (e) => {
   const a = e.data.split(/[\n\r]+/)
