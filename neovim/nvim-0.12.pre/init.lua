@@ -85,8 +85,9 @@ end, { noremap = true })
 --
 
 vim.api.nvim_create_autocmd(F.qf_buffers_events, { callback = F.qf_buffers_handler })
-vim.api.nvim_create_user_command('E', F.smart_file_locate, { nargs = 1 })
 vim.api.nvim_create_user_command('BUF', F.qf_buffers.act, F.qf_buffers.opts)
+vim.api.nvim_create_user_command('E', F.smart_open.act('edit'), F.smart_open.opts)
+vim.api.nvim_create_user_command('ET', F.smart_open.act('tabnew'), F.smart_open.opts)
 vim.api.nvim_create_user_command('L', F.exec_lua_command.act, F.exec_lua_command.opts)
 vim.api.nvim_create_user_command('SH', F.exec_shell_command.act, F.exec_shell_command.opts)
 vim.api.nvim_create_user_command('CC', function() vim.opt.colorcolumn = { 120 } end, {})

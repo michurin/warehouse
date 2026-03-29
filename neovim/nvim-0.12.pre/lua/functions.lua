@@ -368,61 +368,6 @@ end
 
 -- -------------------------------
 
-local function smart_find_and_fill(file, line)
-  local stat = vim.loop.fs_stat(file)
-  if stat == nil then
-    local files = vim.fn.systemlist('find . -type f -print0 | xargs -0 -n 500 -P 16 grep ' .. vim.fn.shellescape(file))
-    if #files == 0 then
-      print('nofiles fallback')
-      local f = file:gsub('^[^/]+/', '')
-      if f == file then
-        print('totally no files')
-        return
-      end
-      smart_find_and_fill(f, line)
-      return
-    end
-    if #files == 1 then
-      file = files[1]
-    else
-      table.sort(files)
-      local items = {}
-      for _, f in ipairs(files) do
-        f = f:gsub('^%./', '')
-        local bufnr = vim.fn.bufnr(vim.fn.fnamemodify(f, ':p'))
-        local text = '-'
-        if bufnr > -1 then
-          local lines = vim.api.nvim_buf_get_lines(bufnr, line - 1, line, false)
-          if #lines > 0 then
-            text = lines[1] .. ' (b=' .. tostring(bufnr) .. ')'
-          end
-        end
-        table.insert(items, { filename = f, lnum = line, col = 0, text = text })
-      end
-      vim.fn.setqflist({}, ' ', { title = 'FN', items = items }) -- TODO items? or list argument?
-      vim.cmd.copen()
-      return
-    end
-  end
-  vim.api.nvim_cmd({ cmd = 'edit', args = { file } }, {})
-  vim.api.nvim_win_set_cursor(0, { tonumber(line), 0 })
-end
-
-function M.smart_file_locate(opts) -- USAGE: vim.api.nvim_create_user_command('E', F, { nargs = 1 })
-  local file, line = opts.args:match('^(.*):([0-9]+)$')
-  if file == nil then
-    print('nofile')
-    return
-  end
-  if line == nil then
-    print('noline')
-    return
-  end
-  smart_find_and_fill(file, tonumber(line))
-end
-
--- -------------------------------
-
 function M.fuzzy_search() -- TODO just idea; lua require('functions').fuzzy_search()
   local s = vim.fn.input('>')
   -- print(s)
@@ -532,5 +477,60 @@ M.file_search_command = {
 }
 
 -- -------------------------------
+
+M.smart_open = {
+  opts = { nargs = '+' },
+  act = function(cmd)
+    return function(opts)
+      -- :lua x('edit', 'a.go')
+      -- :lua x('edit', 'a.go:22')
+      -- :lua x('edit', 'a.go#L22')
+      -- :lua x('newtab', 'a.go#L22')
+      -- :lua x('vsplit', 'a.go#L22')
+      local pat = opts.args
+      local file = pat
+      local line = 1
+      local p, q = pat:match("(.+)[:#]L?([0-9]+)")
+      if p ~= nil then
+        local x = tonumber(q)
+        if x ~= nil then
+          file = p
+          line = x
+        end
+      end
+      local stat = vim.loop.fs_stat(file)
+      if stat ~= nil then
+        vim.api.nvim_cmd({ cmd = cmd, args = { file } }, {})
+        return
+      end
+      local files = vim.fn.systemlist('find . -type f -print0 | grep -z --color=never ' ..
+        vim.fn.shellescape(file) .. ' | tr \'\\0\' \'\\n\'')
+      if #files == 0 then
+        print('no files')
+        return
+      end
+      if #files == 1 then
+        vim.api.nvim_cmd({ cmd = cmd, args = { files[1] } }, {})
+        return
+      end
+      table.sort(files)
+      local items = {}
+      for _, f in ipairs(files) do
+        f = f:gsub('^%./', '')
+        local bufnr = vim.fn.bufnr(vim.fn.fnamemodify(f, ':p'))
+        local text = '-'
+        if bufnr > -1 then
+          local lines = vim.api.nvim_buf_get_lines(bufnr, line - 1, line, false)
+          if #lines > 0 then
+            text = lines[1] .. ' (b=' .. tostring(bufnr) .. ')'
+          end
+        end
+        table.insert(items, { filename = vim.fn.fnamemodify(f, ':~:.'), lnum = line, col = 0, text = text })
+      end
+      vim.fn.setqflist({}, ' ', { title = 'F: ' .. pat, items = items })
+      vim.cmd.copen()
+    end
+  end
+}
 
 return M
