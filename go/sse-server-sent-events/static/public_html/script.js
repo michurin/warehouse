@@ -33,7 +33,7 @@ function bar(text, title) {
 
 const roomID = 'main' // TODO: get from URL with fallback
 
-const userID = '00000000-4444-4444-4444-000000000000' // TODO: save to localStorage, get from localStorage, validate, use
+const userID = Date.now().toString(36) + '-' + Math.random().toString(36).substring(2) // TODO: save to localStorage, get from localStorage, validate, use
 console.log(userID)
 
 bar('loading...')
