@@ -2,7 +2,9 @@ html, body {
   height: 100%;
   color: #eee;
   background-color: #222;
+  overflow-y: hidden; /* too aggressive? */
 }
+
 #body {
   position: absolute;
   bottom: 0px;
@@ -38,6 +40,9 @@ input {
   overflow: hidden;
   width: 2em;
   border-radius: 50vh;
+  cursor: pointer;
+}
+#lock {
   cursor: pointer;
 }
 #color {
