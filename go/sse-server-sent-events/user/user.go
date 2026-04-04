@@ -4,31 +4,95 @@ import (
 	"sync"
 )
 
-type User struct {
-	nik       string // TODO
+type user struct {
+	name      string // TODO pack color+nik as []byte. Like wall.Wall do?
+	color     string
 	lastCheck int64
-	mu        *sync.RWMutex
 }
 
 type Users struct {
-	users  map[string]*User
-	locked bool // TODO
+	users  map[string]*user
+	locked bool
 	mu     *sync.RWMutex
 }
 
 func New() *Users {
 	return &Users{
-		users:  map[string]*User{},
+		users:  map[string]*user{},
 		locked: false,
 		mu:     new(sync.RWMutex),
 	}
 }
 
-func (u *Users) Update(userID string) {
+func (u *Users) Touch(userID string, ms int64, name, color string) (bool, bool) { // TODO case name == "", color == ""
 	u.mu.Lock()
 	defer u.mu.Unlock()
-	// TODO check if locked
-	// TODO check if new (unknown) user
-	// TODO update user info
-	// TODO return if user allowed
+	r, ok := u.users[userID]
+	if !ok {
+		if u.locked {
+			return false, false // not allowed, no updates
+		}
+		u.users[userID] = &user{
+			name:      name,
+			color:     color,
+			lastCheck: ms,
+		}
+		return true, true // allowed, update
+	}
+	r.lastCheck = ms
+	if name == "" && color == "" {
+		return true, false // allowed, no update it is fetch for already existed user
+	}
+	if r.name == name && r.color == color {
+		return true, false // allowed, no update
+	}
+	r.color = color
+	r.name = name
+	return true, true // allowed, updated
+}
+
+func (u *Users) Lock() bool {
+	u.mu.Lock()
+	defer u.mu.Unlock()
+	if u.locked {
+		return false
+	}
+	u.locked = true
+	return true
+}
+
+func (u *Users) Unlock() bool {
+	u.mu.Lock()
+	defer u.mu.Unlock()
+	if !u.locked {
+		return false
+	}
+	u.locked = false
+	return true
+}
+
+func (u *Users) Locked() bool {
+	u.mu.RLock()
+	defer u.mu.RUnlock()
+	return u.locked
+}
+
+func (u *Users) List() [][2]string {
+	u.mu.RLock()
+	defer u.mu.RUnlock()
+	r := make([][2]string, 0, len(u.users))
+	for _, v := range u.users {
+		r = append(r, [2]string{v.name, v.color})
+	}
+	return r
+}
+
+func (u *Users) Get(userID string) (string, string) {
+	u.mu.RLock()
+	defer u.mu.RUnlock()
+	x, ok := u.users[userID]
+	if !ok {
+		return "", ""
+	}
+	return x.name, x.color
 }

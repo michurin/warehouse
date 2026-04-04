@@ -7,9 +7,14 @@ type Message struct {
 	TimeStamep int64  `json:"ts"`
 }
 
+type User struct {
+	Name  string `json:"name"`
+	Color string `json:"color"`
+}
+
 type RoomStatus struct {
-	Locked bool     `json:"locked"`
-	Users  []string `json:"users"`
+	Locked bool   `json:"locked"`
+	Users  []User `json:"users"`
 }
 
 type StreamMessage struct {
