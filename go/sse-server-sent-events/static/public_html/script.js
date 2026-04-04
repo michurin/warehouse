@@ -30,6 +30,7 @@ const colorElement = document.getElementById('color')
 const nameElement = document.getElementById('name')
 const inputElement = document.getElementById('input')
 const sendElement = document.getElementById('send')
+const lockElement = document.getElementById('lock')
 
 colorElement.value = localStorage.getItem('color') || randomColor() // TODO validate
 nameElement.value = localStorage.getItem('name') || 'me'
@@ -53,6 +54,8 @@ const userID = (function() {
 console.log(userID)
 
 const queryString = new URLSearchParams({ room: roomID, user: userID }).toString()
+
+var lockStatus = false // TODO get on initialization
 
 bar('loading...')
 
@@ -89,6 +92,16 @@ sendElement.onclick = send
 sendElement.ontouchstart = send // android
 sendElement.onmousedown = send // android with chrome bug
 
+lockElement.onclick = function() {
+  fetch(lockStatus ? '/unlock' : '/lock', {
+    method: 'POST',
+    body: JSON.stringify({
+      room: roomID,
+      user: userID,
+    })
+  })
+}
+
 // --- fetching
 
 const evtSource = new EventSource('/fetch?' + queryString)
@@ -98,11 +111,11 @@ evtSource.onmessage = (e) => {
   a.reverse()
   a.forEach((bytes) => {
     const dto = JSON.parse(bytes)
-    if (dto.message) {
+    const m = dto.message
+    if (m) {
       while (boardElement.children.length > 1000) {
         boardElement.firstChild.remove()
       }
-      const m = dto.message
       const eDiv = document.createElement('div')
       const eTS = document.createElement('code')
       const eB = document.createElement('b')
@@ -114,8 +127,20 @@ evtSource.onmessage = (e) => {
       eDiv.style.color = m.color
       boardElement.append(eDiv)
     } else {
-      const eDiv = document.createElement('div')
+      const eDiv = document.createElement('div') // TODO for debugging only!
       eDiv.textContent = JSON.stringify(dto)
+      boardElement.append(eDiv)
+    }
+    console.log('dto', dto)
+    const s = dto.status
+    console.log('s', s)
+    if (s) {
+      lockStatus = s.locked
+      lockElement.textContent = lockStatus ? '🔐' : '🔓'
+      // TODO update lock
+      // TODO set user list and count
+      const eDiv = document.createElement('div') // TODO for debugging only!
+      eDiv.textContent = JSON.stringify(s.users) + ' / ' + JSON.stringify(s.locked)
       boardElement.append(eDiv)
     }
   })
