@@ -42,7 +42,14 @@ function bar(text, title) {
 
 const roomID = 'main' // TODO: get from URL with fallback
 
-const userID = Date.now().toString(36) + '-' + Math.random().toString(36).substring(2) // TODO: save to localStorage, get from localStorage, validate, use
+const userID = (function() {
+  let u = localStorage.getItem('user')
+  if (!u) {
+    u = Date.now().toString(36) + '-' + Math.random().toString(36).substring(2)
+    localStorage.setItem('user', u)
+  }
+  return u
+})()
 console.log(userID)
 
 const queryString = new URLSearchParams({ room: roomID, user: userID }).toString()
