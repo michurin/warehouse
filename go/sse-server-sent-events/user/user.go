@@ -1,6 +1,7 @@
 package user
 
 import (
+	"log"
 	"sync"
 )
 
@@ -51,23 +52,14 @@ func (u *Users) Touch(userID string, ms int64, name, color string) (bool, bool) 
 	return true, true // allowed, updated
 }
 
-func (u *Users) Lock() bool {
+func (u *Users) Lock(v bool) bool {
 	u.mu.Lock()
 	defer u.mu.Unlock()
-	if u.locked {
+	log.Printf("LOCK %v->%v", u.locked, v)
+	if u.locked == v {
 		return false
 	}
-	u.locked = true
-	return true
-}
-
-func (u *Users) Unlock() bool {
-	u.mu.Lock()
-	defer u.mu.Unlock()
-	if !u.locked {
-		return false
-	}
-	u.locked = false
+	u.locked = v
 	return true
 }
 

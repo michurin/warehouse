@@ -122,14 +122,11 @@ function eventMessage(e) {
       boardElement.append(eDiv)
     }
     console.log('dto', dto)
-    const s = dto.status
-    console.log('s', s)
-    if (s) {
-      setLock(s.locked)
-      setUsers(s.users)
-      const eDiv = document.createElement('div') // TODO for debugging only!
-      eDiv.textContent = JSON.stringify(s.users) + ' / ' + JSON.stringify(s.locked)
-      boardElement.append(eDiv)
+    if (dto.users) {
+      setUsers(dto.users)
+    }
+    if (dto.locked !== undefined) {
+      setLock(dto.locked)
     }
   })
 }
@@ -149,11 +146,12 @@ function eventOpen() {
 
 function toggleLock() {
   console.log('toggle lock')
-  fetch(appState.locked ? '/unlock' : '/lock', {
+  fetch('/lock', {
     method: 'POST',
     body: JSON.stringify({
       room: appState.room,
       user: appState.user,
+      lock: !appState.locked,
     })
   })
 }
