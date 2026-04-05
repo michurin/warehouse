@@ -1,8 +1,8 @@
 return {
   cmd = { 'gopls' },
-  filetypes = { 'go', 'gomod' },
+  filetypes = { 'go', 'gomod', 'gowork', 'gotmpl' },
   root_markers = { 'go.mod', '.git' },
-  gofumpt = true,
+  gofumpt = true, -- vim.api.nvim_eval('exists("g:nogofumpt_tweak")') == 0
   experimentalPostfixCompletions = true,
   analyses = { -- https://github.com/golang/tools/blob/master/gopls/doc/analyzers.md
     unusedparams = true,
