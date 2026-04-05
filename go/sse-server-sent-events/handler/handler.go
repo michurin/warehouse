@@ -45,10 +45,9 @@ func handlerFetch(ch *room.House) http.HandlerFunc {
 		roomID := q.Get("room")
 		userID := q.Get("user")
 		// TODO validate, set defaults
-		wall, users, isNew := ch.Room(roomID)
-		_ = isNew                   // TODO?
-		nik, _ := users.Get(userID) // TODO in fact, just check if user exists
-		if len(nik) == 0 {
+		wall, users := ch.Room(roomID) // TODO error if no more room for rooms
+		name, _ := users.Get(userID)   // TODO in fact, just check if user exists
+		if len(name) == 0 {
 			http.Error(w, "Forbidden", http.StatusForbidden) // TODO reset; TODO superfluous response.WriteHeader call from
 		}
 		leid, err := strconv.ParseInt(r.Header.Get("Last-Event-Id"), 10, 64)
@@ -200,7 +199,7 @@ func handlerEnter(ch *room.House) http.HandlerFunc {
 			return // TODO http.Error
 		}
 		ms := time.Now().UnixMilli()
-		wall, users, _ := ch.Room(dto.Room)
+		wall, users := ch.Room(dto.Room)
 		allowed, updated := users.Touch(dto.User, ms, dto.Name, dto.Color)
 		if !allowed {
 			return // TODO http response
@@ -225,7 +224,7 @@ func handlerLock(ch *room.House) http.HandlerFunc {
 			return
 		}
 		if users.Lock(req.Lock) {
-			wall.Pub(buildResponse(buildRobotMessage("Someone enters"), users))
+			wall.Pub(buildResponse(buildRobotMessage(name+" touched LOCK"), users))
 		}
 	}
 }

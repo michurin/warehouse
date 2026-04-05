@@ -35,18 +35,18 @@ func (h *House) RoomOrNil(room string) (*wall.Wall, *user.Users) {
 	return nil, nil
 }
 
-func (h *House) Room(name string) (*wall.Wall, *user.Users, bool) {
+func (h *House) Room(name string) (*wall.Wall, *user.Users) {
 	h.mu.Lock()
 	defer h.mu.Unlock()
 	r, ok := h.rooms[name]
 	if ok {
-		return r.wall, r.users, false
+		return r.wall, r.users
 	}
 	// TODO check len(h.rooms), can we add one more room
 	users := user.New() // we will add current user on caller side
 	wall := wall.New(time.Now().UnixNano())
 	h.rooms[name] = &room{users: users, wall: wall}
-	return wall, users, true
+	return wall, users
 }
 
 func (h *House) List() []string { // for debugging only
