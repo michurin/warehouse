@@ -26,5 +26,6 @@
     {"matches": ["https://github.com/inDriver/*/pulls"], "js": ["idprs.js"]},
     {"matches": ["https://boundary.indrive.tech/*"], "js": ["bo.js"]},
     {"matches": ["https://indrivezerotrust.cloudflareaccess.com/*"], "js": ["warp.js"]}
+    {"matches": ["https://platform.claude.com/oauth/code/success"], "js": ["cl.js"]}
   ]
 }
