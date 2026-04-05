@@ -48,3 +48,13 @@ func (h *House) Room(name string) (*wall.Wall, *user.Users, bool) {
 	h.rooms[name] = &room{users: users, wall: wall}
 	return wall, users, true
 }
+
+func (h *House) List() []string { // for debugging only
+	h.mu.RLock()
+	defer h.mu.RUnlock()
+	r := []string(nil)
+	for k := range h.rooms {
+		r = append(r, k)
+	}
+	return r
+}

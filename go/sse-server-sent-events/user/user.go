@@ -24,7 +24,7 @@ func New() *Users {
 	}
 }
 
-func (u *Users) Touch(userID string, ms int64, name, color string) (bool, bool) { // TODO case name == "", color == ""
+func (u *Users) Touch(userID string, ms int64, name, color string) (bool, bool) {
 	u.mu.Lock()
 	defer u.mu.Unlock()
 	r, ok := u.users[userID]

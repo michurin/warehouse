@@ -10,10 +10,6 @@
 /*eslint prefer-arrow-callback: "error"*/
 /*eslint arrow-body-style: "error"*/
 
-function randomColor() {
-  return '#' + (Math.round((Math.random() + 1) * 16777216)).toString(16).slice(-6)
-}
-
 function pad(x) { // naive
   return (x < 10 ? '0' : '') + x
 }
@@ -23,7 +19,6 @@ function timeFormat(ts) {
   return pad(d.getHours()) + ':' + pad(d.getMinutes())
 }
 
-const bodyElement = document.body
 const boardElement = document.getElementById('board')
 const statusElement = document.getElementById('status')
 const colorElement = document.getElementById('color')
@@ -31,35 +26,54 @@ const nameElement = document.getElementById('name')
 const inputElement = document.getElementById('input')
 const sendElement = document.getElementById('send')
 const lockElement = document.getElementById('lock')
+const usersElement = document.getElementById('users')
 
-colorElement.value = localStorage.getItem('color') || randomColor() // TODO validate
-nameElement.value = localStorage.getItem('name') || 'me'
-inputElement.focus()
-
-function bar(text, title) {
-  statusElement.textContent = text
-  statusElement.title = title
+const appState = {
+  room: 'main',
+  user: '',
+  name: '', // TODO store in element?
+  color: '', // TODO store in element?
+  users: [],
+  locked: false,
 }
 
-const roomID = 'main' // TODO: get from URL with fallback
-
-const userID = (function() {
-  let u = localStorage.getItem('user')
-  if (!u) {
-    u = Date.now().toString(36) + '-' + Math.random().toString(36).substring(2)
-    localStorage.setItem('user', u)
+function initAppState() {
+  appState.room = 'main' // TODO
+  appState.user = localStorage.getItem('user')
+  appState.name = localStorage.getItem('name')
+  appState.color = localStorage.getItem('color')
+  if (!appState.user) {
+    appState.user = Date.now().toString(36) + '-' + Math.random().toString(36).substring(2)
+    localStorage.setItem('user', appState.user)
   }
-  return u
-})()
-console.log(userID)
+  if (!appState.name) {
+    appState.name = 'u' + ((Math.random() + 1) * 100).toString(10).substring(1, 3)
+    localStorage.setItem('name', appState.name)
+  }
+  if (!/^#[0-9a-fA-F]{3,6}$/.test(appState.color)) {
+    appState.color = '#' + ((Math.random() + 1) * 16777216).toString(16).substring(1, 7)
+    localStorage.setItem('color', appState.color)
+  }
+  nameElement.value = appState.name
+  colorElement.value = appState.color
+}
 
-const queryString = new URLSearchParams({ room: roomID, user: userID }).toString()
+function setLock(s) {
+  appState.locked = s
+  lockElement.textContent = s ? '🔐' : '🔓'
+}
 
-var lockStatus = false // TODO get on initialization
-
-bar('loading...')
-
-// --- sending
+function setUsers(uu) {
+  usersElement.innerHTML = ''
+  uu.sort((a, b) => a.name.localeCompare(b.name) || a.color.localeCompare(b.color))
+  appState.users = uu
+  uu.forEach((u) => {
+    const e = document.createElement('div')
+    e.textContent = u.name
+    e.style.color = u.color
+    usersElement.append(e)
+  })
+}
 
 async function send() {
   localStorage.setItem('name', nameElement.value) // TODO set default if empty
@@ -71,8 +85,8 @@ async function send() {
   await fetch('/pub', {
     method: 'POST',
     body: JSON.stringify({
-      room: roomID,
-      user: userID,
+      room: appState.room,
+      user: appState.user,
       color: colorElement.value.replaceAll(/\p{Cc}+/gu, ' '),
       name: nameElement.value.replaceAll(/\p{Cc}+/gu, ' '),
       message: msg,
@@ -82,31 +96,7 @@ async function send() {
   inputElement.focus()
 }
 
-inputElement.onkeyup = (e) => {
-  if (e.which === 10 || e.which === 13) { // it won't work on Androd Chrome
-    send()
-  }
-}
-
-sendElement.onclick = send
-sendElement.ontouchstart = send // android
-sendElement.onmousedown = send // android with chrome bug
-
-lockElement.onclick = function() {
-  fetch(lockStatus ? '/unlock' : '/lock', {
-    method: 'POST',
-    body: JSON.stringify({
-      room: roomID,
-      user: userID,
-    })
-  })
-}
-
-// --- fetching
-
-const evtSource = new EventSource('/fetch?' + queryString)
-
-evtSource.onmessage = (e) => {
+function eventMessage(e) {
   const a = e.data.split(/[\n\r]+/)
   a.reverse()
   a.forEach((bytes) => {
@@ -135,10 +125,8 @@ evtSource.onmessage = (e) => {
     const s = dto.status
     console.log('s', s)
     if (s) {
-      lockStatus = s.locked
-      lockElement.textContent = lockStatus ? '🔐' : '🔓'
-      // TODO update lock
-      // TODO set user list and count
+      setLock(s.locked)
+      setUsers(s.users)
       const eDiv = document.createElement('div') // TODO for debugging only!
       eDiv.textContent = JSON.stringify(s.users) + ' / ' + JSON.stringify(s.locked)
       boardElement.append(eDiv)
@@ -146,10 +134,64 @@ evtSource.onmessage = (e) => {
   })
 }
 
-evtSource.onerror = () => {
+function bar(text, title) {
+  statusElement.textContent = text
+  statusElement.title = title
+}
+
+function eventError() {
   bar('❌', 'offline')
 }
 
-evtSource.onopen = () => {
+function eventOpen() {
   bar('✅', 'online')
 }
+
+function toggleLock() {
+  console.log('toggle lock')
+  fetch(appState.locked ? '/unlock' : '/lock', {
+    method: 'POST',
+    body: JSON.stringify({
+      room: appState.room,
+      user: appState.user,
+    })
+  })
+}
+
+function inputKeyup(e) {
+  if (e.which === 10 || e.which === 13) { // it won't work on Androd Chrome
+    send()
+  }
+}
+
+function initApp() {
+  const queryString = new URLSearchParams({ room: appState.room, user: appState.user }).toString()
+  const evtSource = new EventSource('/fetch?' + queryString)
+  evtSource.onmessage = eventMessage
+  evtSource.onerror = eventError
+  evtSource.onopen = eventOpen
+  lockElement.onclick = toggleLock
+  sendElement.onclick = send
+  sendElement.ontouchstart = send // android
+  sendElement.onmousedown = send // android with chrome bug
+  inputElement.onkeyup = inputKeyup
+  inputElement.focus()
+}
+
+(async function() {
+  initAppState()
+  const resp = await fetch('/enter', {
+    method: 'POST',
+    body: JSON.stringify({
+      room: appState.room,
+      user: appState.user,
+      name: appState.name,
+      color: appState.color,
+    })
+  })
+  // TODO check resp.ok
+  const data = await resp.json()
+  setLock(data.locked)
+  setUsers(data.users)
+  initApp()
+})()

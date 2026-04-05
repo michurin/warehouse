@@ -1,4 +1,41 @@
-# schema
+# IDEA 0.1
+
+- Remove seeded status
+- Universal DTOs
+
+## Handlers actions and permissions
+
+```
+             room    user
+             ----    ----
+POST /enter  create  create/update
+POST /pub    create  create/update
+GET  /fetch  must    must
+POST /lock   must    must
+```
+
+### /enter
+
+Perform very first.
+
+- Create/update user
+- Fetch lock staus
+- Fetch users list
+
+### /pub
+
+- Create/update user (new color, new name)
+
+### /fetch
+
+- User must exist
+- Check it on every iteration, send death message if user not exist
+
+### /lock
+
+- User must exist to change lock status
+
+# IDEA 0 (outdated)
 
 ## Users statuses
 
@@ -27,16 +64,38 @@
 
 **TODO**
 
-## Table
+## Access
 
 ```
+              access
+              -----------------------------------
+              room    room    user    user    user
+              not     exists  not     seeded  full
+              exists          exists
+              ----    ----    ----    ----    ----
+GET  /fetch   Y(c)    Y       Y(s)    Y       Y
+POST /pub     Y(c)    Y       Y(c)    Y(u)    Y
+POST /lock    N       Y       N       N       Y
+POST /unlock  N       Y       N       N       Y
+POST /list    Y(e)    Y       Y(s)    Y       Y
+----------
+(c) - create
+(e) - empty response
+(s) - create seeded (user)
+(u) - update user
+```
+
+```
+just idea (legacy):
+
               room   user
 -----------   ----   ----
 GET  /fetch   CINE   CINE*
 POST /pub     CINE   COU
 POST /lock    must   must*
 POST /unlock  must   must*
-POST /users   must   COU
+POST /list    must   COU    ?
+POST /me      must   must*  ?
 
 CINE — create if not exists
 CINE* — in seeded mode if new
@@ -67,7 +126,7 @@ Request:
 
 - fetch messages
 
-Response:
+Response (one SSE message):
 
 ```
 {
@@ -77,11 +136,13 @@ Response:
     "name": "nik",
     "ts": 1775064288968
   },
-  "status": {
-    "locked": false,
+  "status": { // optional
+    "locked": true,
     "users": [
-      "one",
-      "two"
+      {
+        "name": "me",      // can be empty for just seeded user
+        "color": "#ff0000" // can be empty
+      }
     ]
   }
 }
@@ -89,9 +150,39 @@ Response:
 
 Response can have users list
 
-### GET /lock?room=main&user=mng3flk5-zt8nqndakv
+### POST /lock
 
-### GET /unlock?room=main&user=mng3flk5-zt8nqndakv
+```
+{
+  "room": "main",
+  "user": "mnkh2nej-h6gbfxpd7vh"
+}
+```
 
-### GET /list?room=main&user=mng3flk5-zt8nqndakv
+### POST /unlock
+
+```
+{
+  "room": "main",
+  "user": "mnkh2nej-h6gbfxpd7vh"
+}
+```
+
+### POST /list (TODO +/me?)
+
+```
+{
+  "room": "main",
+  "user": "mnkh2nej-h6gbfxpd7vh"
+}
+```
+
+### POST /me
+
+```
+{
+  "room": "main",
+  "user": "mnkh2nej-h6gbfxpd7vh"
+}
+```
 

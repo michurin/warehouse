@@ -52,7 +52,7 @@ type LockRequisetDTO struct {
 	User string `json:"user"`
 }
 
-func roomAndUserFromPost(r io.Reader) (string, string) {
+func roomAndUserFromPost(r io.Reader) (string, string) { // TODO legacy
 	body, err := io.ReadAll(r)
 	if err != nil {
 		panic(err) // TODO
@@ -70,6 +70,15 @@ func handlerFetch(ch *room.House) http.HandlerFunc {
 	// TODO process errors, TODO use Copy
 	return func(w http.ResponseWriter, r *http.Request) {
 		// io.Copy(io.Discard, r.Body) // just drop body. We do not need to close it. Oh. It works without ctx
+		ctx := r.Context()
+		ctx, cancel := context.WithTimeout(ctx, pollingTimeout)
+		defer cancel()
+		h := w.Header()
+		h.Add("X-Accel-Buffering", "no")
+		h.Add("Content-Type", "text/event-stream")
+		h.Add("Cache-Control", "no-cache")
+		w.WriteHeader(http.StatusOK)
+
 		roomID, userID := roomAndUserFromGet(r.URL.Query())
 		wall, users, isNew := ch.Room(roomID)
 		_ = isNew                                          // TODO?
@@ -84,14 +93,6 @@ func handlerFetch(ch *room.House) http.HandlerFunc {
 		if err != nil {
 			leid = 0
 		}
-		ctx := r.Context()
-		ctx, cancel := context.WithTimeout(ctx, pollingTimeout)
-		defer cancel()
-		h := w.Header()
-		h.Add("X-Accel-Buffering", "no")
-		h.Add("Content-Type", "text/event-stream")
-		h.Add("Cache-Control", "no-cache")
-		w.WriteHeader(http.StatusOK)
 		if f, ok := w.(http.Flusher); ok {
 			f.Flush()
 		}
@@ -155,6 +156,88 @@ func handlerPub(ch *room.House) http.HandlerFunc {
 	}
 }
 
+// ----- Transport DTOs -----
+
+type RequestDTO struct {
+	Room    string `json:"room"`
+	User    string `json:"user"`
+	Name    string `json:"name"`
+	Color   string `json:"color"`
+	Lock    bool   `json:"lock"`    // /lock only
+	Message string `json:"message"` // /pub only
+}
+
+type UserDTO struct {
+	Name  string `json:"name"`
+	Color string `json:"color"`
+}
+
+type ResponseDTO struct {
+	Message *string   `json:"message,omitempty"`
+	Users   []UserDTO `json:"users,omitempty"`
+	Locked  *bool     `json:"locked,omitempty"`
+}
+
+func buildResponse(message string, users *user.Users) []byte {
+	dto := ResponseDTO{}
+	if len(message) > 0 {
+		dto.Message = &message
+	}
+	if users != nil {
+		dto.Locked = ptr(users.Locked())
+		u := users.List()
+		v := make([]UserDTO, len(u))
+		for i, x := range u {
+			v[i] = UserDTO{
+				Name:  x[0],
+				Color: x[1],
+			}
+		}
+		dto.Users = v
+	}
+	b, _ := json.Marshal(dto) // TODO err
+	return b
+}
+
+func readBody(r io.Reader) *RequestDTO {
+	body, err := io.ReadAll(r)
+	if err != nil {
+		// TODO log
+		return nil
+	}
+	dto := new(RequestDTO)
+	err = json.Unmarshal(body, dto)
+	if err != nil {
+		// TODO log
+		return nil
+	}
+	// TODO validate, set defaults
+	return dto
+}
+
+// --------------------------
+
+func handlerEnter(ch *room.House) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		dto := readBody(r.Body)
+		if dto == nil {
+			return // TODO http.Error
+		}
+		ms := time.Now().UnixMilli()
+		wall, users, _ := ch.Room(dto.Room)
+		_ = users
+		allowed, updated := users.Touch(dto.User, ms, dto.Name, dto.Color)
+		if !allowed {
+			return // TODO http response
+		}
+		// TODO if updated
+		_ = updated
+		_ = wall
+		body := buildResponse("", users)
+		w.Write(body) // TODO user io.copy, check error
+	}
+}
+
 func handlerLock(ch *room.House) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		roomID, userID := roomAndUserFromPost(r.Body)
@@ -189,12 +272,33 @@ func handlerUnlock(ch *room.House) http.HandlerFunc {
 	}
 }
 
+func handlerDump(ch *room.House) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		res := map[string]any{}
+		for _, room := range ch.List() {
+			wall, users := ch.RoomOrNil(room)
+			if wall == nil {
+				continue
+			}
+			res[room] = map[string]any{
+				"users": users.List(),
+				"lock":  users.Locked(),
+			}
+		}
+		j := json.NewEncoder(w)
+		j.SetIndent("", "  ")
+		j.Encode(res) // TODO err
+	}
+}
+
 func handler(staticFS fs.FS, house *room.House) http.HandlerFunc {
 	fsh := http.FileServerFS(staticFS)
 	fetchh := handlerFetch(house)
 	pubh := handlerPub(house)
 	lockh := handlerLock(house)
 	unlockh := handlerUnlock(house)
+	enterh := handlerEnter(house)
+	dumph := handlerDump(house)
 	return func(w http.ResponseWriter, r *http.Request) {
 		path := r.URL.EscapedPath()
 		switch r.Method {
@@ -202,6 +306,9 @@ func handler(staticFS fs.FS, house *room.House) http.HandlerFunc {
 			switch path {
 			case "/fetch":
 				fetchh.ServeHTTP(w, r)
+				return
+			case "/dump":
+				dumph.ServeHTTP(w, r)
 				return
 			}
 			handleStatic(fsh).ServeHTTP(w, r)
@@ -211,8 +318,8 @@ func handler(staticFS fs.FS, house *room.House) http.HandlerFunc {
 			case "/pub":
 				pubh.ServeHTTP(w, r)
 				return
-			case "/users":
-				http.Error(w, "OK", http.StatusOK) // TODO
+			case "/enter":
+				enterh.ServeHTTP(w, r)
 				return
 			case "/lock":
 				lockh.ServeHTTP(w, r)
@@ -241,7 +348,7 @@ func handleStatic(fsh http.Handler) http.HandlerFunc { // TODO move to MW packag
 	}
 }
 
-func buildRoomStatus(users *user.Users) *dto.RoomStatus {
+func buildRoomStatus(users *user.Users) *dto.RoomStatus { // TODO legacy
 	u := users.List()
 	v := make([]dto.User, len(u))
 	for i, x := range u {
@@ -256,7 +363,7 @@ func buildRoomStatus(users *user.Users) *dto.RoomStatus {
 	}
 }
 
-func buildMessage(ms int64, name, color, message string) *dto.Message {
+func buildMessage(ms int64, name, color, message string) *dto.Message { // TODO LEGACY
 	return &dto.Message{
 		Color:      color,
 		Message:    message,
@@ -273,3 +380,5 @@ func pub(wall *wall.Wall, m *dto.Message, s *dto.RoomStatus) error { // TODO pro
 	wall.Pub(messageBytes)
 	return nil
 }
+
+func ptr[T any](x T) *T { return &x }
