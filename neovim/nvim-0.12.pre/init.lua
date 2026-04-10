@@ -126,6 +126,10 @@ vim.api.nvim_create_user_command('GB', function(opts)
   vim.cmd.copen()
 end, { nargs = '+' })
 
+-- go: TODO move to ft-file?
+vim.api.nvim_create_user_command('GA', F.go_alt.act('vsplit'), F.go_alt.opts)
+vim.api.nvim_create_user_command('GAA', F.go_alt.act('tabnew'), F.go_alt.opts)
+
 -- misc
 vim.api.nvim_create_user_command('U', function()
   vim.cmd.edit(vim.fn.fnamemodify(vim.api.nvim_buf_get_name(0), ':h'))

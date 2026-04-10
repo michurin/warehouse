@@ -533,4 +533,27 @@ M.smart_open = {
   end
 }
 
+M.go_alt = {
+  opts = {},
+  act = function(cmd)
+    return function()
+      local file = vim.api.nvim_buf_get_name(0)
+      if file == "" then
+        print("no file")
+        return
+      end
+      local new_file
+      if file:match("_test%.go$") then
+        new_file = file:gsub("_test%.go$", ".go")
+      elseif file:match("%.go$") then
+        new_file = file:gsub("%.go$", "_test.go")
+      else
+        print("no go file")
+        return
+      end
+      vim.cmd({ cmd = cmd, args = { new_file } }) -- local escaped = vim.fn.fnameescape(new_file) -- TODO?
+    end
+  end,
+}
+
 return M
