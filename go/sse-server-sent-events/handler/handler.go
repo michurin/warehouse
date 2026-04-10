@@ -28,6 +28,24 @@ func sanitize(x string) string {
 	}, x)
 }
 
+func strictSanitaze(x string) string {
+	return strings.Map(func(x rune) rune {
+		if x == '_' || x == '-' || ('A' <= x && x <= 'Z') || ('a' <= x && x <= 'z') || ('0' <= x && x <= '9') {
+			return x
+		}
+		return -1
+	}, x)
+}
+
+func colorSanitaze(x string) string {
+	return strings.Map(func(x rune) rune {
+		if x == '#' || ('A' <= x && x <= 'F') || ('a' <= x && x <= 'f') || ('0' <= x && x <= '9') {
+			return x
+		}
+		return -1
+	}, x)
+}
+
 func handlerFetch(ch *room.House) http.HandlerFunc {
 	// TODO process errors, TODO use Copy
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -42,9 +60,15 @@ func handlerFetch(ch *room.House) http.HandlerFunc {
 		w.WriteHeader(http.StatusOK)
 
 		q := r.URL.Query()
-		roomID := q.Get("room")
-		userID := q.Get("user")
-		// TODO validate, set defaults
+		roomID := strictSanitaze(q.Get("room"))
+		userID := strictSanitaze(q.Get("user"))
+		if len(roomID) == 0 {
+			roomID = "main"
+		}
+		if len(roomID) > 50 || len(userID) == 0 || len(userID) > 30 {
+			log.Print("ERROR roomID/userID=%q/%q", roomID, userID)
+			http.Error(w, "Forbidden", http.StatusForbidden) // TODO reset; TODO superfluous response.WriteHeader call from
+		}
 		wall, users := ch.Room(roomID) // TODO error if no more room for rooms
 		name, _ := users.Get(userID)   // TODO in fact, just check if user exists
 		if len(name) == 0 {
@@ -58,25 +82,33 @@ func handlerFetch(ch *room.House) http.HandlerFunc {
 			f.Flush()
 		}
 		messages := [][]byte(nil) // we have to create this var out of the loop, as leid
-		for {                     // TODO check writing errors
+		for {
 			messages, leid = wall.Fetch(ctx, leid)
 			if ctx.Err() != nil {
-				return
+				return // TODO?
 			}
-			// TODO user update? touch only
-			w.Write([]byte("event: message\n"))                          // it MUST be `message` to make e.onmessage be fired
-			w.Write([]byte("retry: 200\n"))                              // server side control for reconnecting delay
-			w.Write([]byte("id: " + strconv.FormatInt(leid, 10) + "\n")) // it will be `Last-Event-Id: TOKEN` (on request)
-			for _, m := range messages {
-				w.Write([]byte("data: "))
-				w.Write(m) // we are storing single line messages only
-				w.Write([]byte{10})
-			}
-			w.Write([]byte{10})
-			if f, ok := w.(http.Flusher); ok {
-				f.Flush()
-			}
+			writeStreamMessage(w, leid, "message", messages)
 		}
+	}
+}
+
+func writeStreamMessage(w io.Writer, leid int64, event string, messages [][]byte) {
+	// TODO check writing errors
+	w.Write([]byte("event: ")) // message to e.onmessage
+	w.Write([]byte(event))
+	w.Write([]byte{10})
+	w.Write([]byte("retry: 200\n")) // server side control for reconnecting delay
+	w.Write([]byte("id: "))
+	w.Write([]byte(strconv.FormatInt(leid, 10))) // it will be `Last-Event-Id: TOKEN` (on request)
+	w.Write([]byte{10})
+	for _, m := range messages {
+		w.Write([]byte("data: "))
+		w.Write(m) // we are storing single line messages only
+		w.Write([]byte{10})
+	}
+	w.Write([]byte{10})
+	if f, ok := w.(http.Flusher); ok {
+		f.Flush()
 	}
 }
 
@@ -88,29 +120,31 @@ func handlerPub(ch *room.House) http.HandlerFunc {
 			return
 		}
 		ms := time.Now().UnixMilli()
-		name := sanitize(req.Name)   // TODO validate
-		color := sanitize(req.Color) // TODO validate
-		roomID := req.Room           // TODO validate
-		userID := req.User           // TODO validate
+		name := strictSanitaze(req.Name)
+		color := colorSanitaze(req.Color)
+		roomID := strictSanitaze(req.Room)
+		userID := strictSanitaze(req.User)
+		// TODO check empty
 		wall, users := ch.RoomOrNil(roomID)
 		if users == nil {
 			return
 		}
 		allowed, updated := users.Touch(userID, ms, name, color)
-		if allowed {
-			u := (*user.Users)(nil)
-			if updated {
-				u = users
-			}
-			wall.Pub(buildResponse(&MessageDTO{
-				Color:      color,
-				Message:    sanitize(req.Message),
-				Name:       name,
-				TimeStamep: 0, // TODO
-			}, u))
-		} else {
+		if !allowed {
 			log.Printf("WARNING: User is not allowed! room=%s, user=%s", roomID, userID)
+			http.Error(w, "Not allowed", http.StatusOK) // TODO error
+			return
 		}
+		if updated {
+			wall.Pub(buildResponse(buildRobotMessage(ms, "User updated "+name), users))
+		}
+		wall.Pub(buildResponse(&MessageDTO{
+			Color:      color,
+			Message:    sanitize(req.Message),
+			Name:       name,
+			TimeStamep: ms,
+		}, nil))
+		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
 	}
 }
@@ -140,22 +174,24 @@ type MessageDTO struct {
 
 type ResponseDTO struct {
 	Message *MessageDTO `json:"message,omitempty"`
-	Users   []UserDTO   `json:"users,omitempty"`
+	Users   *[]UserDTO  `json:"users,omitempty"`
 	Locked  *bool       `json:"locked,omitempty"`
 }
 
 func buildResponse(message *MessageDTO, users *user.Users) []byte { // TODO do not use *user.Users, use DTOs only
-	v := []UserDTO(nil)
+	v := (*[]UserDTO)(nil)
 	c := (*bool)(nil)
 	if users != nil {
+		w := []UserDTO{} // force empty array, not nil
 		c = ptr(users.Locked())
 		u := users.List()
 		for _, x := range u {
-			v = append(v, UserDTO{
+			w = append(w, UserDTO{
 				Name:  x[0],
 				Color: x[1],
 			})
 		}
+		v = &w
 	}
 	b, _ := json.Marshal(ResponseDTO{ // TODO err
 		Message: message,
@@ -181,12 +217,12 @@ func readBody(r io.Reader) *RequestDTO {
 	return dto
 }
 
-func buildRobotMessage(s string) *MessageDTO {
+func buildRobotMessage(ms int64, s string) *MessageDTO {
 	return &MessageDTO{
 		Color:      "#990099",
 		Message:    s,
 		Name:       "#ROBOT",
-		TimeStamep: 0, // TODO
+		TimeStamep: ms,
 	}
 }
 
@@ -205,7 +241,8 @@ func handlerEnter(ch *room.House) http.HandlerFunc {
 			return // TODO http response
 		}
 		if updated {
-			wall.Pub(buildResponse(buildRobotMessage(dto.Name+" HERE!"), users))
+			ms := time.Now().UnixMilli()
+			wall.Pub(buildResponse(buildRobotMessage(ms, dto.Name+" HERE!"), users))
 		}
 		body := buildResponse(nil, users)
 		w.Write(body) // TODO user io.copy, check error
@@ -224,7 +261,8 @@ func handlerLock(ch *room.House) http.HandlerFunc {
 			return
 		}
 		if users.Lock(req.Lock) {
-			wall.Pub(buildResponse(buildRobotMessage(name+" touched LOCK"), users))
+			ms := time.Now().UnixMilli()
+			wall.Pub(buildResponse(buildRobotMessage(ms, name+" touched LOCK"), users))
 		}
 	}
 }
@@ -290,15 +328,35 @@ func handler(staticFS fs.FS, house *room.House) http.HandlerFunc {
 }
 
 func Handler(house *room.House) http.Handler {
-	return handler(static.FS, house)
+	return http.MaxBytesHandler(handler(static.FS, house), 4096)
 }
 
 func handleStatic(fsh http.Handler) http.HandlerFunc { // TODO move to MW package?
 	return func(w http.ResponseWriter, r *http.Request) {
 		h := w.Header()
 		h.Add("Cache-Control", "no-cache")
+		switch r.URL.Path {
+		case "/", "/favicon.ico", "/script.js", "/styles.css":
+		default:
+			r.URL.Path = "/" // show index.html for any path
+		}
 		fsh.ServeHTTP(w, r)
 	}
 }
 
 func ptr[T any](x T) *T { return &x }
+
+// ---------- REVISION ---------- TODO move to package?
+
+func RevisionLoop(ch *room.House) {
+	for {
+		log.Print("Run")
+		ms := time.Now().Add(-10 * time.Second).UnixMilli()
+		walls, users := ch.Audit(ms)
+		for i, w := range walls {
+			log.Print("Run: notify")
+			w.Pub(buildResponse(buildRobotMessage(ms, "Someone got out"), users[i]))
+		}
+		time.Sleep(2 * time.Second)
+	}
+}

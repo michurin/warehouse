@@ -26,6 +26,9 @@ func New() *Users {
 }
 
 func (u *Users) Touch(userID string, ms int64, name, color string) (bool, bool) {
+	// TODO?
+	// in /enter — create
+	// in /pub — only update if exist; not exists — not allowed
 	u.mu.Lock()
 	defer u.mu.Unlock()
 	r, ok := u.users[userID]
@@ -77,6 +80,24 @@ func (u *Users) List() [][2]string {
 		r = append(r, [2]string{v.name, v.color})
 	}
 	return r
+}
+
+func (u *Users) Audit(ms int64) bool {
+	u.mu.RLock()
+	defer u.mu.RUnlock()
+	d := []string(nil)
+	for k, v := range u.users {
+		if v.lastCheck < ms {
+			d = append(d, k)
+		}
+	}
+	if len(d) == 0 {
+		return false
+	}
+	for _, k := range d {
+		delete(u.users, k)
+	}
+	return true
 }
 
 func (u *Users) Get(userID string) (string, string) {

@@ -10,6 +10,8 @@
 /*eslint prefer-arrow-callback: "error"*/
 /*eslint arrow-body-style: "error"*/
 
+// TODO languages: navigator.languages
+
 function pad(x) { // naive
   return (x < 10 ? '0' : '') + x
 }
@@ -29,7 +31,7 @@ const lockElement = document.getElementById('lock')
 const usersElement = document.getElementById('users')
 
 const appState = {
-  room: 'main',
+  room: '',
   user: '',
   name: '', // TODO store in element?
   color: '', // TODO store in element?
@@ -38,7 +40,7 @@ const appState = {
 }
 
 function initAppState() {
-  appState.room = 'main' // TODO
+  appState.room = location.pathname.replaceAll(/[^0-9a-zA-Z_-]+/g, '') || 'main'
   appState.user = localStorage.getItem('user')
   appState.name = localStorage.getItem('name')
   appState.color = localStorage.getItem('color')
