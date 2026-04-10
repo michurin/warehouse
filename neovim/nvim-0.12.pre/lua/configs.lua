@@ -31,6 +31,8 @@ opt.hlsearch = true
 opt.foldmethod = 'syntax'
 opt.foldlevelstart = 99
 
+opt.splitright = true
+
 --
 
 function _G.pretty_qf_textfunc(info)
