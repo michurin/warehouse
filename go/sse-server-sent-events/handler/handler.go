@@ -6,6 +6,7 @@ import (
 	"io"
 	"io/fs"
 	"log"
+	"log/slog"
 	"net/http"
 	"strconv"
 	"strings"
@@ -15,6 +16,7 @@ import (
 	"sse/room"
 	"sse/static"
 	"sse/user"
+	"sse/wall"
 )
 
 const pollingTimeout = 28 * time.Second
@@ -66,13 +68,9 @@ func handlerFetch(ch *room.House) http.HandlerFunc {
 			roomID = "main"
 		}
 		if len(roomID) > 50 || len(userID) == 0 || len(userID) > 30 {
-			log.Print("ERROR roomID/userID=%q/%q", roomID, userID)
-			http.Error(w, "Forbidden", http.StatusForbidden) // TODO reset; TODO superfluous response.WriteHeader call from
-		}
-		wall, users := ch.Room(roomID) // TODO error if no more room for rooms
-		name, _ := users.Get(userID)   // TODO in fact, just check if user exists
-		if len(name) == 0 {
-			http.Error(w, "Forbidden", http.StatusForbidden) // TODO reset; TODO superfluous response.WriteHeader call from
+			log.Printf("ERROR roomID/userID=%q/%q", roomID, userID)
+			writeStreamMessage(w, 0, [][]byte{buildResponse(buildControlMessage(), nil)}) // reason: invalid user or room
+			return
 		}
 		leid, err := strconv.ParseInt(r.Header.Get("Last-Event-Id"), 10, 64)
 		if err != nil {
@@ -82,22 +80,38 @@ func handlerFetch(ch *room.House) http.HandlerFunc {
 			f.Flush()
 		}
 		messages := [][]byte(nil) // we have to create this var out of the loop, as leid
+		wl := (*wall.Wall)(nil)
+		us := (*user.Users)(nil)
 		for {
-			messages, leid = wall.Fetch(ctx, leid)
-			if ctx.Err() != nil {
-				return // TODO?
+			wl, us = ch.RoomOrNil(roomID)
+			if wl == nil {
+				slog.Error("Kick. No room", slog.String("user", userID), slog.String("room", roomID))
+				writeStreamMessage(w, 0, [][]byte{buildResponse(buildControlMessage(), nil)}) // reason: no room
+				return
 			}
-			writeStreamMessage(w, leid, "message", messages)
+			name, _ := us.Get(userID) // check user before feetching // TODO in fact, just check if user exists
+			if len(name) == 0 {
+				writeStreamMessage(w, 0, [][]byte{buildResponse(buildControlMessage(), nil)}) // reason: no user
+				return
+			}
+			messages, leid = wl.Fetch(ctx, leid)
+			if ctx.Err() != nil {
+				return
+			}
+			name, _ = us.Get(userID) // check user before sending // TODO in fact, just check if user exists
+			if len(name) == 0 {
+				writeStreamMessage(w, 0, [][]byte{buildResponse(buildControlMessage(), nil)}) // reason: no user
+				return
+			}
+			writeStreamMessage(w, leid, messages)
 		}
 	}
 }
 
-func writeStreamMessage(w io.Writer, leid int64, event string, messages [][]byte) {
+func writeStreamMessage(w io.Writer, leid int64, messages [][]byte) {
 	// TODO check writing errors
-	w.Write([]byte("event: ")) // message to e.onmessage
-	w.Write([]byte(event))
-	w.Write([]byte{10})
-	w.Write([]byte("retry: 200\n")) // server side control for reconnecting delay
+	w.Write([]byte("event: message\n")) // message to e.onmessage
+	w.Write([]byte("retry: 200\n"))     // server side control for reconnecting delay
 	w.Write([]byte("id: "))
 	w.Write([]byte(strconv.FormatInt(leid, 10))) // it will be `Last-Event-Id: TOKEN` (on request)
 	w.Write([]byte{10})
@@ -226,6 +240,16 @@ func buildRobotMessage(ms int64, s string) *MessageDTO {
 	}
 }
 
+func buildControlMessage() *MessageDTO {
+	ms := time.Now().UnixMilli() // TODO
+	return &MessageDTO{
+		Color:      "#333333",
+		Message:    "",
+		Name:       "#CONTROL",
+		TimeStamep: ms,
+	}
+}
+
 // --------------------------
 
 func handlerEnter(ch *room.House) http.HandlerFunc {
@@ -350,7 +374,6 @@ func ptr[T any](x T) *T { return &x }
 
 func RevisionLoop(ch *room.House) {
 	for {
-		log.Print("Run")
 		ms := time.Now().Add(-10 * time.Second).UnixMilli()
 		walls, users := ch.Audit(ms)
 		for i, w := range walls {

@@ -105,6 +105,10 @@ function eventMessage(e) {
     const dto = JSON.parse(bytes)
     const m = dto.message
     if (m) {
+      if (m.name === '#CONTROL') {
+        location.href = '/fin.html?back=' + encodeURIComponent(appState.room)
+        return
+      }
       while (boardElement.children.length > 1000) {
         boardElement.firstChild.remove()
       }

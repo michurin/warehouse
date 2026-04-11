@@ -1,0 +1,20 @@
+<html>
+<head>
+  <title>MinWord</title>
+  <link rel="stylesheet" href="styles.css"></link>
+  <meta name="viewport" content="initial-scale=1.2, maximum-scale=1.2, minimum-scale=1.2, user-scalable=no">
+</head>
+<body align="center">
+<h1>Bye</h1>
+<a href="/">back to room <u><b></b></u></a>
+<script>
+  const params = new URLSearchParams(window.location.search)
+  const room = params.get('back')
+  if (room) {
+    const r = room.replaceAll(/[^0-9a-zA-Z_-]+/g, '')
+    document.getElementsByTagName('b')[0].innerText = r
+    document.getElementsByTagName('a')[0].href = '/' + r
+  }
+</script>
+</body>
+</html>
