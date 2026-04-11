@@ -61,12 +61,30 @@ func findMethods(root, targetTypeName string) []outputDto {
 	return result
 }
 
-func debug(n ast.Node) {
-	fmt.Println("---")
+func debug(pfx string, n ast.Node) {
+	if n == nil {
+		return
+	}
 	ast.Inspect(n, func(n ast.Node) bool {
-		fmt.Printf("--> [%[1]T][%[1]v]\n", n)
-		return true
+		fmt.Printf("%[1]s\033[1;32m-->\033[0m [%[2]T][%[2]v]\n", pfx, n)
+		ast.Inspect(n, func(nx ast.Node) bool {
+			if nx == n { // skip root
+				return true
+			}
+			debug(pfx+"  ", nx)
+			return false
+		})
+		return false
 	})
+}
+
+func debugFile(path string) {
+	fset := token.NewFileSet()
+	file, err := parser.ParseFile(fset, path, nil, parser.ParseComments)
+	if err != nil {
+		panic(err)
+	}
+	debug("", file)
 }
 
 func findFirstIdent(n ast.Node, name string) *ast.Ident {
@@ -149,6 +167,10 @@ func findConstructors(root, targetTypeName string) []outputDto { // TODO functio
 }
 
 func findInFunctionName() {} // TODO
+
+func findAllVarDefinitions() { // TODO?
+	debugFile("example/v.go")
+}
 
 func findInString(root string) []outputDto {
 	result := []outputDto(nil)
