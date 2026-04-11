@@ -332,12 +332,12 @@ func Handler(house *room.House) http.Handler {
 }
 
 func handleStatic(fsh http.Handler) http.HandlerFunc { // TODO move to MW package?
+	const validRoomNameChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz_-"
 	return func(w http.ResponseWriter, r *http.Request) {
 		h := w.Header()
 		h.Add("Cache-Control", "no-cache")
-		switch r.URL.Path {
-		case "/", "/favicon.ico", "/script.js", "/styles.css":
-		default:
+		if strings.TrimRight(r.URL.Path, validRoomNameChars) == "/" {
+			log.Print("Force root from " + r.URL.Path)
 			r.URL.Path = "/" // show index.html for any path
 		}
 		fsh.ServeHTTP(w, r)
