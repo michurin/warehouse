@@ -36,15 +36,13 @@ div, input {
   margin: 0;
 }
 
-#screen #input-block, #screen #control-block {
+#screen #input-block,
+#screen #control-block {
   display: flex;
   flex-direction: row;
 }
 
-#screen #input-block #input {
-  flex: 1;
-}
-
+#screen #input-block #input,
 #screen #control-block #name {
   flex: 1;
 }
@@ -66,6 +64,7 @@ div, input {
 
 #users {
   position: fixed;
+  display: block;
   max-height: 80vh;
   max-width: 80vw;
   box-sizing: border-box;
@@ -76,5 +75,5 @@ div, input {
   border-radius: 0.5em;
   scrollbar-width: thin;
   scrollbar-color: #800 transparent;
-  background-color: #fff;
+  background-color: rgba(0, 0, 0, .5);
 }

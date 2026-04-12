@@ -1,4 +1,9 @@
-/*global fetch, EventSource, requestAnimationFrame, document:readable, setTimeout:readable, localStorage:readable*/
+/*global document:readable*/
+/*global EventSource:readable*/
+/*global fetch:readable*/
+/*global localStorage:readable*/
+/*global location:readable*/
+/*global URLSearchParams:readable*/
 /*eslint indent: ["error", 2]*/
 /*eslint eqeqeq: ["error", "always"]*/
 /*eslint prefer-const: "error"*/
@@ -23,18 +28,18 @@ function timeFormat(ts) {
 
 function noNulGuard(x) { // for debugging only
   if (!x) {
-    throw new Error("not true")
+    throw new Error('not true')
   }
   return x
 }
 
-const boardElement = noNulGuard(document.getElementById('board'))
-const statusElement = noNulGuard(document.getElementById('status'))
-const colorElement = noNulGuard(document.getElementById('color'))
-const nameElement = noNulGuard(document.getElementById('name'))
+const eBoard = noNulGuard(document.getElementById('board'))
+const eStatus = noNulGuard(document.getElementById('status'))
+const eColorInput = noNulGuard(document.getElementById('color'))
+const eNameInput = noNulGuard(document.getElementById('name'))
 const eForm = noNulGuard(document.getElementById('form'))
-const eInput = noNulGuard(document.getElementById('input'))
-const lockElement = noNulGuard(document.getElementById('lock'))
+const eMessageInput = noNulGuard(document.getElementById('input'))
+const eLock = noNulGuard(document.getElementById('lock'))
 const eUsers = noNulGuard(document.getElementById('users'))
 const eShowUsers = noNulGuard(document.getElementById('show-users'))
 
@@ -64,13 +69,13 @@ function initAppState() {
     appState.color = '#' + ((Math.random() + 1) * 16777216).toString(16).substring(1, 7)
     localStorage.setItem('color', appState.color)
   }
-  nameElement.value = appState.name
-  colorElement.value = appState.color
+  eNameInput.value = appState.name
+  eColorInput.value = appState.color
 }
 
 function setLock(s) {
   appState.locked = s
-  lockElement.textContent = s ? '🔐' : '🔓'
+  eLock.textContent = s ? '🔐' : '🔓'
 }
 
 function setUsers(uu) {
@@ -86,9 +91,9 @@ function setUsers(uu) {
 }
 
 async function send() {
-  localStorage.setItem('name', nameElement.value) // TODO set default if empty
-  localStorage.setItem('color', colorElement.value) // TODO validate, set default
-  const msg = eInput.value.replaceAll(/\p{Cc}+/gu, ' ')
+  localStorage.setItem('name', eNameInput.value) // TODO set default if empty
+  localStorage.setItem('color', eColorInput.value) // TODO validate, set default
+  const msg = eMessageInput.value.replaceAll(/\p{Cc}+/gu, ' ')
   if (msg === '') {
     return
   }
@@ -97,13 +102,13 @@ async function send() {
     body: JSON.stringify({
       room: appState.room,
       user: appState.user,
-      color: colorElement.value.replaceAll(/\p{Cc}+/gu, ' '),
-      name: nameElement.value.replaceAll(/\p{Cc}+/gu, ' '),
+      color: eColorInput.value.replaceAll(/\p{Cc}+/gu, ' '),
+      name: eNameInput.value.replaceAll(/\p{Cc}+/gu, ' '),
       message: msg,
     })
   })
-  eInput.value = ''
-  eInput.focus()
+  eMessageInput.value = ''
+  eMessageInput.focus()
 }
 
 function eventMessage(e) {
@@ -117,8 +122,8 @@ function eventMessage(e) {
         location.href = '/fin.html?back=' + encodeURIComponent(appState.room)
         return
       }
-      while (boardElement.children.length > 1000) {
-        boardElement.firstChild.remove()
+      while (eBoard.children.length > 1000) {
+        eBoard.firstChild.remove()
       }
       const eDiv = document.createElement('div')
       const eTS = document.createElement('code')
@@ -129,11 +134,11 @@ function eventMessage(e) {
       eSpan.textContent = m.message
       eDiv.append(eTS, eB, eSpan)
       eDiv.style.color = m.color
-      boardElement.append(eDiv)
+      eBoard.append(eDiv)
     } else {
       const eDiv = document.createElement('div') // TODO for debugging only!
       eDiv.textContent = JSON.stringify(dto)
-      boardElement.append(eDiv)
+      eBoard.append(eDiv)
     }
     console.log('dto', dto)
     if (dto.users) {
@@ -146,8 +151,8 @@ function eventMessage(e) {
 }
 
 function bar(text, title) {
-  statusElement.textContent = text
-  statusElement.title = title
+  eStatus.textContent = text
+  eStatus.title = title
 }
 
 function eventError() {
@@ -188,10 +193,10 @@ function initApp() {
   evtSource.onmessage = eventMessage
   evtSource.onerror = eventError
   evtSource.onopen = eventOpen
-  lockElement.onclick = toggleLock
+  eLock.onclick = toggleLock
   eForm.onsubmit = formSubmit
-  eInput.onkeydown = inputKeyDown
-  eInput.focus()
+  eMessageInput.onkeydown = inputKeyDown
+  eMessageInput.focus()
   eShowUsers.onclick = () => { eUsers.style.display = eUsers.style.display === 'none' ? 'block' : 'none' }
   eUsers.onclick = () => { eUsers.style.display = 'none' }
 }
