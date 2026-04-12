@@ -21,14 +21,22 @@ function timeFormat(ts) {
   return pad(d.getHours()) + ':' + pad(d.getMinutes())
 }
 
-const boardElement = document.getElementById('board')
-const statusElement = document.getElementById('status')
-const colorElement = document.getElementById('color')
-const nameElement = document.getElementById('name')
-const inputElement = document.getElementById('input')
-const sendElement = document.getElementById('send')
-const lockElement = document.getElementById('lock')
-const usersElement = document.getElementById('users')
+function noNulGuard(x) { // for debugging only
+  if (!x) {
+    throw new Error("not true")
+  }
+  return x
+}
+
+const boardElement = noNulGuard(document.getElementById('board'))
+const statusElement = noNulGuard(document.getElementById('status'))
+const colorElement = noNulGuard(document.getElementById('color'))
+const nameElement = noNulGuard(document.getElementById('name'))
+const eForm = noNulGuard(document.getElementById('form'))
+const eInput = noNulGuard(document.getElementById('input'))
+const lockElement = noNulGuard(document.getElementById('lock'))
+const eUsers = noNulGuard(document.getElementById('users'))
+const eShowUsers = noNulGuard(document.getElementById('show-users'))
 
 const appState = {
   room: '',
@@ -66,21 +74,21 @@ function setLock(s) {
 }
 
 function setUsers(uu) {
-  usersElement.innerHTML = ''
+  eUsers.innerHTML = ''
   uu.sort((a, b) => a.name.localeCompare(b.name) || a.color.localeCompare(b.color))
   appState.users = uu
   uu.forEach((u) => {
     const e = document.createElement('div')
     e.textContent = u.name
     e.style.color = u.color
-    usersElement.append(e)
+    eUsers.append(e)
   })
 }
 
 async function send() {
   localStorage.setItem('name', nameElement.value) // TODO set default if empty
   localStorage.setItem('color', colorElement.value) // TODO validate, set default
-  const msg = inputElement.value.replaceAll(/\p{Cc}+/gu, ' ')
+  const msg = eInput.value.replaceAll(/\p{Cc}+/gu, ' ')
   if (msg === '') {
     return
   }
@@ -94,8 +102,8 @@ async function send() {
       message: msg,
     })
   })
-  inputElement.value = ''
-  inputElement.focus()
+  eInput.value = ''
+  eInput.focus()
 }
 
 function eventMessage(e) {
@@ -162,9 +170,15 @@ function toggleLock() {
   })
 }
 
-function inputKeyup(e) {
-  if (e.which === 10 || e.which === 13) { // it won't work on Androd Chrome
-    send()
+function formSubmit(e) {
+  e.preventDefault()
+  send()
+}
+
+function inputKeyDown(e) {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault()
+    eForm.requestSubmit()
   }
 }
 
@@ -175,11 +189,11 @@ function initApp() {
   evtSource.onerror = eventError
   evtSource.onopen = eventOpen
   lockElement.onclick = toggleLock
-  sendElement.onclick = send
-  sendElement.ontouchstart = send // android
-  sendElement.onmousedown = send // android with chrome bug
-  inputElement.onkeyup = inputKeyup
-  inputElement.focus()
+  eForm.onsubmit = formSubmit
+  eInput.onkeydown = inputKeyDown
+  eInput.focus()
+  eShowUsers.onclick = () => { eUsers.style.display = eUsers.style.display === 'none' ? 'block' : 'none' }
+  eUsers.onclick = () => { eUsers.style.display = 'none' }
 }
 
 (async function() {

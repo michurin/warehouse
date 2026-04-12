@@ -5,21 +5,24 @@
   <meta name="viewport" content="initial-scale=1.2, maximum-scale=1.2, minimum-scale=1.2, user-scalable=no">
 </head>
 <body>
-  <div id="body">
+  <div id="screen">
+    <div id="space"></div>
     <div id="board"></div>
-    <div class="control">
-      <input id="input" type="text" inputmode="search" autocomplete="off" enterkeyhint="done"></input>
-      <div id="send">⏎</div>
-    </div>
-    <div class="control">
-      <input id="name" type="text"></input>
-      <div id="color-wrapper"><input id="color" type="color"></input></div>
-      <div id="lock">🔐🔓</div>
-      <div id="status"></div>
-    </div>
+    <form id="form">
+      <div id="input-block">
+        <input id="input" type="text" enterkeyhint="send" autocomplete="off"></input>
+      </div>
+      <div id="control-block">
+        <input type="text" id="name"></input>
+        <button type="button" id="color-button">✅<input id="color" type="color"></input></button>
+        <button type="button" id="lock">🔐</button><!-- 🔓 -->
+        <button type="button" id="show-users">≡</button>
+        <button type="button" id="status">✅</button><!-- ❌ -->
+        <button type="submit">⮐</button>
+      </div>
+    </form>
   </div>
-  <div id="users">
-  </div>
+  <div id="users"></div>
   <script src="script.js"></script>
 </body>
 </html>
