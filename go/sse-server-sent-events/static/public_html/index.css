@@ -1,0 +1,34 @@
+* {
+  font-family: "Gill Sans", sans-serif;
+}
+a {
+  color: #050;
+  text-decoration: none;
+}
+a:hover {
+  text-decoration: underline;
+}
+b {
+  border: 1px solid #050;
+  padding: 2px;
+  border-radius: 3px;
+}
+form {
+  margin: 0;
+  padding: 0;
+}
+input {
+  outline: none;
+}
+div {
+  display: inline-block;
+  border: 1px solid #f00;
+  padding: 1em;
+}
+tt {
+  font-family: monospace;
+  border: 1px solid #999;
+  padding: 1px 0.3em;
+  margin: 1px 0.3em;
+  background-color: #fff;
+}

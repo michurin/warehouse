@@ -119,7 +119,7 @@ function eventMessage(e) {
     const m = dto.message
     if (m) {
       if (m.name === '#CONTROL') {
-        location.href = '/s/fin.html?back=' + encodeURIComponent(appState.room)
+        location.href = 's/fin.html?back=' + encodeURIComponent(appState.room)
         return
       }
       while (eBoard.children.length > 1000) {

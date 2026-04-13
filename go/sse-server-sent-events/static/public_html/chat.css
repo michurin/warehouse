@@ -8,6 +8,10 @@ div, input {
   font-size: 100%;
 }
 
+input {
+  outline: none;
+}
+
 #screen {
   position: absolute;
   top: 0;
