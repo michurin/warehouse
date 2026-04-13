@@ -10,6 +10,7 @@ import (
 )
 
 func main() {
+	// TODO mv it all to app.App(cfg)
 	house := room.New()
 	go handler.RevisionLoop(house)
 	err := http.ListenAndServe(":7011", loggingmw.MW(handler.Handler(house)))

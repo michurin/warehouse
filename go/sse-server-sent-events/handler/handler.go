@@ -218,13 +218,13 @@ func buildResponse(message *MessageDTO, users *user.Users) []byte { // TODO do n
 func readBody(r io.Reader) *RequestDTO {
 	body, err := io.ReadAll(r)
 	if err != nil {
-		// TODO log
+		log.Print(err.Error())
 		return nil
 	}
 	dto := new(RequestDTO)
 	err = json.Unmarshal(body, dto)
 	if err != nil {
-		// TODO log
+		log.Print(err.Error())
 		return nil
 	}
 	// TODO validate, set defaults
@@ -269,6 +269,7 @@ func handlerEnter(ch *room.House) http.HandlerFunc {
 			wall.Pub(buildResponse(buildRobotMessage(ms, dto.Name+" HERE!"), users))
 		}
 		body := buildResponse(nil, users)
+		log.Print(string(body))
 		w.Write(body) // TODO user io.copy, check error
 	}
 }
@@ -278,10 +279,12 @@ func handlerLock(ch *room.House) http.HandlerFunc {
 		req := readBody(r.Body)
 		wall, users := ch.RoomOrNil(req.Room)
 		if wall == nil {
+			log.Print("lock room: " + req.Room + " (not found)")
 			return
 		}
 		name, _ := users.Get(req.User)
 		if len(name) == 0 {
+			log.Print("cannot lock room: " + req.Room + " by user: " + req.User)
 			return
 		}
 		if users.Lock(req.Lock) {
