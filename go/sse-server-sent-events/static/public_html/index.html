@@ -24,6 +24,18 @@ form {
 input {
   outline: none;
 }
+div {
+  display: inline-block;
+  border: 1px solid #f00;
+  padding: 1em;
+}
+tt {
+  font-family: monospace;
+  border: 1px solid #999;
+  padding: 1px 0.3em;
+  margin: 1px 0.3em;
+  background-color: #fff;
+}
   </style>
   <meta name="viewport" content="initial-scale=1.2, maximum-scale=1.2, minimum-scale=1.2, user-scalable=no">
 </head>
@@ -36,18 +48,34 @@ personal channel
   <input type="text"></input><button type="submit">&gt;</button>
 </form>
 </p>
+<div>Allowed symbols:<br>
+  <tt>a</tt>–<tt>z</tt>, <tt>A</tt>–<tt>Z</tt>, <tt>0</tt>–<tt>9</tt>, <tt>_</tt>, <tt>-</tt>
+</div>
 <script>
   const eForm = document.getElementsByTagName('form')[0]
   const eInput = document.getElementsByTagName('input')[0]
+  const eAllert = document.getElementsByTagName('div')[0]
+
+  function updateAlert() {
+    const text = eInput.value
+    const room = text.replaceAll(/[^0-9a-zA-Z_-]+/g, '')
+    if (room !== text) {
+      eAllert.style.backgroundColor = '#ff0'
+    } else {
+      eAllert.style.backgroundColor = ''
+    }
+  }
+
+  eInput.onkeyup = updateAlert
   eForm.onsubmit = (e) => {
     e.preventDefault()
     const text = eInput.value
     const room = text.replaceAll(/[^0-9a-zA-Z_-]+/g, '')
-    if (room == text) {
+    if (room === text && room !== '') {
       location.href = '/'+room
     } else {
       eInput.value = room
-      // TODO alert
+      updateAlert()
     }
   }
 </script>
