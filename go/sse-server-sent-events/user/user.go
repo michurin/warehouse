@@ -26,9 +26,6 @@ func New() *Users {
 }
 
 func (u *Users) Touch(userID string, ms int64, name, color string) (bool, bool) {
-	// TODO?
-	// in /enter — create
-	// in /pub — only update if exist; not exists — not allowed
 	u.mu.Lock()
 	defer u.mu.Unlock()
 	r, ok := u.users[userID]
@@ -55,6 +52,16 @@ func (u *Users) Touch(userID string, ms int64, name, color string) (bool, bool) 
 	return true, true // allowed, updated
 }
 
+func (u *Users) Get(userID string) (string, string) {
+	u.mu.RLock()
+	defer u.mu.RUnlock()
+	x, ok := u.users[userID]
+	if !ok {
+		return "", ""
+	}
+	return x.name, x.color
+}
+
 func (u *Users) Lock(v bool) bool {
 	u.mu.Lock()
 	defer u.mu.Unlock()
@@ -66,12 +73,6 @@ func (u *Users) Lock(v bool) bool {
 	return true
 }
 
-func (u *Users) Locked() bool {
-	u.mu.RLock()
-	defer u.mu.RUnlock()
-	return u.locked
-}
-
 func (u *Users) List() [][2]string {
 	u.mu.RLock()
 	defer u.mu.RUnlock()
@@ -80,6 +81,12 @@ func (u *Users) List() [][2]string {
 		r = append(r, [2]string{v.name, v.color})
 	}
 	return r
+}
+
+func (u *Users) Locked() bool {
+	u.mu.RLock()
+	defer u.mu.RUnlock()
+	return u.locked
 }
 
 func (u *Users) Audit(ms int64) bool {
@@ -98,14 +105,4 @@ func (u *Users) Audit(ms int64) bool {
 		delete(u.users, k)
 	}
 	return true
-}
-
-func (u *Users) Get(userID string) (string, string) {
-	u.mu.RLock()
-	defer u.mu.RUnlock()
-	x, ok := u.users[userID]
-	if !ok {
-		return "", ""
-	}
-	return x.name, x.color
 }
