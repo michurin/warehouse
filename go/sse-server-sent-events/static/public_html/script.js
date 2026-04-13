@@ -97,7 +97,7 @@ async function send() {
   if (msg === '') {
     return
   }
-  await fetch('/pub', {
+  await fetch('bin/pub', {
     method: 'POST',
     body: JSON.stringify({
       room: appState.room,
@@ -119,7 +119,7 @@ function eventMessage(e) {
     const m = dto.message
     if (m) {
       if (m.name === '#CONTROL') {
-        location.href = '/fin.html?back=' + encodeURIComponent(appState.room)
+        location.href = '/s/fin.html?back=' + encodeURIComponent(appState.room)
         return
       }
       while (eBoard.children.length > 1000) {
@@ -156,16 +156,16 @@ function bar(text, title) {
 }
 
 function eventError() {
-  bar('❌', 'offline')
+  bar(appState.room + ': ❌', 'offline')
 }
 
 function eventOpen() {
-  bar('✅', 'online')
+  bar(appState.room + ': ✅', 'online')
 }
 
 function toggleLock() {
   console.log('toggle lock')
-  fetch('/lock', {
+  fetch('bin/lock', {
     method: 'POST',
     body: JSON.stringify({
       room: appState.room,
@@ -189,7 +189,7 @@ function inputKeyDown(e) {
 
 function initApp() {
   const queryString = new URLSearchParams({ room: appState.room, user: appState.user }).toString()
-  const evtSource = new EventSource('/fetch?' + queryString)
+  const evtSource = new EventSource('bin/fetch?' + queryString)
   evtSource.onmessage = eventMessage
   evtSource.onerror = eventError
   evtSource.onopen = eventOpen
@@ -201,9 +201,9 @@ function initApp() {
   eUsers.onclick = () => { eUsers.style.display = 'none' }
 }
 
-(async function() {
+(async function() { // TODO onpageshow? we have to do it on [back] action as well
   initAppState()
-  const resp = await fetch('/enter', {
+  const resp = await fetch('bin/enter', {
     method: 'POST',
     body: JSON.stringify({
       room: appState.room,

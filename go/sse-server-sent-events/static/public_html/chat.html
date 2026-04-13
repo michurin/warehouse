@@ -1,0 +1,28 @@
+<html>
+<head>
+  <title>MinWord</title>
+  <link rel="stylesheet" href="s/styles.css"></link>
+  <meta name="viewport" content="initial-scale=1.2, maximum-scale=1.2, minimum-scale=1.2, user-scalable=no">
+</head>
+<body>
+  <div id="screen">
+    <div id="space"></div>
+    <div id="board"></div>
+    <form id="form">
+      <div id="input-block">
+        <input id="input" type="text" enterkeyhint="send" autocomplete="off"></input>
+      </div>
+      <div id="control-block">
+        <input type="text" id="name"></input>
+        <button type="button" id="color-button">✅<input id="color" type="color"></input></button>
+        <button type="button" id="lock">🔐</button><!-- 🔓 -->
+        <button type="button" id="show-users">≡</button>
+        <button type="button" id="status">✅</button><!-- ❌ -->
+        <button type="submit">⮐</button>
+      </div>
+    </form>
+  </div>
+  <div id="users"></div>
+  <script src="s/script.js"></script>
+</body>
+</html>

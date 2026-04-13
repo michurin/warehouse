@@ -319,53 +319,66 @@ func handler(staticFS fs.FS, house *room.House) http.HandlerFunc {
 	dumph := handlerDump(house)
 	return func(w http.ResponseWriter, r *http.Request) {
 		path := r.URL.EscapedPath()
-		switch r.Method {
-		case http.MethodGet:
-			switch path {
-			case "/fetch":
-				fetchh.ServeHTTP(w, r)
-				return
-			case "/dump":
-				dumph.ServeHTTP(w, r)
-				return
+		if binPath, ok := strings.CutPrefix(path, "/bin/"); ok {
+			switch r.Method {
+			case http.MethodGet:
+				switch binPath {
+				case "fetch":
+					fetchh.ServeHTTP(w, r)
+					return
+				case "dump":
+					dumph.ServeHTTP(w, r)
+					return
+				}
+			case http.MethodPost:
+				switch binPath {
+				case "pub":
+					pubh.ServeHTTP(w, r)
+					return
+				case "enter":
+					enterh.ServeHTTP(w, r)
+					return
+				case "lock":
+					lockh.ServeHTTP(w, r)
+					return
+				}
 			}
-			handleStatic(fsh).ServeHTTP(w, r)
-			return
-		case http.MethodPost:
-			switch path {
-			case "/pub":
-				pubh.ServeHTTP(w, r)
-				return
-			case "/enter":
-				enterh.ServeHTTP(w, r)
-				return
-			case "/lock":
-				lockh.ServeHTTP(w, r)
-				return
-			}
-		default:
-			http.Error(w, "not allowed", http.StatusMethodNotAllowed)
-			return
 		}
-		http.Error(w, "not found", http.StatusNotFound)
+		if r.Method == http.MethodGet {
+			if path == "/" || path == "/favicon.ico" {
+				w.Header().Set("Cache-Control", "no-cache")
+				fsh.ServeHTTP(w, r)
+				return
+			}
+			if docPath, ok := strings.CutPrefix(path, "/s/"); ok {
+				w.Header().Set("Cache-Control", "no-cache")
+				r.URL.Path = "/" + docPath
+				fsh.ServeHTTP(w, r)
+				return
+			}
+			tail, _ := strings.CutPrefix(path, "/")
+			key := strings.Map(func(x rune) rune {
+				if ('a' <= x && x <= 'z') || ('A' <= x && x <= 'Z') || ('0' <= x && x <= '9') || x == '_' || x == '-' {
+					return x
+				}
+				return -1
+			}, tail)
+			if key == tail {
+				w.Header().Set("Cache-Control", "no-cache")
+				r.URL.Path = "/chat.html"
+				fsh.ServeHTTP(w, r)
+				return
+			} else {
+				http.Redirect(w, r, "/"+key, http.StatusPermanentRedirect)
+				return
+			}
+		}
+		http.Error(w, "405 not allowed", http.StatusMethodNotAllowed)
 	}
 }
 
 func Handler(house *room.House) http.Handler {
 	return http.MaxBytesHandler(handler(static.FS, house), 4096)
-}
-
-func handleStatic(fsh http.Handler) http.HandlerFunc { // TODO move to MW package?
-	const validRoomNameChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz_-"
-	return func(w http.ResponseWriter, r *http.Request) {
-		h := w.Header()
-		h.Add("Cache-Control", "no-cache")
-		if strings.TrimRight(r.URL.Path, validRoomNameChars) == "/" {
-			log.Print("Force root from " + r.URL.Path)
-			r.URL.Path = "/" // show index.html for any path
-		}
-		fsh.ServeHTTP(w, r)
-	}
 }
 
 func ptr[T any](x T) *T { return &x }

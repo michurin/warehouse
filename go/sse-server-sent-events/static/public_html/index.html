@@ -1,28 +1,55 @@
 <html>
 <head>
   <title>MinWord</title>
-  <link rel="stylesheet" href="styles.css"></link>
+  <style>
+* {
+  font-family: "Gill Sans", sans-serif;
+}
+a {
+  color: #050;
+  text-decoration: none;
+}
+a:hover {
+  text-decoration: underline;
+}
+b {
+  border: 1px solid #050;
+  padding: 2px;
+  border-radius: 3px;
+}
+form {
+  margin: 0;
+  padding: 0;
+}
+input {
+  outline: none;
+}
+  </style>
   <meta name="viewport" content="initial-scale=1.2, maximum-scale=1.2, minimum-scale=1.2, user-scalable=no">
 </head>
-<body>
-  <div id="screen">
-    <div id="space"></div>
-    <div id="board"></div>
-    <form id="form">
-      <div id="input-block">
-        <input id="input" type="text" enterkeyhint="send" autocomplete="off"></input>
-      </div>
-      <div id="control-block">
-        <input type="text" id="name"></input>
-        <button type="button" id="color-button">✅<input id="color" type="color"></input></button>
-        <button type="button" id="lock">🔐</button><!-- 🔓 -->
-        <button type="button" id="show-users">≡</button>
-        <button type="button" id="status">✅</button><!-- ❌ -->
-        <button type="submit">⮐</button>
-      </div>
-    </form>
-  </div>
-  <div id="users"></div>
-  <script src="script.js"></script>
+<body align="center">
+<h1>Enter</h1>
+<p><a href="/main">main channel</a></p>
+<p>
+personal channel
+<form>
+  <input type="text"></input><button type="submit">&gt;</button>
+</form>
+</p>
+<script>
+  const eForm = document.getElementsByTagName('form')[0]
+  const eInput = document.getElementsByTagName('input')[0]
+  eForm.onsubmit = (e) => {
+    e.preventDefault()
+    const text = eInput.value
+    const room = text.replaceAll(/[^0-9a-zA-Z_-]+/g, '')
+    if (room == text) {
+      location.href = '/'+room
+    } else {
+      eInput.value = room
+      // TODO alert
+    }
+  }
+</script>
 </body>
 </html>
