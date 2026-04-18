@@ -9,11 +9,18 @@ import (
 	"sse/internal/xlog"
 )
 
+type ResponseWriterFlusher interface {
+	http.Flusher // in fact, Flasher is only necessary for SSE handler
+	http.ResponseWriter
+}
+
 type wr struct {
 	status   int
 	location string
-	next     http.ResponseWriter
+	next     ResponseWriterFlusher
 }
+
+var _ ResponseWriterFlusher = (*wr)(nil)
 
 func (w *wr) Header() http.Header {
 	return w.next.Header()
@@ -21,6 +28,10 @@ func (w *wr) Header() http.Header {
 
 func (w *wr) Write(b []byte) (int, error) {
 	return w.next.Write(b)
+}
+
+func (w *wr) Flush() {
+	w.next.Flush()
 }
 
 func (w *wr) WriteHeader(statusCode int) {
@@ -36,7 +47,7 @@ func MW(next http.Handler) http.Handler {
 		ctx = xlog.WithAddr(ctx, r.RemoteAddr)
 		ctx = xlog.WithMethod(ctx, r.Method)
 		ctx = xlog.WithURL(ctx, r.URL.String())
-		wo := &wr{status: 200, next: w}
+		wo := &wr{status: http.StatusOK, next: w.(ResponseWriterFlusher)}
 		start := time.Now()
 		defer func() {
 			ctx = xlog.WithStatus(ctx, wo.status)
