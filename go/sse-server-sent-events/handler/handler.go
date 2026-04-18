@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"io"
-	"io/fs"
 	"log"
 	"log/slog"
 	"net/http"
@@ -13,8 +12,8 @@ import (
 	"time"
 	"unicode"
 
+	"sse/internal/handlerstatic"
 	"sse/room"
-	"sse/static"
 	"sse/user"
 	"sse/wall"
 )
@@ -96,6 +95,7 @@ func handlerFetch(ch *room.House) http.HandlerFunc {
 			}
 			messages, leid = wl.Fetch(ctx, leid)
 			if ctx.Err() != nil {
+				slog.ErrorContext(ctx, ctx.Err().Error())
 				return
 			}
 			name, _ = us.Get(userID) // check user before sending // TODO in fact, just check if user exists
@@ -123,6 +123,8 @@ func writeStreamMessage(w io.Writer, leid int64, messages [][]byte) {
 	w.Write([]byte{10})
 	if f, ok := w.(http.Flusher); ok {
 		f.Flush()
+	} else {
+		panic("http.Flusher is not supported")
 	}
 }
 
@@ -313,8 +315,8 @@ func handlerDump(ch *room.House) http.HandlerFunc {
 	}
 }
 
-func handler(staticFS fs.FS, house *room.House) http.HandlerFunc {
-	fsh := http.FileServerFS(staticFS)
+func handler(house *room.House) http.HandlerFunc {
+	fsh := handlerstatic.New()
 	fetchh := handlerFetch(house)
 	pubh := handlerPub(house)
 	lockh := handlerLock(house)
@@ -381,7 +383,7 @@ func handler(staticFS fs.FS, house *room.House) http.HandlerFunc {
 }
 
 func Handler(house *room.House) http.Handler {
-	return http.MaxBytesHandler(handler(static.FS, house), 4096)
+	return http.MaxBytesHandler(handler(house), 4096)
 }
 
 func ptr[T any](x T) *T { return &x }
