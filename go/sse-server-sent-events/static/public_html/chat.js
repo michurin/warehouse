@@ -104,7 +104,7 @@ function eventMessage(e) {
     const m = dto.message
     if (m) {
       if (m.name === '#CONTROL') {
-        location.href = 's/fin.html?back=' + encodeURIComponent(appState.room)
+        location.href = 's/fin.html?back=' + encodeURIComponent(appState.room) + '&reason=timeout'
         return
       }
       while (eBoard.children.length > 1000) {
@@ -120,12 +120,8 @@ function eventMessage(e) {
       eDiv.append(eTS, eB, eSpan)
       eDiv.style.color = m.color
       eBoard.append(eDiv)
-    } else {
-      const eDiv = document.createElement('div') // TODO for debugging only!
-      eDiv.textContent = JSON.stringify(dto)
-      eBoard.append(eDiv)
+      eBoard.scrollTop = eBoard.scrollHeight
     }
-    console.log('dto', dto)
     if (dto.users) {
       setUsers(dto.users)
     }
@@ -199,6 +195,9 @@ function initApp() {
   })
   // TODO check resp.ok
   const data = await resp.json()
+  if (data.message) {
+    location.href = 's/fin.html?back=main&reason=' + data.message.message
+  }
   setLock(data.locked)
   setUsers(data.users)
   initApp()

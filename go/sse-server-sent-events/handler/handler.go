@@ -12,7 +12,9 @@ import (
 	"time"
 	"unicode"
 
+	"sse/internal/handlerenter"
 	"sse/internal/handlerstatic"
+	"sse/internal/xdto"
 	"sse/room"
 	"sse/user"
 	"sse/wall"
@@ -68,7 +70,7 @@ func handlerFetch(ch *room.House) http.HandlerFunc {
 		}
 		if len(roomID) > 50 || len(userID) == 0 || len(userID) > 30 {
 			log.Printf("ERROR roomID/userID=%q/%q", roomID, userID)
-			writeStreamMessage(w, 0, [][]byte{buildResponse(buildControlMessage(), nil)}) // reason: invalid user or room
+			writeStreamMessage(w, 0, [][]byte{xdto.BuildResponse(xdto.BuildControlMessage(""), nil)}) // reason: invalid user or room
 			return
 		}
 		leid, err := strconv.ParseInt(r.Header.Get("Last-Event-Id"), 10, 64)
@@ -85,12 +87,12 @@ func handlerFetch(ch *room.House) http.HandlerFunc {
 			wl, us = ch.RoomOrNil(roomID)
 			if wl == nil {
 				slog.Error("Kick. No room", slog.String("user", userID), slog.String("room", roomID))
-				writeStreamMessage(w, 0, [][]byte{buildResponse(buildControlMessage(), nil)}) // reason: no room
+				writeStreamMessage(w, 0, [][]byte{xdto.BuildResponse(xdto.BuildControlMessage(""), nil)}) // reason: no room
 				return
 			}
 			name, _ := us.Get(userID) // check user before feetching // TODO in fact, just check if user exists
 			if len(name) == 0 {
-				writeStreamMessage(w, 0, [][]byte{buildResponse(buildControlMessage(), nil)}) // reason: no user
+				writeStreamMessage(w, 0, [][]byte{xdto.BuildResponse(xdto.BuildControlMessage(""), nil)}) // reason: no user
 				return
 			}
 			messages, leid = wl.Fetch(ctx, leid)
@@ -100,7 +102,7 @@ func handlerFetch(ch *room.House) http.HandlerFunc {
 			}
 			name, _ = us.Get(userID) // check user before sending // TODO in fact, just check if user exists
 			if len(name) == 0 {
-				writeStreamMessage(w, 0, [][]byte{buildResponse(buildControlMessage(), nil)}) // reason: no user
+				writeStreamMessage(w, 0, [][]byte{xdto.BuildResponse(xdto.BuildControlMessage(""), nil)}) // reason: no user
 				return
 			}
 			writeStreamMessage(w, leid, messages)
@@ -130,7 +132,7 @@ func writeStreamMessage(w io.Writer, leid int64, messages [][]byte) {
 
 func handlerPub(ch *room.House) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		req := readBody(r.Body)
+		req := xdto.ReadBody(r.Body)
 		if req == nil {
 			http.Error(w, "Error", http.StatusInternalServerError)
 			return
@@ -152,9 +154,9 @@ func handlerPub(ch *room.House) http.HandlerFunc {
 			return
 		}
 		if updated {
-			wall.Pub(buildResponse(buildRobotMessage(ms, "User updated "+name), users))
+			wall.Pub(xdto.BuildResponse(xdto.BuildRobotMessage(ms, "User updated "+name), users))
 		}
-		wall.Pub(buildResponse(&MessageDTO{
+		wall.Pub(xdto.BuildResponse(&xdto.MessageDTO{
 			Color:      color,
 			Message:    sanitize(req.Message),
 			Name:       name,
@@ -165,120 +167,9 @@ func handlerPub(ch *room.House) http.HandlerFunc {
 	}
 }
 
-// ----- Transport DTOs -----
-
-type RequestDTO struct {
-	Room    string `json:"room"`
-	User    string `json:"user"`
-	Name    string `json:"name"`
-	Color   string `json:"color"`
-	Lock    bool   `json:"lock"`    // /lock only
-	Message string `json:"message"` // /pub only
-}
-
-type UserDTO struct {
-	Name  string `json:"name"`
-	Color string `json:"color"`
-}
-
-type MessageDTO struct {
-	Color      string `json:"color"`
-	Message    string `json:"message"`
-	Name       string `json:"name"`
-	TimeStamep int64  `json:"ts"`
-}
-
-type ResponseDTO struct {
-	Message *MessageDTO `json:"message,omitempty"`
-	Users   *[]UserDTO  `json:"users,omitempty"`
-	Locked  *bool       `json:"locked,omitempty"`
-}
-
-func buildResponse(message *MessageDTO, users *user.Users) []byte { // TODO do not use *user.Users, use DTOs only
-	v := (*[]UserDTO)(nil)
-	c := (*bool)(nil)
-	if users != nil {
-		w := []UserDTO{} // force empty array, not nil
-		c = ptr(users.Locked())
-		u := users.List()
-		for _, x := range u {
-			w = append(w, UserDTO{
-				Name:  x[0],
-				Color: x[1],
-			})
-		}
-		v = &w
-	}
-	b, _ := json.Marshal(ResponseDTO{ // TODO err
-		Message: message,
-		Users:   v,
-		Locked:  c,
-	})
-	return b
-}
-
-func readBody(r io.Reader) *RequestDTO {
-	body, err := io.ReadAll(r)
-	if err != nil {
-		log.Print(err.Error())
-		return nil
-	}
-	dto := new(RequestDTO)
-	err = json.Unmarshal(body, dto)
-	if err != nil {
-		log.Print(err.Error())
-		return nil
-	}
-	// TODO validate, set defaults
-	return dto
-}
-
-func buildRobotMessage(ms int64, s string) *MessageDTO {
-	return &MessageDTO{
-		Color:      "#990099",
-		Message:    s,
-		Name:       "#ROBOT",
-		TimeStamep: ms,
-	}
-}
-
-func buildControlMessage() *MessageDTO {
-	ms := time.Now().UnixMilli() // TODO
-	return &MessageDTO{
-		Color:      "#333333",
-		Message:    "",
-		Name:       "#CONTROL",
-		TimeStamep: ms,
-	}
-}
-
-// --------------------------
-
-func handlerEnter(ch *room.House) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		dto := readBody(r.Body)
-		if dto == nil {
-			return // TODO http.Error
-		}
-		ms := time.Now().UnixMilli()
-		wall, users := ch.Room(dto.Room)
-		allowed, updated := users.Touch(dto.User, ms, dto.Name, dto.Color)
-		if !allowed {
-			return // TODO http response
-		}
-		if updated {
-			ms := time.Now().UnixMilli()
-			wall.Pub(buildResponse(buildRobotMessage(ms, dto.Name+" HERE!"), users))
-		}
-		body := buildResponse(nil, users)
-		log.Print(string(body))
-		w.Write(body) // TODO user io.copy, check error
-	}
-}
-
 func handlerLock(ch *room.House) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		req := readBody(r.Body)
+		req := xdto.ReadBody(r.Body)
 		wall, users := ch.RoomOrNil(req.Room)
 		if wall == nil {
 			log.Print("lock room: " + req.Room + " (not found)")
@@ -291,7 +182,7 @@ func handlerLock(ch *room.House) http.HandlerFunc {
 		}
 		if users.Lock(req.Lock) {
 			ms := time.Now().UnixMilli()
-			wall.Pub(buildResponse(buildRobotMessage(ms, name+" touched LOCK"), users))
+			wall.Pub(xdto.BuildResponse(xdto.BuildRobotMessage(ms, name+" touched LOCK"), users))
 		}
 	}
 }
@@ -320,7 +211,7 @@ func handler(house *room.House) http.HandlerFunc {
 	fetchh := handlerFetch(house)
 	pubh := handlerPub(house)
 	lockh := handlerLock(house)
-	enterh := handlerEnter(house)
+	enterh := handlerenter.New(house)
 	dumph := handlerDump(house)
 	return func(w http.ResponseWriter, r *http.Request) {
 		path := r.URL.EscapedPath()
@@ -386,8 +277,6 @@ func Handler(house *room.House) http.Handler {
 	return http.MaxBytesHandler(handler(house), 4096)
 }
 
-func ptr[T any](x T) *T { return &x }
-
 // ---------- REVISION ---------- TODO move to package?
 
 func RevisionLoop(ch *room.House) {
@@ -396,7 +285,7 @@ func RevisionLoop(ch *room.House) {
 		walls, users := ch.Audit(ms)
 		for i, w := range walls {
 			log.Print("Run: notify")
-			w.Pub(buildResponse(buildRobotMessage(ms, "Someone got out"), users[i]))
+			w.Pub(xdto.BuildResponse(xdto.BuildRobotMessage(ms, "Someone got out"), users[i]))
 		}
 		time.Sleep(2 * time.Second)
 	}

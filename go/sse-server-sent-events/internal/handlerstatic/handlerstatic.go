@@ -2,6 +2,7 @@ package handlerstatic
 
 import (
 	"net/http"
+
 	"sse/static"
 )
 
