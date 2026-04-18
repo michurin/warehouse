@@ -3,7 +3,6 @@ package wall
 import (
 	"container/list"
 	"context"
-	"log"
 	"sync"
 )
 
@@ -29,7 +28,6 @@ func New(initialShift int64) *Wall {
 func (r *Wall) Pub(m []byte) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
-	log.Println("  PUB: " + string(m))
 	r.lastID++
 	r.wall.PushFront(m)
 	for r.wall.Len() > 1000 {
