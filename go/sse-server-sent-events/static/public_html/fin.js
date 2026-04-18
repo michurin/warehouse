@@ -1,3 +1,5 @@
+'use strict'
+
 const params = new URLSearchParams(window.location.search)
 const room = params.get('back')
 if (room) {

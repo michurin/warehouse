@@ -1,19 +1,4 @@
-/*global document:readable*/
-/*global EventSource:readable*/
-/*global fetch:readable*/
-/*global localStorage:readable*/
-/*global location:readable*/
-/*global URLSearchParams:readable*/
-/*eslint indent: ["error", 2]*/
-/*eslint eqeqeq: ["error", "always"]*/
-/*eslint prefer-const: "error"*/
-/*eslint no-var: "error"*/
-/*eslint no-undef: "error"*/
-/*eslint one-var: ["error", "never"]*/
-/*eslint semi: ["error", "never"]*/
-/*eslint quotes: ["error", "single"]*/
-/*eslint prefer-arrow-callback: "error"*/
-/*eslint arrow-body-style: "error"*/
+'use strict'
 
 // TODO languages: navigator.languages
 
@@ -105,7 +90,7 @@ async function send() {
       color: eColorInput.value.replaceAll(/\p{Cc}+/gu, ' '),
       name: eNameInput.value.replaceAll(/\p{Cc}+/gu, ' '),
       message: msg,
-    })
+    }),
   })
   eMessageInput.value = ''
   eMessageInput.focus()
@@ -171,7 +156,7 @@ function toggleLock() {
       room: appState.room,
       user: appState.user,
       lock: !appState.locked,
-    })
+    }),
   })
 }
 
@@ -210,7 +195,7 @@ function initApp() {
       user: appState.user,
       name: appState.name,
       color: appState.color,
-    })
+    }),
   })
   // TODO check resp.ok
   const data = await resp.json()

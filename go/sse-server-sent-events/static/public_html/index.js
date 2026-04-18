@@ -1,3 +1,5 @@
+'use strict'
+
 const eForm = document.getElementsByTagName('form')[0]
 const eInput = document.getElementsByTagName('input')[0]
 const eAllert = document.getElementsByTagName('div')[0]

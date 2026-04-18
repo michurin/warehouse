@@ -1,0 +1,44 @@
+import { defineConfig } from 'eslint/config'
+
+export default defineConfig({
+  files: ['*.js'],
+  linterOptions: {
+    reportUnusedInlineConfigs: 'error',
+    reportUnusedDisableDirectives: 'error',
+    noInlineConfig: true,
+  },
+  languageOptions: {
+    sourceType: 'script',
+    ecmaVersion: 2018,
+    globals: {
+      EventSource: false,
+      URLSearchParams: false,
+      console: false,
+      document: false,
+      fetch: false,
+      localStorage: false,
+      location: false,
+      window: false,
+    }
+  },
+  rules: {
+    'arrow-body-style': ['error'],
+    'comma-dangle': ['error', 'always-multiline'],
+    'eqeqeq': ['error', 'always'],
+    'indent': ['error', 2],
+    'no-irregular-whitespace': ['error'],
+    'no-sparse-arrays': ['error'],
+    'no-unassigned-vars': ['error'],
+    'no-undef': ['error'],
+    'no-unreachable': ['error'],
+    'no-useless-assignment': ['error'],
+    'no-var': ['error'],
+    'one-var': ['error', 'never'],
+    'prefer-arrow-callback': ['error'],
+    'prefer-const': ['error'],
+    'quote-props': ['error', 'consistent-as-needed'],
+    'quotes': ['error', 'single'],
+    'semi': ['error', 'never'],
+    'strict': ['error', 'global'],
+  },
+})
