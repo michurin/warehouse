@@ -1,7 +1,6 @@
 package handler_test
 
 import (
-	"context"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -35,148 +34,82 @@ func assert[T comparable](t *testing.T, x T, y T) {
 	}
 }
 
-func httpDo(
-	t *testing.T,
-	ctx context.Context,
-	mx http.Handler,
-	method,
-	path,
-	body,
-	expetedBody string) {
+func allignTime() {
+	time.Sleep(181482 * time.Hour) // sleep up to September 13, 2020, 18:00:00; time_stamp=1600020000
+}
+
+func do(t *testing.T, mx http.Handler, method, path, body, expectedBody string) {
 	t.Helper()
-	w := httptest.NewRecorder()
+	ctx := t.Context()
 	b := io.Reader(http.NoBody)
-	if body != "" {
+	if method == http.MethodPost {
 		b = strings.NewReader(body)
 	}
 	r, err := http.NewRequestWithContext(ctx, method, "http://x"+path, b)
 	noerr(t, err)
+	r.RemoteAddr = "127.0.0.1"
+
+	w := httptest.NewRecorder()
+
 	mx.ServeHTTP(w, r)
+
 	assert(t, w.Code, http.StatusOK)
-	assert(t, expetedBody, w.Body.String())
-	t.Log("header:", w.Header()) // TODO assert
+	assert(t, w.Body.String(), expectedBody)
 }
 
-func TestMux(t *testing.T) {
-	t.Skip("TODO: outdated")
-	t.Run("static", func(t *testing.T) {
-		house := room.New()
-		mx := handler.Handler(house)
-		t.Run("favicon", func(t *testing.T) {
-			ctx := t.Context()
-			w := httptest.NewRecorder()
-			r, err := http.NewRequestWithContext(ctx, http.MethodGet, "http://x/favicon.ico", nil)
-			noerr(t, err)
-			mx.ServeHTTP(w, r)
-			assert(t, w.Code, http.StatusOK)
-		})
-		// TODO css, js, index, /XX
-	})
-	t.Run("messaging", func(t *testing.T) {
-		t.Run("just_empty_clinet_timeout", func(t *testing.T) {
-			synctest.Test(t, func(t *testing.T) {
-				house := room.New()
-				mx := handler.Handler(house)
-				ctx := t.Context()
-				ctx, cancel := context.WithTimeout(ctx, 20*time.Second)
-				defer cancel()
-				w := httptest.NewRecorder()
-				r, err := http.NewRequestWithContext(ctx, http.MethodGet, "http://x/fetch", nil)
-				noerr(t, err)
-				mx.ServeHTTP(w, r)
-				assert(t, w.Code, http.StatusOK)
-				t.Log("body:", w.Body.String()) // TODO assert
-				t.Log("header:", w.Header())    // TODO assert
-			})
-		})
-		t.Run("just_empty_server_timeout", func(t *testing.T) {
-			synctest.Test(t, func(t *testing.T) {
-				house := room.New()
-				mx := handler.Handler(house)
-				ctx := t.Context()
-				ctx, cancel := context.WithTimeout(ctx, 20*time.Second)
-				defer cancel()
-				w := httptest.NewRecorder()
-				r, err := http.NewRequestWithContext(ctx, http.MethodGet, "http://x/fetch", nil)
-				noerr(t, err)
-				mx.ServeHTTP(w, r)
-				assert(t, w.Code, http.StatusOK)
-				t.Log("body:", w.Body.String()) // TODO assert
-				t.Log("header:", w.Header())    // TODO assert
-			})
-		})
-		t.Run("pub_sub", func(t *testing.T) {
-			synctest.Test(t, func(t *testing.T) {
-				house := room.New()
-				mx := loggingmw.MW(handler.Handler(house))
-				ctx := t.Context()
-				httpDo(t, ctx, mx, http.MethodGet, "/fetch?room=CHAN&user=xx", "", "") // it will take 28s
-				httpDo(t, ctx, mx, http.MethodPost, "/pub",
-					`{"room":"CHAN","user":"xx","color":"#fff","name":"M","message":"text"}`,
-					``)
-				httpDo(t, ctx, mx, http.MethodGet, "/fetch?room=CHAN&user=xx", "",
-					`event: message
-retry: 200
-id: 946684800000000001
-data: {"message":{"color":"#fff","message":"text","name":"M","ts":946684828000}}
+/*
+A try to /fetch (failed)
+A try to /pub (failed)
+A try to /lock (failed)
+A /enter
+A /fetch
+A /pub
+A /fetch+
+B /enter
+A /fetch+
+B /pub
+A /fetch+
+sleep
+A /pub
+sleep
+B =die=
+A /fetch
+A /lock
+B /enter (failed)
+A /unlock
+B /enter (ok)
+A /fetch+
+B /fetch (all)
+*/
 
-`)
-			})
-		})
-	})
-}
-
-func TestHandler(t *testing.T) {
+func TestHandler_complexFlow(t *testing.T) {
 	synctest.Test(t, func(t *testing.T) {
-		house := room.New()
-		// TODO run audit (revision loop)
-		mx := loggingmw.MW(handler.Handler(house))
+		allignTime()
 
-		ctx := t.Context()
+		house := room.New()
+
+		// TODO run audit (revision loop)
+
+		mx := loggingmw.MW(handler.Handler(house))
 
 		// enter
 
-		r, err := http.NewRequestWithContext(ctx, http.MethodPost, "http://x"+"/bin/enter", strings.NewReader(`{"room":"R","user":"id-A","name":"Alex","color":"#111111"}`))
-		noerr(t, err)
-
-		w := httptest.NewRecorder()
-
-		mx.ServeHTTP(w, r)
-
-		assert(t, w.Code, http.StatusOK)
-		assert(t, w.Body.String(), `{"users":[{"name":"Alex","color":"#111111"}],"locked":false}`)
+		do(t, mx, http.MethodPost, "/bin/enter",
+			`{"room":"R","user":"id-A","name":"Alex","color":"#111111"}`,
+			`{"users":[{"name":"Alex","color":"#111111"}],"locked":false}`)
 
 		// lock
 
-		r, err = http.NewRequestWithContext(ctx, http.MethodPost, "http://x"+"/bin/lock", strings.NewReader(`{"room":"R","user":"id-A","lock":true}`))
-		noerr(t, err)
-
-		w = httptest.NewRecorder()
-
-		mx.ServeHTTP(w, r)
-
-		assert(t, w.Code, http.StatusOK)
-		assert(t, w.Body.String(), ``)
+		do(t, mx, http.MethodPost, "/bin/lock", `{"room":"R","user":"id-A","lock":true}`, ``)
 
 		// fetch (TODO)
 
-		ctX, cancel := context.WithTimeout(ctx, time.Second)
-		defer cancel()
-		r, err = http.NewRequestWithContext(ctX, http.MethodGet, "http://x"+"/bin/fetch?room=R&user=id-A", http.NoBody)
-		noerr(t, err)
-
-		w = httptest.NewRecorder()
-
-		t.Log(time.Now()) // 0
-		mx.ServeHTTP(w, r)
-		t.Log(time.Now()) // 28s
-
-		assert(t, w.Code, http.StatusOK)
-		assert(t, w.Body.String(), `event: message
+		do(t, mx, http.MethodGet, "/bin/fetch?room=R&user=id-A", ``,
+			`event: message
 retry: 200
-id: 946684800000000002
-data: {"message":{"color":"#990099","message":"Alex touched LOCK","name":"#ROBOT","ts":946684800000},"users":[{"name":"Alex","color":"#111111"}],"locked":true}
-data: {"message":{"color":"#990099","message":"Alex HERE!","name":"#ROBOT","ts":946684800000},"users":[{"name":"Alex","color":"#111111"}],"locked":false}
+id: 1600020000000000002
+data: {"message":{"color":"#990099","message":"Alex touched LOCK","name":"#ROBOT","ts":1600020000000},"users":[{"name":"Alex","color":"#111111"}],"locked":true}
+data: {"message":{"color":"#990099","message":"Alex HERE!","name":"#ROBOT","ts":1600020000000},"users":[{"name":"Alex","color":"#111111"}],"locked":false}
 
 `)
 	})
