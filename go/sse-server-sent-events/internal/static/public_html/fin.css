@@ -1,13 +1,3 @@
-* {
-  font-family: "Gill Sans", sans-serif;
-}
-a {
-  color: #050;
-  text-decoration: none;
-}
-a:hover {
-  text-decoration: underline;
-}
 b {
   border: 1px solid #050;
   padding: 2px;

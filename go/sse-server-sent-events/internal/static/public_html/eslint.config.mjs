@@ -1,6 +1,4 @@
-import { defineConfig } from 'eslint/config'
-
-export default defineConfig({
+export default {
   files: ['*.js'],
   linterOptions: {
     reportUnusedInlineConfigs: 'error',
@@ -41,4 +39,4 @@ export default defineConfig({
     'semi': ['error', 'never'],
     'strict': ['error', 'global'],
   },
-})
+}

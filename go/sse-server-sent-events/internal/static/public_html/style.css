@@ -1,0 +1,28 @@
+body {
+  color: #ccc;
+  background-color: #000;
+  background-image: radial-gradient(circle closest-corner at 80% 20%, #000 0%, #000 59%, #222 60%, #111 63%, #000 100%);
+}
+
+* {
+  font-family: "Gill Sans", sans-serif;
+  font-size: 100%;
+}
+
+input {
+  outline: none;
+}
+
+form {
+  padding: 0;
+  margin: 0;
+}
+
+a {
+  color: #3c3;
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}

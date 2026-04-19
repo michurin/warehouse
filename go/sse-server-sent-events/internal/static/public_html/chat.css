@@ -1,17 +1,3 @@
-html, body {
-  color: #eee;
-  background-color: #222;
-}
-
-div, input {
-  font-family: "Gill Sans", sans-serif;
-  font-size: 100%;
-}
-
-input {
-  outline: none;
-}
-
 #screen {
   position: absolute;
   top: 0;
@@ -33,11 +19,6 @@ input {
   border-radius: 0.5em;
   scrollbar-width: thin;
   scrollbar-color: #800 transparent;
-}
-
-#screen form {
-  padding: 0;
-  margin: 0;
 }
 
 #screen #input-block,
