@@ -9,18 +9,18 @@ import (
 	"strconv"
 	"time"
 
-	"sse/internal/xdto"
-	"sse/room"
-	"sse/user"
-	"sse/wall"
+	"github.com/michurin/minchat/internal/xdto"
+	"github.com/michurin/minchat/internal/xhouse"
+	"github.com/michurin/minchat/internal/xuser"
+	"github.com/michurin/minchat/internal/xwall"
 )
 
 type Handler struct {
-	house   *room.House
+	house   *xhouse.House
 	timeout time.Duration
 }
 
-func New(house *room.House, timeout time.Duration) *Handler {
+func New(house *xhouse.House, timeout time.Duration) *Handler {
 	return &Handler{house: house, timeout: timeout}
 }
 
@@ -55,8 +55,8 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		f.Flush()
 	}
 	messages := [][]byte(nil) // we have to create this var out of the loop, as leid
-	wl := (*wall.Wall)(nil)
-	us := (*user.Users)(nil)
+	wl := (*xwall.Wall)(nil)
+	us := (*xuser.Users)(nil)
 	for {
 		wl, us = h.house.RoomOrNil(roomID)
 		if wl == nil {

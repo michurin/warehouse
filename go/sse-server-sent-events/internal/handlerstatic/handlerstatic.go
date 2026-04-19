@@ -3,7 +3,7 @@ package handlerstatic
 import (
 	"net/http"
 
-	"sse/static"
+	"github.com/michurin/minchat/internal/static"
 )
 
 type Handler struct {

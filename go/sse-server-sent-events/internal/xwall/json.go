@@ -1,4 +1,4 @@
-package wall
+package xwall
 
 import (
 	"bytes"

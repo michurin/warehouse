@@ -1,32 +1,32 @@
-package wall_test
+package xwall_test
 
 import (
 	"context"
 	"encoding/json"
 	"testing"
 
-	"sse/wall"
+	"github.com/michurin/minchat/internal/xwall"
 )
 
 func TestWall(t *testing.T) {
 	// TODO split tests
 	// TODO asserts
 	// -- create and fill
-	w := wall.New(100)
+	w := xwall.New(100)
 	w.Pub([]byte("message 1"))
 	w.Pub([]byte("message 2"))
 
 	// -- marshal
-	b, err := json.Marshal(wall.JSON(w))
+	b, err := json.Marshal(xwall.JSON(w))
 	t.Log(err)
 	t.Log(string(b))
 
 	// -- unmarshal
-	w = wall.New(999)
-	json.Unmarshal(b, wall.JSON(w))
+	w = xwall.New(999)
+	json.Unmarshal(b, xwall.JSON(w))
 
 	// -- check unmarshaled
-	b, err = json.Marshal(wall.JSON(w))
+	b, err = json.Marshal(xwall.JSON(w))
 	t.Log(err)
 	t.Log(string(b))
 

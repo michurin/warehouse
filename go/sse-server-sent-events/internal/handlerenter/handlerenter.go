@@ -6,15 +6,15 @@ import (
 	"net/http"
 	"time"
 
-	"sse/internal/xdto"
-	"sse/room"
+	"github.com/michurin/minchat/internal/xdto"
+	"github.com/michurin/minchat/internal/xhouse"
 )
 
 type Handler struct {
-	house *room.House
+	house *xhouse.House
 }
 
-func New(house *room.House) *Handler {
+func New(house *xhouse.House) *Handler {
 	return &Handler{house: house}
 }
 

@@ -4,7 +4,8 @@ import (
 	"context"
 	"log/slog"
 	"os"
-	"sse/internal/xlog"
+
+	"github.com/michurin/minchat/internal/xlog"
 )
 
 func Example() {

@@ -2,9 +2,10 @@ package xdto
 
 import (
 	"encoding/json"
-	"sse/user"
 	"strings"
 	"unicode"
+
+	"github.com/michurin/minchat/internal/xuser"
 )
 
 type UserDTO struct {
@@ -25,7 +26,7 @@ type ResponseDTO struct {
 	Locked  *bool       `json:"locked,omitempty"`
 }
 
-func BuildResponse(message *MessageDTO, users *user.Users) []byte { // TODO do not use *user.Users, use DTOs only
+func BuildResponse(message *MessageDTO, users *xuser.Users) []byte { // TODO do not use *user.Users, use DTOs only
 	v := (*[]UserDTO)(nil)
 	c := (*bool)(nil)
 	if users != nil {

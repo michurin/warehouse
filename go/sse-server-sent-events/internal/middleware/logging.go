@@ -1,4 +1,4 @@
-package loggingmw
+package middleware
 
 import (
 	"fmt"
@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"time"
 
-	"sse/internal/xlog"
+	"github.com/michurin/minchat/internal/xlog"
 )
 
 type ResponseWriterFlusher interface {
@@ -40,7 +40,7 @@ func (w *wr) WriteHeader(statusCode int) {
 	w.next.WriteHeader(statusCode)
 }
 
-func MW(next http.Handler) http.Handler {
+func Logging(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
 		ctx = xlog.WithRequestID(ctx)

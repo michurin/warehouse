@@ -1,4 +1,4 @@
-package user
+package xuser
 
 import (
 	"log"

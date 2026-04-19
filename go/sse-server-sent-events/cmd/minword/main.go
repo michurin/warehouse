@@ -8,10 +8,10 @@ import (
 	"os"
 	"strings"
 
-	"sse/handler"
-	"sse/internal/xlog"
-	"sse/loggingmw"
-	"sse/room"
+	"github.com/michurin/minchat/handler"
+	"github.com/michurin/minchat/internal/middleware"
+	"github.com/michurin/minchat/internal/xhouse"
+	"github.com/michurin/minchat/internal/xlog"
 )
 
 func main() {
@@ -28,9 +28,9 @@ func main() {
 		}
 		return a
 	}}))))
-	house := room.New()
+	house := xhouse.New()
 	go handler.RevisionLoop(house)
-	err := http.ListenAndServe(":7011", loggingmw.MW(handler.Handler(house)))
+	err := http.ListenAndServe(":7011", middleware.Logging(handler.Handler(house)))
 	if err != nil {
 		log.Printf("Listener error: %s", err.Error())
 	}

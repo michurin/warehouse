@@ -7,18 +7,18 @@ import (
 	"strings"
 	"time"
 
-	"sse/internal/handlerenter"
-	"sse/internal/handlerfetch"
-	"sse/internal/handlerlock"
-	"sse/internal/handlerpub"
-	"sse/internal/handlerstatic"
-	"sse/internal/xdto"
-	"sse/room"
+	"github.com/michurin/minchat/internal/handlerenter"
+	"github.com/michurin/minchat/internal/handlerfetch"
+	"github.com/michurin/minchat/internal/handlerlock"
+	"github.com/michurin/minchat/internal/handlerpub"
+	"github.com/michurin/minchat/internal/handlerstatic"
+	"github.com/michurin/minchat/internal/xdto"
+	"github.com/michurin/minchat/internal/xhouse"
 )
 
 const pollingTimeout = 28 * time.Second
 
-func handlerDump(ch *room.House) http.HandlerFunc {
+func handlerDump(ch *xhouse.House) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		res := map[string]any{}
 		for _, room := range ch.List() {
@@ -37,7 +37,7 @@ func handlerDump(ch *room.House) http.HandlerFunc {
 	}
 }
 
-func handler(house *room.House) http.HandlerFunc {
+func handler(house *xhouse.House) http.HandlerFunc {
 	fsh := handlerstatic.New()
 	enterh := handlerenter.New(house)
 	pubh := handlerpub.New(house)
@@ -104,13 +104,13 @@ func handler(house *room.House) http.HandlerFunc {
 	}
 }
 
-func Handler(house *room.House) http.Handler {
+func Handler(house *xhouse.House) http.Handler {
 	return http.MaxBytesHandler(handler(house), 4096)
 }
 
 // ---------- REVISION ---------- TODO move to package?
 
-func RevisionLoop(ch *room.House) {
+func RevisionLoop(ch *xhouse.House) {
 	for {
 		ms := time.Now().Add(-10 * time.Second).UnixMilli()
 		walls, users := ch.Audit(ms)
