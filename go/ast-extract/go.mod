@@ -1,4 +1,4 @@
-module a
+module github.com/michurin/warehouse/go/ast-extract
 
 go 1.26.1
 
