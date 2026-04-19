@@ -9,6 +9,7 @@ import (
 
 	"sse/internal/handlerenter"
 	"sse/internal/handlerfetch"
+	"sse/internal/handlerlock"
 	"sse/internal/handlerpub"
 	"sse/internal/handlerstatic"
 	"sse/internal/xdto"
@@ -16,26 +17,6 @@ import (
 )
 
 const pollingTimeout = 28 * time.Second
-
-func handlerLock(ch *room.House) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		req := xdto.ReadBody(r.Body)
-		wall, users := ch.RoomOrNil(req.Room)
-		if wall == nil {
-			log.Print("lock room: " + req.Room + " (not found)")
-			return
-		}
-		name, _ := users.Get(req.User)
-		if len(name) == 0 {
-			log.Print("cannot lock room: " + req.Room + " by user: " + req.User)
-			return
-		}
-		if users.Lock(req.Lock) {
-			ms := time.Now().UnixMilli()
-			wall.Pub(xdto.BuildResponse(xdto.BuildRobotMessage(ms, name+" touched LOCK"), users))
-		}
-	}
-}
 
 func handlerDump(ch *room.House) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -61,7 +42,7 @@ func handler(house *room.House) http.HandlerFunc {
 	enterh := handlerenter.New(house)
 	pubh := handlerpub.New(house)
 	fetchh := handlerfetch.New(house, pollingTimeout)
-	lockh := handlerLock(house)
+	lockh := handlerlock.New(house)
 	dumph := handlerDump(house)
 	return func(w http.ResponseWriter, r *http.Request) {
 		path := r.URL.EscapedPath()
