@@ -1,7 +1,6 @@
 package xuser
 
 import (
-	"log"
 	"sync"
 )
 
@@ -65,7 +64,6 @@ func (u *Users) Get(userID string) (string, string) {
 func (u *Users) Lock(v bool) bool {
 	u.mu.Lock()
 	defer u.mu.Unlock()
-	log.Printf("LOCK %v->%v", u.locked, v)
 	if u.locked == v {
 		return false
 	}

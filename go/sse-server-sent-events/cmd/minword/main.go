@@ -1,36 +1,29 @@
 package main
 
 import (
-	"fmt"
 	"log"
-	"log/slog"
 	"net/http"
-	"os"
-	"strings"
+	"time"
 
-	"github.com/michurin/minchat/handler"
+	"github.com/michurin/minchat/internal/cleanup"
 	"github.com/michurin/minchat/internal/middleware"
+	"github.com/michurin/minchat/internal/router"
 	"github.com/michurin/minchat/internal/xhouse"
 	"github.com/michurin/minchat/internal/xlog"
 )
 
 func main() {
-	slog.SetDefault(slog.New(xlog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{AddSource: true, ReplaceAttr: func(groups []string, a slog.Attr) slog.Attr {
-		if a.Key == slog.TimeKey {
-			a.Value = slog.StringValue(a.Value.Time().Format("2006-01-02_15:04:05"))
-		}
-		if a.Key == slog.SourceKey {
-			s := a.Value.Any().(*slog.Source)
-			i := strings.LastIndexByte(s.File, '/')
-			if i > 0 {
-				a.Value = slog.StringValue(fmt.Sprintf("%s:%d", s.File[i+1:], s.Line)) // s.Function?
-			}
-		}
-		return a
-	}}))))
+	const pollingTimeout = 599 * time.Second
+	const inactiveTime = 10 * time.Second // TODO too short, for debugging only
+	const chatAddr = ":7011"
+
+	xlog.Init()
+
 	house := xhouse.New()
-	go handler.RevisionLoop(house)
-	err := http.ListenAndServe(":7011", middleware.Logging(handler.Handler(house)))
+
+	go cleanup.RevisionLoop(house, inactiveTime)
+
+	err := http.ListenAndServe(chatAddr, middleware.Logging(router.Handler(house, pollingTimeout)))
 	if err != nil {
 		log.Printf("Listener error: %s", err.Error())
 	}

@@ -1,8 +1,6 @@
-package handler
+package router
 
 import (
-	"encoding/json"
-	"log"
 	"net/http"
 	"strings"
 	"time"
@@ -11,39 +9,18 @@ import (
 	"github.com/michurin/minchat/internal/handlerfetch"
 	"github.com/michurin/minchat/internal/handlerlock"
 	"github.com/michurin/minchat/internal/handlerpub"
+	"github.com/michurin/minchat/internal/handlerstat"
 	"github.com/michurin/minchat/internal/handlerstatic"
-	"github.com/michurin/minchat/internal/xdto"
 	"github.com/michurin/minchat/internal/xhouse"
 )
 
-const pollingTimeout = 28 * time.Second
-
-func handlerDump(ch *xhouse.House) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		res := map[string]any{}
-		for _, room := range ch.List() {
-			wall, users := ch.RoomOrNil(room)
-			if wall == nil {
-				continue
-			}
-			res[room] = map[string]any{
-				"users": users.List(),
-				"lock":  users.Locked(),
-			}
-		}
-		j := json.NewEncoder(w)
-		j.SetIndent("", "  ")
-		j.Encode(res) // TODO err
-	}
-}
-
-func handler(house *xhouse.House) http.HandlerFunc {
+func handler(house *xhouse.House, pollingTimeout time.Duration) http.HandlerFunc {
 	fsh := handlerstatic.New()
 	enterh := handlerenter.New(house)
 	pubh := handlerpub.New(house)
 	fetchh := handlerfetch.New(house, pollingTimeout)
 	lockh := handlerlock.New(house)
-	dumph := handlerDump(house)
+	dumph := handlerstat.New(house)
 	return func(w http.ResponseWriter, r *http.Request) {
 		path := r.URL.EscapedPath()
 		if binPath, ok := strings.CutPrefix(path, "/bin/"); ok {
@@ -104,20 +81,6 @@ func handler(house *xhouse.House) http.HandlerFunc {
 	}
 }
 
-func Handler(house *xhouse.House) http.Handler {
-	return http.MaxBytesHandler(handler(house), 4096)
-}
-
-// ---------- REVISION ---------- TODO move to package?
-
-func RevisionLoop(ch *xhouse.House) {
-	for {
-		ms := time.Now().Add(-10 * time.Second).UnixMilli()
-		walls, users := ch.Audit(ms)
-		for i, w := range walls {
-			log.Print("Run: notify")
-			w.Pub(xdto.BuildResponse(xdto.BuildRobotMessage(ms, "Someone got out"), users[i]))
-		}
-		time.Sleep(2 * time.Second)
-	}
+func Handler(house *xhouse.House, pollingTimeout time.Duration) http.Handler {
+	return http.MaxBytesHandler(handler(house, pollingTimeout), 4096)
 }

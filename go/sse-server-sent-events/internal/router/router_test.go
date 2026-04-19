@@ -1,4 +1,4 @@
-package handler_test
+package router_test
 
 import (
 	"io"
@@ -9,8 +9,8 @@ import (
 	"testing/synctest"
 	"time"
 
-	"github.com/michurin/minchat/handler"
 	"github.com/michurin/minchat/internal/middleware"
+	"github.com/michurin/minchat/internal/router"
 	"github.com/michurin/minchat/internal/xhouse"
 )
 
@@ -83,6 +83,8 @@ B /fetch (all)
 */
 
 func TestHandler_complexFlow(t *testing.T) {
+	const pollingTimeout = 30 * time.Second
+
 	synctest.Test(t, func(t *testing.T) {
 		allignTime()
 
@@ -90,7 +92,7 @@ func TestHandler_complexFlow(t *testing.T) {
 
 		// TODO run audit (revision loop)
 
-		mx := middleware.Logging(handler.Handler(house))
+		mx := middleware.Logging(router.Handler(house, pollingTimeout))
 
 		// enter
 
