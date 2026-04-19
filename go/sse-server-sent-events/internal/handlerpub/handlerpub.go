@@ -1,4 +1,4 @@
-package handlerenter
+package handlerpub
 
 import (
 	"fmt"
@@ -46,15 +46,29 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "bad request", http.StatusBadRequest)
 		return
 	}
-	wall, users := h.house.Room(dto.Room)
+	wall, users := h.house.RoomOrNil(dto.Room)
+	if users == nil {
+		w.Write(xdto.BuildResponse(xdto.BuildControlMessage("noroom"), nil))
+		return
+	}
 	ms := time.Now().UnixMilli()
 	allowed, updated := users.Touch(dto.User, ms, dto.Name, dto.Color)
 	if !allowed {
+		slog.ErrorContext(ctx, fmt.Sprintf("WARNING: User is not allowed! room=%q, user=%q, name=%q", dto.Room, dto.User, dto.Name))
 		w.Write(xdto.BuildResponse(xdto.BuildControlMessage("locked"), nil))
 		return
 	}
 	if updated {
-		wall.Pub(xdto.BuildResponse(xdto.BuildRobotMessage(ms, dto.Name+" HERE!"), users)) // TODO(2) template and localization
+		wall.Pub(xdto.BuildResponse(xdto.BuildRobotMessage(ms, "User updated "+dto.Name), users))
 	}
-	w.Write(xdto.BuildResponse(nil, users)) // TODO(2) user io.copy, check error
+	text := xdto.SanitizeMessage(dto.Message)
+	if len(text) > 0 {
+		wall.Pub(xdto.BuildResponse(&xdto.MessageDTO{
+			Color:      dto.Color,
+			Message:    xdto.SanitizeMessage(dto.Message),
+			Name:       dto.Name,
+			TimeStamep: ms,
+		}, nil))
+	}
+	w.WriteHeader(http.StatusOK)
 }

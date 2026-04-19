@@ -10,9 +10,9 @@ import (
 	"strconv"
 	"strings"
 	"time"
-	"unicode"
 
 	"sse/internal/handlerenter"
+	"sse/internal/handlerpub"
 	"sse/internal/handlerstatic"
 	"sse/internal/xdto"
 	"sse/room"
@@ -22,27 +22,9 @@ import (
 
 const pollingTimeout = 28 * time.Second
 
-func sanitize(x string) string {
-	return strings.Map(func(x rune) rune {
-		if unicode.IsControl(x) { // clean up \n as well, useful in JSON sanitizing perspective
-			return '\x20'
-		}
-		return x
-	}, x)
-}
-
 func strictSanitaze(x string) string {
 	return strings.Map(func(x rune) rune {
 		if x == '_' || x == '-' || ('A' <= x && x <= 'Z') || ('a' <= x && x <= 'z') || ('0' <= x && x <= '9') {
-			return x
-		}
-		return -1
-	}, x)
-}
-
-func colorSanitaze(x string) string {
-	return strings.Map(func(x rune) rune {
-		if x == '#' || ('A' <= x && x <= 'F') || ('a' <= x && x <= 'f') || ('0' <= x && x <= '9') {
 			return x
 		}
 		return -1
@@ -130,43 +112,6 @@ func writeStreamMessage(w io.Writer, leid int64, messages [][]byte) {
 	}
 }
 
-func handlerPub(ch *room.House) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		req := xdto.ReadBody(r.Body)
-		if req == nil {
-			http.Error(w, "Error", http.StatusInternalServerError)
-			return
-		}
-		ms := time.Now().UnixMilli()
-		name := strictSanitaze(req.Name)
-		color := colorSanitaze(req.Color)
-		roomID := strictSanitaze(req.Room)
-		userID := strictSanitaze(req.User)
-		// TODO check empty
-		wall, users := ch.RoomOrNil(roomID)
-		if users == nil {
-			return
-		}
-		allowed, updated := users.Touch(userID, ms, name, color)
-		if !allowed {
-			log.Printf("WARNING: User is not allowed! room=%s, user=%s", roomID, userID)
-			http.Error(w, "Not allowed", http.StatusOK) // TODO error
-			return
-		}
-		if updated {
-			wall.Pub(xdto.BuildResponse(xdto.BuildRobotMessage(ms, "User updated "+name), users))
-		}
-		wall.Pub(xdto.BuildResponse(&xdto.MessageDTO{
-			Color:      color,
-			Message:    sanitize(req.Message),
-			Name:       name,
-			TimeStamep: ms,
-		}, nil))
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusOK)
-	}
-}
-
 func handlerLock(ch *room.House) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		req := xdto.ReadBody(r.Body)
@@ -208,10 +153,10 @@ func handlerDump(ch *room.House) http.HandlerFunc {
 
 func handler(house *room.House) http.HandlerFunc {
 	fsh := handlerstatic.New()
-	fetchh := handlerFetch(house)
-	pubh := handlerPub(house)
-	lockh := handlerLock(house)
 	enterh := handlerenter.New(house)
+	pubh := handlerpub.New(house)
+	fetchh := handlerFetch(house)
+	lockh := handlerLock(house)
 	dumph := handlerDump(house)
 	return func(w http.ResponseWriter, r *http.Request) {
 		path := r.URL.EscapedPath()

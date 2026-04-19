@@ -3,6 +3,8 @@ package xdto
 import (
 	"encoding/json"
 	"sse/user"
+	"strings"
+	"unicode"
 )
 
 type UserDTO struct {
@@ -68,4 +70,13 @@ func BuildControlMessage(m string) *MessageDTO {
 		Name:       "#CONTROL",
 		TimeStamep: 0, // as it doesn't appear on the wall it doesn't have time stamp
 	}
+}
+
+func SanitizeMessage(x string) string {
+	return strings.Map(func(x rune) rune {
+		if unicode.IsControl(x) { // clean up \n as well, useful in JSON sanitizing perspective
+			return '\x20'
+		}
+		return x
+	}, x)
 }

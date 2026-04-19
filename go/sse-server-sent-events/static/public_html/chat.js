@@ -92,6 +92,7 @@ async function send() {
       message: msg,
     }),
   })
+  // TODO consider response, user can be kicked and publishing can be dropped
   eMessageInput.value = ''
   eMessageInput.focus()
 }
