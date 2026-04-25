@@ -194,5 +194,5 @@ func isTerminal(h *os.File) bool {
 }
 
 func main() {
-	os.Exit(App(os.Stdin, os.Stdout, isTerminal(os.Stdout)))
+	os.Exit(App(os.Stdin, os.Stdout, isTerminal(os.Stdout) || (len(os.Args) == 2 && os.Args[1] == "-c")))
 }
