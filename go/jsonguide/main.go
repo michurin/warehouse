@@ -139,7 +139,7 @@ func value(source *tokenReader, w *writer, prefix string) bool {
 	return true
 }
 
-func App(in io.Reader, out io.Writer, isTerm bool) {
+func App(in io.Reader, out io.Writer, isTerm bool) int {
 	w := &writer{out: out}
 	if isTerm {
 		w.errPre = "\033[91m"
@@ -148,24 +148,21 @@ func App(in io.Reader, out io.Writer, isTerm bool) {
 	dec := json.NewDecoder(in)
 	for {
 		if value(&tokenReader{dec: dec}, w, "") {
-			return
+			return 1
 		}
 		if dec.More() {
 			w.sep()
 		} else {
-			break
+			return 0
 		}
 	}
 }
 
-func isitTerminal(h *os.File) bool {
+func isTerminal(h *os.File) bool {
 	o, err := h.Stat()
-	if err != nil {
-		return false
-	}
-	return o.Mode()&os.ModeCharDevice > 0
+	return err == nil && o.Mode()&os.ModeCharDevice > 0
 }
 
 func main() {
-	App(os.Stdin, os.Stdout, isitTerminal(os.Stdout))
+	os.Exit(App(os.Stdin, os.Stdout, isTerminal(os.Stdout)))
 }

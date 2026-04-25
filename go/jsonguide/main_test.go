@@ -32,10 +32,13 @@ func TestMain(t *testing.T) {
 			expectedOutput, err := os.ReadFile("testdata/" + c + ".out")
 			noerr(t, err)
 			buf := new(strings.Builder)
-			main.App(bytes.NewReader(data), buf, false)
+			rc := main.App(bytes.NewReader(data), buf, false)
+			expectError := strings.HasPrefix(c, "wrong_")
+			if !((rc == 0 && !expectError) || (rc == 1 && expectError)) {
+				t.Error("got: rc=", rc)
+			}
 			if buf.String() != string(expectedOutput) {
-				t.Log("got:\n" + buf.String() + "\texpected:\n" + string(expectedOutput))
-				t.Fail()
+				t.Error("got:\n" + buf.String() + "\texpected:\n" + string(expectedOutput))
 			}
 		})
 	}
