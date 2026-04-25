@@ -52,11 +52,13 @@ type writer struct {
 	eqPost  string
 	sepPre  string
 	sepPost string
+	keyPre  string
+	keyPost string
 	out     io.Writer
 }
 
 func (w *writer) msg(key, val string) {
-	fmt.Fprintf(w.out, "%s %s=%s %s\n", key, w.eqPre, w.eqPost, val)
+	fmt.Fprintf(w.out, "%s%s%s %s=%s %s\n", w.keyPre, key, w.keyPost, w.eqPre, w.eqPost, val)
 }
 
 func (w *writer) err(scope, key, err string) {
@@ -171,8 +173,10 @@ func App(in io.Reader, out io.Writer, isTerm bool) int {
 		w.errPost = off
 		w.eqPre = "\033[92m"
 		w.eqPost = off
-		w.sepPre = "\033[44;30m\033[2K"
+		w.sepPre = "\033[43;30m\033[2K"
 		w.sepPost = off
+		w.keyPre = "\033[93m"
+		w.keyPost = off
 	}
 	body := new(bytes.Buffer)
 	dec := json.NewDecoder(io.TeeReader(in, body))
