@@ -7,6 +7,7 @@ import (
 	"io"
 	"os"
 	"strings"
+	"unicode/utf8"
 )
 
 type tokenReader struct {
@@ -29,19 +30,31 @@ func (r *tokenReader) unread(t json.Token) {
 }
 
 func (r *tokenReader) errContext() string {
+	const contextSize = 20
 	offset := r.dec.InputOffset()
-	b := r.body.Bytes()
-	return strings.ReplaceAll(string(b[max(offset-20, 0):min(offset+20, int64(len(b)))]), "\n", `\n`) // TODO rune unsafe
+	body := r.body.Bytes()
+	bodyLen := int64(len(body))
+	a := min(max(offset-contextSize, 0), bodyLen)
+	for a > 0 && !utf8.RuneStart(body[a]) {
+		a--
+	}
+	b := min(offset+contextSize, bodyLen)
+	for b < bodyLen && !utf8.RuneStart(body[b]) {
+		b++
+	}
+	return strings.ReplaceAll(string(body[a:b]), "\n", `\n`)
 }
 
 type writer struct {
 	errPre  string
 	errPost string
+	eqPre   string
+	eqPost  string
 	out     io.Writer
 }
 
 func (w *writer) msg(key, val string) {
-	fmt.Fprintf(w.out, "%s = %s\n", key, val)
+	fmt.Fprintf(w.out, "%s %s=%s %s\n", key, w.eqPre, w.eqPost, val)
 }
 
 func (w *writer) err(scope, key, err string) {
@@ -153,6 +166,8 @@ func App(in io.Reader, out io.Writer, isTerm bool) int {
 	if isTerm {
 		w.errPre = "\033[91m"
 		w.errPost = "\033[0m"
+		w.eqPre = "\033[92m"
+		w.eqPost = "\033[0m"
 	}
 	body := new(bytes.Buffer)
 	dec := json.NewDecoder(io.TeeReader(in, body))

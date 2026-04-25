@@ -33,8 +33,8 @@ func TestMain(t *testing.T) {
 			noerr(t, err)
 			buf := new(strings.Builder)
 			rc := main.App(bytes.NewReader(data), buf, false)
-			expectError := strings.HasPrefix(c, "wrong_")
-			if !((rc == 0 && !expectError) || (rc == 1 && expectError)) {
+			expErr := strings.HasPrefix(c, "wrong_")
+			if (rc != 0 || expErr) && (rc != 1 || !expErr) { // !((rc == 0 && !expErr) || (rc == 1 && expErr))
 				t.Error("got: rc=", rc)
 			}
 			if buf.String() != string(expectedOutput) {
