@@ -1,0 +1,15 @@
+.A = a
+.B = true (bool)
+.C = <nil> (<nil>)
+.D = 1.5 (float64)
+.E[0] = 1 (float64)
+.F.x = y
+.G = {}
+.H = []
+.I.p.q = Q
+.J[0] = 0 (float64)
+.J[1][0] = 1 (float64)
+.J[1][1] = 2 (float64)
+.J[2] = {}
+.J[3] = []
+.J[4].u[0] = v

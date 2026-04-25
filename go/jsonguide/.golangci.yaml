@@ -1,0 +1,47 @@
+version: "2"
+linters:
+  default: all
+  disable:
+    - exhaustruct
+    - nlreturn
+    - wrapcheck
+    - wsl
+    - wsl_v5
+  settings:
+    depguard:
+      rules:
+        main:
+          allow:
+            - $gostd
+            - github.com/michurin/warehouse/go/jsonguide
+    revive:
+      rules:
+        - name: exported
+          disabled: true
+    varnamelen:
+      max-distance: 50
+  exclusions:
+    generated: lax
+    warn-unused: true
+    rules:
+      - path: "_test\\.go$"
+        linters:
+          - gosec
+      - source: "if err == io\\.EOF"
+        linters:
+          - errorlint
+      - source: "fmt\\.Fprint(f|ln)"
+        linters:
+          - errcheck
+formatters:
+  enable:
+    - gci
+    - gofmt
+    - gofumpt
+    - goimports
+  settings:
+    gci:
+      sections:
+        - standard
+        - default
+        - prefix(github.com/michurin/warehouse/go/jsonguide)
