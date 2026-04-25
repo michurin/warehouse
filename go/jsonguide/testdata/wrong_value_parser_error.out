@@ -1,0 +1,1 @@
+.A.B: [value] Parse error: ({\n  "A": {\n    "B": **\n  }\n}\n) invalid character '*' looking for beginning of value

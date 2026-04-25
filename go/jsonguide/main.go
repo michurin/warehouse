@@ -1,28 +1,37 @@
 package main
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"io"
 	"os"
+	"strings"
 )
 
 type tokenReader struct {
-	dec *json.Decoder
-	buf *json.Token
+	dec       *json.Decoder
+	lastToken *json.Token
+	body      *bytes.Buffer
 }
 
 func (r *tokenReader) token() (json.Token, error) {
-	if r.buf != nil {
-		t := *r.buf
-		r.buf = nil
+	if r.lastToken != nil {
+		t := *r.lastToken
+		r.lastToken = nil
 		return t, nil
 	}
 	return r.dec.Token()
 }
 
 func (r *tokenReader) unread(t json.Token) {
-	r.buf = &t
+	r.lastToken = &t
+}
+
+func (r *tokenReader) errContext() string {
+	offset := r.dec.InputOffset()
+	b := r.body.Bytes()
+	return strings.ReplaceAll(string(b[max(offset-20, 0):min(offset+20, int64(len(b)))]), "\n", `\n`) // TODO rune unsafe
 }
 
 type writer struct {
@@ -53,7 +62,7 @@ func array(source *tokenReader, w *writer, prefix string) bool {
 			return true
 		}
 		if err != nil {
-			w.err("array", pfx, "Parse error: "+err.Error())
+			w.err("array", pfx, "Parse error: ("+source.errContext()+") "+err.Error())
 			return true
 		}
 		if t, ok := tkn.(json.Delim); ok {
@@ -85,7 +94,7 @@ func object(source *tokenReader, w *writer, prefix string) bool {
 			return true
 		}
 		if err != nil {
-			w.err("object", prefix, "Parse error: "+err.Error())
+			w.err("object", prefix, "Parse error: ("+source.errContext()+") "+err.Error())
 			return true
 		}
 		if t, ok := tkn.(json.Delim); ok {
@@ -117,7 +126,7 @@ func value(source *tokenReader, w *writer, prefix string) bool {
 		return true
 	}
 	if err != nil {
-		w.err("value", prefix, "Parse error: "+err.Error())
+		w.err("value", prefix, "Parse error: ("+source.errContext()+") "+err.Error())
 		return true
 	}
 	switch t := tkn.(type) {
@@ -145,9 +154,10 @@ func App(in io.Reader, out io.Writer, isTerm bool) int {
 		w.errPre = "\033[91m"
 		w.errPost = "\033[0m"
 	}
-	dec := json.NewDecoder(in)
+	body := new(bytes.Buffer)
+	dec := json.NewDecoder(io.TeeReader(in, body))
 	for {
-		if value(&tokenReader{dec: dec}, w, "") {
+		if value(&tokenReader{dec: dec, body: body}, w, "") {
 			return 1
 		}
 		if dec.More() {

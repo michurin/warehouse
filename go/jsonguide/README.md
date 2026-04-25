@@ -25,6 +25,17 @@ echo '{"A":[1,{"q":[2' | jsonguide
 .A[1].q[1]: [array] Unexpected EOF
 ```
 
+In some cases it shows context of error:
+
+```sh
+echo '{"data":{"key-a":"a","key-b":***}}' | jsonguide
+```
+
+```
+.data.key-a = a
+.data.key-b: [value] Parse error: ("key-a":"a","key-b":***}}\n) invalid character '*' looking for beginning of value
+```
+
 ## It supports multiple JSON objects
 
 ```sh
