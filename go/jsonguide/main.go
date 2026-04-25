@@ -50,6 +50,8 @@ type writer struct {
 	errPost string
 	eqPre   string
 	eqPost  string
+	sepPre  string
+	sepPost string
 	out     io.Writer
 }
 
@@ -62,7 +64,7 @@ func (w *writer) err(scope, key, err string) {
 }
 
 func (w *writer) sep() {
-	fmt.Fprintln(w.out, "---")
+	fmt.Fprintln(w.out, w.sepPre+"---"+w.sepPost)
 }
 
 func array(source *tokenReader, w *writer, prefix string) bool {
@@ -164,10 +166,13 @@ func value(source *tokenReader, w *writer, prefix string) bool {
 func App(in io.Reader, out io.Writer, isTerm bool) int {
 	w := &writer{out: out}
 	if isTerm {
+		const off = "\033[0m"
 		w.errPre = "\033[91m"
-		w.errPost = "\033[0m"
+		w.errPost = off
 		w.eqPre = "\033[92m"
-		w.eqPost = "\033[0m"
+		w.eqPost = off
+		w.sepPre = "\033[44;30m\033[2K"
+		w.sepPost = off
 	}
 	body := new(bytes.Buffer)
 	dec := json.NewDecoder(io.TeeReader(in, body))
