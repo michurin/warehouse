@@ -26,12 +26,14 @@ type ResponseDTO struct {
 	Locked  *bool       `json:"locked,omitempty"`
 }
 
-func BuildResponse(message *MessageDTO, users *xuser.Users) []byte { // TODO do not use *user.Users, use DTOs only
+func BuildResponse(message *MessageDTO, users *xuser.Users, public bool) []byte { // TODO do not use *user.Users, use DTOs only
 	v := (*[]UserDTO)(nil)
 	c := (*bool)(nil)
 	if users != nil {
 		w := []UserDTO{} // force empty array, not nil
-		c = new(users.Locked())
+		if !public {
+			c = new(users.Locked()) // else nil
+		}
 		u := users.List()
 		for _, x := range u {
 			w = append(w, UserDTO{

@@ -31,34 +31,35 @@ const eShowUsers = noNulGuard(document.getElementById('show-users'))
 const appState = {
   room: '',
   user: '',
-  name: '', // TODO store in element?
-  color: '', // TODO store in element?
   users: [],
   locked: false,
 }
 
 function initAppState() {
-  appState.room = location.pathname.replaceAll(/[^0-9a-zA-Z_-]+/g, '') || 'main'
+  appState.room = location.pathname.replaceAll(/[^0-9a-zA-Z_-]+/g, '') || 'main' // TODO check
   appState.user = localStorage.getItem('user')
-  appState.name = localStorage.getItem('name')
-  appState.color = localStorage.getItem('color')
-  if (!appState.user) {
+  var name = localStorage.getItem('name')
+  var color = localStorage.getItem('color')
+  if (!appState.user) { // TODO check
     appState.user = Date.now().toString(36) + '-' + Math.random().toString(36).substring(2)
     localStorage.setItem('user', appState.user)
   }
-  if (!appState.name) {
-    appState.name = 'u' + ((Math.random() + 1) * 100).toString(10).substring(1, 3)
-    localStorage.setItem('name', appState.name)
+  console.log('name', name)
+  if (!name || !/^[0-9a-zA-Z_-]{1,32}$/.test(name)) {
+    name = 'u' + ((Math.random() + 1) * 100).toString(10).substring(1, 3)
   }
-  if (!/^#[0-9a-fA-F]{3,6}$/.test(appState.color)) {
-    appState.color = '#' + ((Math.random() + 1) * 16777216).toString(16).substring(1, 7)
-    localStorage.setItem('color', appState.color)
+  if (!color || !/^#[0-9a-fA-F]{3,6}$/.test(color)) {
+    color = '#' + ((Math.random() + 1) * 16777216).toString(16).substring(1, 7)
   }
-  eNameInput.value = appState.name
-  eColorInput.value = appState.color
+  eNameInput.value = name
+  eColorInput.value = color
 }
 
 function setLock(s) {
+  if (s === undefined) {
+    s = false
+    eLock.disabled = true
+  }
   appState.locked = s
   eLock.textContent = s ? '🔐' : '🔓'
 }
@@ -85,8 +86,8 @@ async function send() {
   await fetch('bin/pub', {
     method: 'POST',
     body: JSON.stringify({
-      room: appState.room,
-      user: appState.user,
+      room: appState.room, // TODO check: if not -> fin.html
+      user: appState.user, // TODO check: if not -> fix and focus name
       color: eColorInput.value.replaceAll(/\p{Cc}+/gu, ' '),
       name: eNameInput.value.replaceAll(/\p{Cc}+/gu, ' '),
       message: msg,
@@ -190,8 +191,8 @@ function initApp() {
     body: JSON.stringify({
       room: appState.room,
       user: appState.user,
-      name: appState.name,
-      color: appState.color,
+      name: eNameInput.value,
+      color: eColorInput.value,
     }),
   })
   // TODO check resp.ok

@@ -61,12 +61,12 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		wl, us = h.house.RoomOrNil(roomID)
 		if wl == nil {
 			slog.Error("Kick. No room", slog.String("user", userID), slog.String("room", roomID))
-			writeStreamMessage(w, 0, [][]byte{xdto.BuildResponse(xdto.BuildControlMessage(""), nil)}) // reason: no room
+			writeStreamMessage(w, 0, [][]byte{xdto.BuildResponse(xdto.BuildControlMessage(""), nil, false)}) // reason: no room
 			return
 		}
 		name, _ := us.Get(userID) // check user before feetching // TODO(2) in fact, just check if user exists
 		if len(name) == 0 {
-			writeStreamMessage(w, 0, [][]byte{xdto.BuildResponse(xdto.BuildControlMessage(""), nil)}) // reason: no user
+			writeStreamMessage(w, 0, [][]byte{xdto.BuildResponse(xdto.BuildControlMessage(""), nil, false)}) // reason: no user
 			return
 		}
 		messages, leid = wl.Fetch(ctx, leid) // it will take a time. So we need to check user after that again
@@ -76,7 +76,7 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 		name, _ = us.Get(userID) // check user before sending // TODO(2) in fact, just check if user exists
 		if len(name) == 0 {
-			writeStreamMessage(w, 0, [][]byte{xdto.BuildResponse(xdto.BuildControlMessage(""), nil)}) // reason: no user
+			writeStreamMessage(w, 0, [][]byte{xdto.BuildResponse(xdto.BuildControlMessage(""), nil, false)}) // reason: no user
 			return
 		}
 		writeStreamMessage(w, leid, messages)

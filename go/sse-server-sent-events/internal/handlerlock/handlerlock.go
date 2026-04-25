@@ -31,6 +31,11 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "bad request", http.StatusBadRequest)
 		return
 	}
+	if !xhouse.Public(dto.Room) {
+		slog.ErrorContext(ctx, fmt.Sprintf("public room %q", dto.Room))
+		http.Error(w, "bad request", http.StatusBadRequest)
+		return
+	}
 	wall, users := h.house.RoomOrNil(dto.Room)
 	if wall == nil {
 		slog.ErrorContext(ctx, "lock room: "+dto.Room+" (not found)")
@@ -43,6 +48,6 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 	if users.Lock(dto.Lock) {
 		ms := time.Now().UnixMilli()
-		wall.Pub(xdto.BuildResponse(xdto.BuildRobotMessage(ms, name+" touched LOCK"), users))
+		wall.Pub(xdto.BuildResponse(xdto.BuildRobotMessage(ms, name+" touched LOCK"), users, false))
 	}
 }

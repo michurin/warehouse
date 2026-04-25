@@ -50,11 +50,11 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	ms := time.Now().UnixMilli()
 	allowed, updated := users.Touch(dto.User, ms, dto.Name, dto.Color)
 	if !allowed {
-		w.Write(xdto.BuildResponse(xdto.BuildControlMessage("locked"), nil))
+		w.Write(xdto.BuildResponse(xdto.BuildControlMessage("locked"), nil, false))
 		return
 	}
 	if updated {
-		wall.Pub(xdto.BuildResponse(xdto.BuildRobotMessage(ms, dto.Name+" HERE!"), users)) // TODO(2) template and localization
+		wall.Pub(xdto.BuildResponse(xdto.BuildRobotMessage(ms, dto.Name+" HERE!"), users, false)) // TODO(2) template and localization
 	}
-	w.Write(xdto.BuildResponse(nil, users)) // TODO(2) user io.copy, check error
+	w.Write(xdto.BuildResponse(nil, users, xhouse.Public(dto.Room))) // TODO(2) user io.copy, check error
 }

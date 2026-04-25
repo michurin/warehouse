@@ -48,18 +48,18 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 	wall, users := h.house.RoomOrNil(dto.Room)
 	if users == nil {
-		w.Write(xdto.BuildResponse(xdto.BuildControlMessage("noroom"), nil))
+		w.Write(xdto.BuildResponse(xdto.BuildControlMessage("noroom"), nil, false))
 		return
 	}
 	ms := time.Now().UnixMilli()
 	allowed, updated := users.Touch(dto.User, ms, dto.Name, dto.Color)
 	if !allowed {
 		slog.ErrorContext(ctx, fmt.Sprintf("WARNING: User is not allowed! room=%q, user=%q, name=%q", dto.Room, dto.User, dto.Name))
-		w.Write(xdto.BuildResponse(xdto.BuildControlMessage("locked"), nil))
+		w.Write(xdto.BuildResponse(xdto.BuildControlMessage("locked"), nil, false))
 		return
 	}
 	if updated {
-		wall.Pub(xdto.BuildResponse(xdto.BuildRobotMessage(ms, "User updated "+dto.Name), users))
+		wall.Pub(xdto.BuildResponse(xdto.BuildRobotMessage(ms, "User updated "+dto.Name), users, false))
 	}
 	text := xdto.SanitizeMessage(dto.Message)
 	if len(text) > 0 {
@@ -68,7 +68,7 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			Message:    xdto.SanitizeMessage(dto.Message),
 			Name:       dto.Name,
 			TimeStamep: ms,
-		}, nil))
+		}, nil, false))
 	}
 	w.WriteHeader(http.StatusOK)
 }
