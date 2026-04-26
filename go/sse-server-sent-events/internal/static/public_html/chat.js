@@ -11,6 +11,14 @@ function timeFormat(ts) {
   return pad(d.getHours()) + ':' + pad(d.getMinutes())
 }
 
+function isCanonicalName(x) {
+  return typeof x == 'string' && /^[0-9A-Za-z_-]{1,32}$/.test(x)
+}
+
+function isValidColor(x) {
+  return typeof x == 'string' && /^#[0-9A-Fa-f]{6}$/.test(x)
+}
+
 function noNulGuard(x) { // for debugging only
   if (!x) {
     throw new Error('not true')
@@ -36,22 +44,28 @@ const appState = {
 }
 
 function initAppState() {
-  appState.room = location.pathname.replaceAll(/[^0-9a-zA-Z_-]+/g, '') || 'main' // TODO check
+  var room = location.pathname.replace(/^\//, '')
+  if (!isCanonicalName(room)) {
+    location.href = '/main'
+    return
+  }
+  appState.room = room
   appState.user = localStorage.getItem('user')
-  var name = localStorage.getItem('name')
-  var color = localStorage.getItem('color')
-  if (!appState.user) { // TODO check
+  if (!isCanonicalName(appState.user)) {
     appState.user = Date.now().toString(36) + '-' + Math.random().toString(36).substring(2)
     localStorage.setItem('user', appState.user)
   }
-  console.log('name', name)
-  if (!name || !/^[0-9a-zA-Z_-]{1,32}$/.test(name)) {
-    name = 'u' + ((Math.random() + 1) * 100).toString(10).substring(1, 3)
-  }
-  if (!color || !/^#[0-9a-fA-F]{3,6}$/.test(color)) {
-    color = '#' + ((Math.random() + 1) * 16777216).toString(16).substring(1, 7)
+  var name = localStorage.getItem('name')
+  if (!isCanonicalName(name)) {
+    name = 'name' + ((Math.random() + 1) * 100).toString(10).substring(1, 3)
+    localStorage.setItem('name', name)
   }
   eNameInput.value = name
+  var color = localStorage.getItem('color')
+  if (!isValidColor(color)) {
+    color = '#' + ((Math.random() + 1) * 16777216).toString(16).substring(1, 7)
+    localStorage.setItem('color', color)
+  }
   eColorInput.value = color
 }
 

@@ -11,6 +11,7 @@ import (
 	"github.com/michurin/minchat/internal/handlerpub"
 	"github.com/michurin/minchat/internal/handlerstat"
 	"github.com/michurin/minchat/internal/handlerstatic"
+	"github.com/michurin/minchat/internal/xdto"
 	"github.com/michurin/minchat/internal/xhouse"
 )
 
@@ -60,20 +61,14 @@ func handler(house *xhouse.House, pollingTimeout time.Duration) http.HandlerFunc
 				fsh.ServeHTTP(w, r)
 				return
 			}
-			tail, _ := strings.CutPrefix(path, "/")
-			key := strings.Map(func(x rune) rune {
-				if ('a' <= x && x <= 'z') || ('A' <= x && x <= 'Z') || ('0' <= x && x <= '9') || x == '_' || x == '-' {
-					return x
-				}
-				return -1
-			}, tail)
-			if key == tail {
+			room, _ := strings.CutPrefix(path, "/")
+			if xdto.CanonicalName(room) {
 				w.Header().Set("Cache-Control", "no-cache")
 				r.URL.Path = "/chat.html"
 				fsh.ServeHTTP(w, r)
 				return
 			} else {
-				http.Redirect(w, r, "/"+key, http.StatusPermanentRedirect)
+				http.Redirect(w, r, "/main", http.StatusPermanentRedirect)
 				return
 			}
 		}
