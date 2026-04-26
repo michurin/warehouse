@@ -9,7 +9,6 @@ import (
 	"github.com/michurin/minchat/internal/handlerfetch"
 	"github.com/michurin/minchat/internal/handlerlock"
 	"github.com/michurin/minchat/internal/handlerpub"
-	"github.com/michurin/minchat/internal/handlerstat"
 	"github.com/michurin/minchat/internal/handlerstatic"
 	"github.com/michurin/minchat/internal/xdto"
 	"github.com/michurin/minchat/internal/xhouse"
@@ -21,7 +20,6 @@ func handler(house *xhouse.House, pollingTimeout time.Duration) http.HandlerFunc
 	pubh := handlerpub.New(house)
 	fetchh := handlerfetch.New(house, pollingTimeout)
 	lockh := handlerlock.New(house)
-	dumph := handlerstat.New(house)
 	return func(w http.ResponseWriter, r *http.Request) {
 		path := r.URL.EscapedPath()
 		if binPath, ok := strings.CutPrefix(path, "/bin/"); ok {
@@ -30,9 +28,6 @@ func handler(house *xhouse.House, pollingTimeout time.Duration) http.HandlerFunc
 				switch binPath {
 				case "fetch":
 					fetchh.ServeHTTP(w, r)
-					return
-				case "dump":
-					dumph.ServeHTTP(w, r)
 					return
 				}
 			case http.MethodPost:
