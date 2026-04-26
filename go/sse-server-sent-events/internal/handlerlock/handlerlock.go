@@ -31,7 +31,7 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "bad request", http.StatusBadRequest)
 		return
 	}
-	if !xhouse.Public(dto.Room) {
+	if xhouse.Public(dto.Room) { // nobody can lock public rooms
 		slog.ErrorContext(ctx, fmt.Sprintf("public room %q", dto.Room))
 		http.Error(w, "bad request", http.StatusBadRequest)
 		return
