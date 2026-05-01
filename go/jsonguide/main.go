@@ -49,7 +49,7 @@ func (r *tokenReader) errContext() string {
 	return strings.ReplaceAll(string(body[a:b]), "\n", `\n`)
 }
 
-type writer struct {
+type colorTheme struct {
 	errPre  string
 	errPost string
 	eqPre   string
@@ -58,19 +58,37 @@ type writer struct {
 	sepPost string
 	keyPre  string
 	keyPost string
-	out     io.Writer
+}
+
+var colored colorTheme
+
+func init() {
+	const off = "\033[0m"
+	colored.errPre = "\033[91m"
+	colored.errPost = off
+	colored.eqPre = "\033[92m"
+	colored.eqPost = off
+	colored.sepPre = "\033[43;30m\033[2K"
+	colored.sepPost = off
+	colored.keyPre = "\033[93m"
+	colored.keyPost = off
+}
+
+type writer struct {
+	c   colorTheme
+	out io.Writer
 }
 
 func (w *writer) msg(key, val string) {
-	fmt.Fprintf(w.out, "%s%s%s %s=%s %s\n", w.keyPre, key, w.keyPost, w.eqPre, w.eqPost, val)
+	fmt.Fprintf(w.out, "%s%s%s %s=%s %s\n", w.c.keyPre, key, w.c.keyPost, w.c.eqPre, w.c.eqPost, val)
 }
 
 func (w *writer) err(scope, key, err string) {
-	fmt.Fprintf(w.out, "%s%s: [%s] %s%s\n", w.errPre, key, scope, err, w.errPost)
+	fmt.Fprintf(w.out, "%s%s: [%s] %s%s\n", w.c.errPre, key, scope, err, w.c.errPost)
 }
 
 func (w *writer) sep() {
-	fmt.Fprintln(w.out, w.sepPre+"---"+w.sepPost)
+	fmt.Fprintln(w.out, w.c.sepPre+"---"+w.c.sepPost)
 }
 
 func array(source *tokenReader, w *writer, prefix string) bool {
@@ -172,15 +190,7 @@ func value(source *tokenReader, w *writer, prefix string) bool {
 func App(in io.Reader, out io.Writer, isTerm bool) int {
 	w := &writer{out: out}
 	if isTerm {
-		const off = "\033[0m"
-		w.errPre = "\033[91m"
-		w.errPost = off
-		w.eqPre = "\033[92m"
-		w.eqPost = off
-		w.sepPre = "\033[43;30m\033[2K"
-		w.sepPost = off
-		w.keyPre = "\033[93m"
-		w.keyPost = off
+		w.c = colored
 	}
 	body := new(bytes.Buffer)
 	dec := json.NewDecoder(io.TeeReader(in, body))
