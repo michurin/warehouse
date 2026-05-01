@@ -57,14 +57,18 @@ func (r *tokenReader) errContext() string {
 }
 
 type colorTheme struct {
-	errPre  string
-	errPost string
-	eqPre   string
-	eqPost  string
-	sepPre  string
-	sepPost string
-	keyPre  string
-	keyPost string
+	errPre   string
+	errPost  string
+	eqPre    string
+	eqPost   string
+	sepPre   string
+	sepPost  string
+	keyPre   string
+	keyPost  string
+	typePre  string
+	typePost string
+	hintPre  string
+	hintPost string
 }
 
 var colored colorTheme
@@ -79,6 +83,10 @@ func init() {
 	colored.sepPost = off
 	colored.keyPre = "\033[93m"
 	colored.keyPost = off
+	colored.typePre = "\033[94m"
+	colored.typePost = off
+	colored.hintPre = "\033[92m"
+	colored.hintPost = off
 }
 
 type writer struct {
@@ -86,8 +94,14 @@ type writer struct {
 	out io.Writer
 }
 
-func (w *writer) msg(key, val string) {
-	fmt.Fprintf(w.out, "%s%s%s %s=%s %s\n", w.c.keyPre, key, w.c.keyPost, w.c.eqPre, w.c.eqPost, val)
+func (w *writer) msg(key, val, hint, typ string) {
+	if len(hint) > 0 {
+		hint = " " + w.c.hintPre + hint + w.c.hintPost
+	}
+	if len(typ) > 0 {
+		typ = " " + w.c.typePre + typ + w.c.typePost
+	}
+	fmt.Fprintf(w.out, "%s%s%s %s=%s %s%s%s\n", w.c.keyPre, key, w.c.keyPost, w.c.eqPre, w.c.eqPost, val, hint, typ)
 }
 
 func (w *writer) err(scope, key, err string) {
@@ -115,7 +129,7 @@ func array(source *tokenReader, w *writer, deepLook bool, prefix string) bool {
 			switch t {
 			case ']':
 				if n == 0 {
-					w.msg(prefix, "[]")
+					w.msg(prefix, "[]", "empty array", "")
 				}
 				return false
 			case '}':
@@ -150,7 +164,7 @@ func object(source *tokenReader, w *writer, deepLook bool, prefix string) bool {
 		if t, ok := tkn.(json.Delim); ok {
 			if t == '}' {
 				if empty {
-					w.msg(prefix, "{}")
+					w.msg(prefix, "{}", "empty object", "")
 				}
 				return false
 			}
@@ -199,30 +213,33 @@ func value(source *tokenReader, w *writer, deepLook bool, prefix string) bool {
 			}
 			if len(t) == 36 && reUUIDv7.MatchString(t) {
 				if ts, err := strconv.ParseInt(t[0:8]+t[9:13], 16, 64); err == nil {
-					w.msg(prefix, fmt.Sprintf("%[1]s (%[2]s UTC) (%[1]T/UUIDv7)", t, time.Unix(ts/1000, (ts%1000)*1_000_000).UTC().Format(time.DateTime+".000")))
+					w.msg(prefix, t, time.Unix(ts/1000, (ts%1000)*1_000_000).UTC().Format(time.DateTime+".000")+" UTC", "string/UUIDv7")
 					return false
 				}
 			}
 		}
-		w.msg(prefix, t)
+		w.msg(prefix, t, "", "string")
 		return false
 	case float64:
 		fs := strconv.FormatFloat(t, 'f', -1, 64)
 		if deepLook {
 			if t >= 1_700_000_000 && t < 2_000_000_000 {
-				w.msg(prefix, fmt.Sprintf("%s (%s UTC) (%T/timestamp)", fs, time.Unix(int64(t), 0).UTC().Format(time.DateTime), t))
+				w.msg(prefix, fs, time.Unix(int64(t), 0).UTC().Format(time.DateTime)+" UTC", "float/timestamp")
 				return false
 			}
 			if t >= 1_700_000_000_000 && t < 2_000_000_000_000 {
 				st := int64(t)
-				w.msg(prefix, fmt.Sprintf("%s (%s UTC) (%T/timestamp)", fs, time.Unix(st/1000, (st%1000)*1_000_000).UTC().Format(time.DateTime+".000"), t))
+				w.msg(prefix, fs, time.Unix(st/1000, (st%1000)*1_000_000).UTC().Format(time.DateTime+".000")+" UTC", "float/mstimestamp")
 				return false
 			}
 		}
-		w.msg(prefix, fmt.Sprintf("%s (%T)", fs, t))
+		w.msg(prefix, fs, "", "float")
 		return false
-	case bool, nil:
-		w.msg(prefix, fmt.Sprintf("%v (%T)", tkn, t))
+	case bool:
+		w.msg(prefix, strconv.FormatBool(t), "", "bool")
+		return false
+	case nil:
+		w.msg(prefix, "null", "", "null")
 		return false
 	}
 	w.err("value", prefix, fmt.Sprintf("Unknown token: %[1]v (%[1]T)", tkn))
@@ -303,6 +320,11 @@ func App(in io.Reader, out io.Writer, outStream fs.File, args []string) int {
 	w := &writer{out: out}
 	if colorMode {
 		w.c = colored
+	} else {
+		w.c.typePre = "("
+		w.c.hintPre = "("
+		w.c.typePost = ")"
+		w.c.hintPost = ")"
 	}
 	body := new(bytes.Buffer)
 	dec := json.NewDecoder(io.TeeReader(in, body))
