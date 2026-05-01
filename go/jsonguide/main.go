@@ -128,6 +128,10 @@ func array(source *tokenReader, w *writer, deepLook bool, prefix string) bool {
 }
 
 func object(source *tokenReader, w *writer, deepLook bool, prefix string) bool {
+	sep := ""
+	if prefix[len(prefix)-1] != '.' { // len(prefix) != 0, always
+		sep = "."
+	}
 	empty := true
 	for {
 		tkn, err := source.token()
@@ -154,10 +158,7 @@ func object(source *tokenReader, w *writer, deepLook bool, prefix string) bool {
 			w.err("object", prefix, fmt.Sprintf("Key is not string: %[1]v (%[1]T)", tkn))
 			return false
 		}
-		if prefix[len(prefix)-1] != '.' { // len(prefix) != 0, always
-			prefix += "."
-		}
-		if value(source, w, deepLook, prefix+key) { // TODO consider `["key"]`
+		if value(source, w, deepLook, prefix+sep+keyPath(key)) {
 			return true
 		}
 		empty = false
@@ -200,6 +201,47 @@ func value(source *tokenReader, w *writer, deepLook bool, prefix string) bool {
 	}
 	w.err("value", prefix, fmt.Sprintf("Unknown token: %[1]v (%[1]T)", tkn))
 	return true
+}
+
+func keyPath(key string) string {
+	if isSimpleKey(key) {
+		return key
+	}
+	return quotedKey(key)
+}
+
+func isSimpleKey(s string) bool {
+	if len(s) == 0 {
+		return false
+	}
+	for i := 0; i < len(s); i++ {
+		c := s[i]
+		if !(c == '_' || c >= 'a' && c <= 'z' || c >= 'A' && c <= 'Z' || c >= '0' && c <= '9') {
+			return false
+		}
+	}
+	return true
+}
+
+var specialSymbols = map[rune][]rune{
+	'\n': {'\\', 'n'},
+	'\r': {'\\', 'r'},
+	'\t': {'\\', 't'},
+}
+
+func quotedKey(s string) string {
+	o := []rune(nil)
+	for _, r := range s {
+		if a, ok := specialSymbols[r]; ok {
+			o = append(o, a...)
+			continue
+		}
+		if r == '\\' || r == '"' {
+			o = append(o, '\\')
+		}
+		o = append(o, r)
+	}
+	return `["` + string(o) + `"]`
 }
 
 func App(in io.Reader, out io.Writer, outStream fs.File, args []string) int {

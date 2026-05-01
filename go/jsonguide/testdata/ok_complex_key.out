@@ -1,0 +1,8 @@
+.A = a
+.["\""] = quot
+.["\\"] = slash
+.[""] = empty
+.["A A"] = space
+.["AA\n"] = newline
+.["A\rA"] = return
+.["A\tA"] = tab
