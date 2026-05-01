@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -184,12 +185,13 @@ func value(source *tokenReader, w *writer, deepLook bool, prefix string) bool {
 			return array(source, w, deepLook, prefix)
 		}
 	case string:
-		if deepLook && json.Valid([]byte(t)) {
-			d := &tokenReader{dec: json.NewDecoder(strings.NewReader(t)), body: nil}
-			tkn, err := d.token()
-			if err == nil && (tkn == json.Delim('{') || tkn == json.Delim('[')) {
-				d.unread(tkn)
-				value(d, w, deepLook, prefix+" | .")
+		if deepLook {
+			if startNested([]byte(t), "|", w, deepLook, prefix) {
+				return false
+			}
+			dst := make([]byte, base64.StdEncoding.DecodedLen(len(t)))
+			n, err := base64.StdEncoding.Decode(dst, []byte(t))
+			if err == nil && startNested(dst[:n], "#", w, deepLook, prefix) {
 				return false
 			}
 		}
@@ -201,6 +203,19 @@ func value(source *tokenReader, w *writer, deepLook bool, prefix string) bool {
 	}
 	w.err("value", prefix, fmt.Sprintf("Unknown token: %[1]v (%[1]T)", tkn))
 	return true
+}
+
+func startNested(t []byte, sep string, w *writer, deepLook bool, prefix string) bool {
+	if json.Valid(t) {
+		d := &tokenReader{dec: json.NewDecoder(bytes.NewReader(t)), body: nil}
+		tkn, err := d.token()
+		if err == nil && (tkn == json.Delim('{') || tkn == json.Delim('[')) {
+			d.unread(tkn)
+			value(d, w, deepLook, prefix+" "+sep+" .")
+			return true
+		}
+	}
+	return false
 }
 
 func keyPath(key string) string {

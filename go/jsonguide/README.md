@@ -64,6 +64,20 @@ echo '{"A":false,"B":"{\"x\":[1,2],\"y\":true}","C":"just str"}' | jsonguide
 .C = just str
 ```
 
+## It supports embedded base64 JSONs
+
+```sh
+echo '[1,2,3]' | openssl enc -base64 # WzEsMiwzXQo=
+echo '{"A":"B","V":"WzEsMiwzXQo="}' | jsonguide
+```
+
+```
+.A = B
+.V # .[0] = 1 (float64)
+.V # .[1] = 2 (float64)
+.V # .[2] = 3 (float64)
+```
+
 ## Supports non-unique keys
 
 ```sh
