@@ -177,6 +177,15 @@ func value(source *tokenReader, w *writer, prefix string) bool {
 			return array(source, w, prefix)
 		}
 	case string:
+		if json.Valid([]byte(t)) {
+			d := &tokenReader{dec: json.NewDecoder(strings.NewReader(t)), body: nil}
+			tkn, err := d.token()
+			if err == nil && (tkn == json.Delim('{') || tkn == json.Delim('[')) {
+				d.unread(tkn)
+				value(d, w, prefix+" | ")
+				return false
+			}
+		}
 		w.msg(prefix, t)
 		return false
 	case bool, nil, float64:

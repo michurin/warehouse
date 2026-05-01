@@ -50,6 +50,31 @@ echo '{"X":1} {"X":2} {"X":3}' | jsonguide
 .X = 3 (float64)
 ```
 
+## It supports embedded JSONs
+
+```sh
+echo '{"A":false,"B":"{\"x\":[1,2],\"y\":true}","C":"just str"}' | jsonguide
+```
+
+```
+.A = false (bool)
+.B | .x[0] = 1 (float64)
+.B | .x[1] = 2 (float64)
+.B | .y = true (bool)
+.C = just str
+```
+
+## Supports non-unique keys
+
+```sh
+echo '{"A":"a","A":"b"}' | jsonguide
+```
+
+```
+.A = a
+.A = b
+```
+
 ## Install it and enjoy
 
 ```sh
