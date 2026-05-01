@@ -13,7 +13,7 @@ import (
 //go:embed testdata
 var testdata embed.FS
 
-func TestMain(t *testing.T) {
+func TestApp(t *testing.T) {
 	t.Parallel()
 	fs, err := testdata.ReadDir("testdata")
 	noerr(t, err)
