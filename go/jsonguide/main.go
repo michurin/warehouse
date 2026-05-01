@@ -10,6 +10,10 @@ import (
 	"unicode/utf8"
 )
 
+const helpMessage = "" +
+	"jsonguide [-c] <in.json >out.txt\n" +
+	"  -c force colored output"
+
 type tokenReader struct {
 	dec       *json.Decoder
 	lastToken *json.Token
@@ -198,5 +202,9 @@ func isTerminal(h *os.File) bool {
 }
 
 func main() {
+	if len(os.Args) > 1 && os.Args[1] == "-h" {
+		fmt.Println(helpMessage)
+		return
+	}
 	os.Exit(App(os.Stdin, os.Stdout, isTerminal(os.Stdout) || (len(os.Args) == 2 && os.Args[1] == "-c")))
 }
