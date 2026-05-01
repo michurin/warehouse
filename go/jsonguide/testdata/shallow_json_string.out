@@ -1,0 +1,3 @@
+.A = false (bool)
+.B = {"x":[1,2],"y":true}
+.C = str

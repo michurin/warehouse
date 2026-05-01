@@ -5,14 +5,17 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"io/fs"
 	"os"
 	"strings"
 	"unicode/utf8"
 )
 
 const helpMessage = "" +
-	"jsonguide [-c] <in.json >out.txt\n" +
-	"  -c force colored output"
+	"jsonguide [-c] [-s] [-h] <in.json >out.txt\n" +
+	"  -c force colored output\n" +
+	"  -s shallow output (do not dive into JSON-strings)\n" +
+	"  -h help message"
 
 type tokenReader struct {
 	dec       *json.Decoder
@@ -91,7 +94,7 @@ func (w *writer) sep() {
 	fmt.Fprintln(w.out, w.c.sepPre+"---"+w.c.sepPost)
 }
 
-func array(source *tokenReader, w *writer, prefix string) bool {
+func array(source *tokenReader, w *writer, deepLook bool, prefix string) bool {
 	n := 0
 	for {
 		pfx := fmt.Sprintf("%s[%d]", prefix, n)
@@ -117,14 +120,14 @@ func array(source *tokenReader, w *writer, prefix string) bool {
 			} // pass [, {
 		}
 		source.unread(tkn)
-		if value(source, w, pfx) {
+		if value(source, w, deepLook, pfx) {
 			return true
 		}
 		n++
 	}
 }
 
-func object(source *tokenReader, w *writer, prefix string) bool {
+func object(source *tokenReader, w *writer, deepLook bool, prefix string) bool {
 	empty := true
 	for {
 		tkn, err := source.token()
@@ -151,14 +154,17 @@ func object(source *tokenReader, w *writer, prefix string) bool {
 			w.err("object", prefix, fmt.Sprintf("Key is not string: %[1]v (%[1]T)", tkn))
 			return false
 		}
-		if value(source, w, prefix+"."+key) {
+		if prefix[len(prefix)-1] != '.' { // len(prefix) != 0, always
+			prefix += "."
+		}
+		if value(source, w, deepLook, prefix+key) { // TODO consider `["key"]`
 			return true
 		}
 		empty = false
 	}
 }
 
-func value(source *tokenReader, w *writer, prefix string) bool {
+func value(source *tokenReader, w *writer, deepLook bool, prefix string) bool {
 	tkn, err := source.token()
 	if err == io.EOF {
 		w.err("value", prefix, "Unexpected EOF")
@@ -172,17 +178,17 @@ func value(source *tokenReader, w *writer, prefix string) bool {
 	case json.Delim:
 		switch t {
 		case '{':
-			return object(source, w, prefix)
+			return object(source, w, deepLook, prefix)
 		case '[':
-			return array(source, w, prefix)
+			return array(source, w, deepLook, prefix)
 		}
 	case string:
-		if json.Valid([]byte(t)) {
+		if deepLook && json.Valid([]byte(t)) {
 			d := &tokenReader{dec: json.NewDecoder(strings.NewReader(t)), body: nil}
 			tkn, err := d.token()
 			if err == nil && (tkn == json.Delim('{') || tkn == json.Delim('[')) {
 				d.unread(tkn)
-				value(d, w, prefix+" | ")
+				value(d, w, deepLook, prefix+" | .")
 				return false
 			}
 		}
@@ -196,15 +202,29 @@ func value(source *tokenReader, w *writer, prefix string) bool {
 	return true
 }
 
-func App(in io.Reader, out io.Writer, isTerm bool) int {
+func App(in io.Reader, out io.Writer, outStream fs.File, args []string) int {
+	o, err := outStream.Stat()
+	colorMode := err == nil && o.Mode()&os.ModeCharDevice > 0
+	deepLook := true
+	for _, o := range args {
+		switch o {
+		case "-h":
+			fmt.Fprintln(out, helpMessage)
+			return 0
+		case "-c":
+			colorMode = true
+		case "-s":
+			deepLook = false
+		}
+	}
 	w := &writer{out: out}
-	if isTerm {
+	if colorMode {
 		w.c = colored
 	}
 	body := new(bytes.Buffer)
 	dec := json.NewDecoder(io.TeeReader(in, body))
 	for {
-		if value(&tokenReader{dec: dec, body: body}, w, "") {
+		if value(&tokenReader{dec: dec, body: body}, w, deepLook, ".") {
 			return 1
 		}
 		if dec.More() {
@@ -215,15 +235,6 @@ func App(in io.Reader, out io.Writer, isTerm bool) int {
 	}
 }
 
-func isTerminal(h *os.File) bool {
-	o, err := h.Stat()
-	return err == nil && o.Mode()&os.ModeCharDevice > 0
-}
-
 func main() {
-	if len(os.Args) > 1 && os.Args[1] == "-h" {
-		fmt.Println(helpMessage)
-		return
-	}
-	os.Exit(App(os.Stdin, os.Stdout, isTerminal(os.Stdout) || (len(os.Args) == 2 && os.Args[1] == "-c")))
+	os.Exit(App(os.Stdin, os.Stdout, os.Stdout, os.Args[1:]))
 }
