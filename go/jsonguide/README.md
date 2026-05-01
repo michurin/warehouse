@@ -78,6 +78,27 @@ echo '{"A":"B","V":"WzEsMiwzXQo="}' | jsonguide
 .V # .[2] = 3 (float64)
 ```
 
+## Supports timestamps in seconds and milliseconds
+
+```sh
+echo '[1777777777, 1777777777777]' | jsonguide
+```
+
+```
+.[0] = 1777777777 (2026-05-03 03:09:37 UTC) (float64/timestamp)
+.[1] = 1777777777777 (2026-05-03 03:09:37.777 UTC) (float64/timestamp)
+```
+
+## Supports UUIDv7
+
+```sh
+echo '{"id": "019ddddd-dddd-7ddd-0123-456789abcdef"}' | jsonguide
+```
+
+```
+.id = 019ddddd-dddd-7ddd-0123-456789abcdef (2026-04-30 10:09:58.237 UTC) (string/UUIDv7)
+```
+
 ## Supports non-unique keys
 
 ```sh

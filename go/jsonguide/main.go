@@ -8,7 +8,10 @@ import (
 	"io"
 	"io/fs"
 	"os"
+	"regexp"
+	"strconv"
 	"strings"
+	"time"
 	"unicode/utf8"
 )
 
@@ -194,16 +197,39 @@ func value(source *tokenReader, w *writer, deepLook bool, prefix string) bool {
 			if err == nil && startNested(dst[:n], "#", w, deepLook, prefix) {
 				return false
 			}
+			if len(t) == 36 && reUUIDv7.MatchString(t) {
+				if ts, err := strconv.ParseInt(t[0:8]+t[9:13], 16, 64); err == nil {
+					w.msg(prefix, fmt.Sprintf("%[1]s (%[2]s UTC) (%[1]T/UUIDv7)", t, time.Unix(ts/1000, (ts%1000)*1_000_000).UTC().Format(time.DateTime+".000")))
+					return false
+				}
+			}
 		}
 		w.msg(prefix, t)
 		return false
-	case bool, nil, float64:
+	case float64:
+		fs := strconv.FormatFloat(t, 'f', -1, 64)
+		if deepLook {
+			if t >= 1_700_000_000 && t < 2_000_000_000 {
+				w.msg(prefix, fmt.Sprintf("%s (%s UTC) (%T/timestamp)", fs, time.Unix(int64(t), 0).UTC().Format(time.DateTime), t))
+				return false
+			}
+			if t >= 1_700_000_000_000 && t < 2_000_000_000_000 {
+				st := int64(t)
+				w.msg(prefix, fmt.Sprintf("%s (%s UTC) (%T/timestamp)", fs, time.Unix(st/1000, (st%1000)*1_000_000).UTC().Format(time.DateTime+".000"), t))
+				return false
+			}
+		}
+		w.msg(prefix, fmt.Sprintf("%s (%T)", fs, t))
+		return false
+	case bool, nil:
 		w.msg(prefix, fmt.Sprintf("%v (%T)", tkn, t))
 		return false
 	}
 	w.err("value", prefix, fmt.Sprintf("Unknown token: %[1]v (%[1]T)", tkn))
 	return true
 }
+
+var reUUIDv7 = regexp.MustCompile("^([0-9a-zA-Z]{8})-([0-9a-zA-Z]{4})-7[0-9a-zA-Z]{3}-[0-9a-zA-Z]{4}-[0-9a-zA-Z]{12}$")
 
 func startNested(t []byte, sep string, w *writer, deepLook bool, prefix string) bool {
 	if json.Valid(t) {
