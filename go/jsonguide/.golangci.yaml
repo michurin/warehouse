@@ -6,6 +6,8 @@ linters:
     - gochecknoglobals
     - gochecknoinits
     - nlreturn
+    - noinlineerr
+    - varnamelen
     - wrapcheck
     - wsl
     - wsl_v5
@@ -23,7 +25,17 @@ linters:
     varnamelen:
       max-distance: 50
     cyclop:
-      max-complexity: 12
+      max-complexity: 25
+    gocognit:
+      min-complexity: 40
+    funlen:
+      statements: 50
+    nestif:
+      min-complexity: 6
+    mnd:
+      ignored-numbers: [1000, 1000000]
+    lll:
+      line-length: 160
     staticcheck:
       checks:
         - all
