@@ -1,4 +1,14 @@
-# IDEA 0.1
+# KEY IDEAS
+
+- No storage, no cookies
+- No users no personal data collection
+- Easy building and installation
+- No dependencies
+- Easy to check
+  - by strace
+  - by code review
+
+# Milestone v0.1
 
 - Remove seeded status
 - Universal DTOs
