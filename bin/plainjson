@@ -1,0 +1,31 @@
+#!/usr/bin/python3
+
+import sys
+import json
+
+NoneType = type(None)
+
+def p(path, data):
+    tp = type(data)
+    if tp == dict:
+        if data:
+            for k, v in data.items():
+                p(path+('' if path == '' else '.')+k, v)
+        else:
+            print(path+'={}')
+    elif tp == str or tp == int or tp == float:
+        print(path+'='+str(data))
+    elif tp is NoneType:
+        print(path+'=null')
+    elif tp == bool:
+        print(path+'='+('true' if data else 'false'))
+    elif tp == list:
+        if data:
+            for i, v in enumerate(data):
+                p(path+'['+str(i)+']', v)
+        else:
+            print(path+'=[]')
+    else:
+        print(path+'='+repr(tp))
+
+p('', json.loads(sys.stdin.read()))
