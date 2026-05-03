@@ -1,8 +1,0 @@
-.A = a (string)
-.["\""] = quot (string)
-.["\\"] = slash (string)
-.[""] = empty (string)
-.["A A"] = space (string)
-.["AA\n"] = newline (string)
-.["A\rA"] = return (string)
-.["A\tA"] = tab (string)

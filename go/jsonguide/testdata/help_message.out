@@ -1,4 +1,0 @@
-jsonguide [-c] [-s] [-h] <in.json >out.txt
-  -c force colored output
-  -s shallow output (do not dive into JSON-strings)
-  -h help message
