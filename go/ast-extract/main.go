@@ -98,7 +98,15 @@ func findFirstIdent(n ast.Node, name string) *ast.Ident {
 	return res
 }
 
-func walkGoFiles(root string, f func(ast.Node, *token.FileSet, error) error) error {
+func filterTestOnly(fn string) bool {
+	return strings.HasSuffix(fn, "_test.go")
+}
+
+func filterCodeOnly(fn string) bool {
+	return !strings.HasSuffix(fn, "_test.go")
+}
+
+func walkGoFiles(root string, filter func(string) bool, f func(ast.Node, *token.FileSet, error) error) error {
 	return filepath.WalkDir(root, func(path string, d fs.DirEntry, err error) error {
 		if err != nil {
 			return err
@@ -107,6 +115,9 @@ func walkGoFiles(root string, f func(ast.Node, *token.FileSet, error) error) err
 			return nil
 		}
 		if !strings.HasSuffix(path, ".go") {
+			return nil
+		}
+		if filter != nil && !filter(path) {
 			return nil
 		}
 		fset := token.NewFileSet()
@@ -140,7 +151,7 @@ func walkPackage(root string, f func(ast.Node, *token.FileSet, error) error) err
 
 func findConstructors(root, targetTypeName string) []outputDto { // TODO functions only; consider interface methods? consider type definitions?
 	result := []outputDto(nil)
-	err := walkGoFiles(root, func(file ast.Node, fset *token.FileSet, err error) error {
+	err := walkGoFiles(root, nil, func(file ast.Node, fset *token.FileSet, err error) error {
 		ast.Inspect(file, func(n ast.Node) bool {
 			if n != nil {
 				if fn, ok := n.(*ast.FuncDecl); ok && fn.Type != nil && fn.Type.Results != nil {
@@ -172,9 +183,9 @@ func findAllVarDefinitions() { // TODO?
 	debugFile("example/v.go")
 }
 
-func findInString(root string) []outputDto {
+func findInString(root string, singleOnly bool, filter func(string) bool) []outputDto {
 	result := []outputDto(nil)
-	err := walkGoFiles(root, func(file ast.Node, fset *token.FileSet, err error) error {
+	err := walkGoFiles(root, filter, func(file ast.Node, fset *token.FileSet, err error) error {
 		ast.Inspect(file, func(n ast.Node) bool {
 			if a, ok := n.(*ast.BasicLit); ok {
 				if a.Kind != token.STRING {
@@ -186,6 +197,9 @@ func findInString(root string) []outputDto {
 				}
 				pos := fset.Position(n.Pos())
 				c := pos.Column
+				if singleOnly && strings.Contains(x, "\n") {
+					return false // skip multiline
+				}
 				for i, s := range strings.Split(x, "\n") {
 					s = strings.TrimSpace(s)
 					if len(s) == 0 {
@@ -200,6 +214,7 @@ func findInString(root string) []outputDto {
 					// fmt.Println(pos.Filename, pos.Line+i, c, s)
 					c = 1
 				}
+
 			}
 			return true
 		})
@@ -229,7 +244,19 @@ func main() {
 		encode(findMethods(dir, targetTypeName))
 	case "strings":
 		dir := os.Args[2]
-		encode(findInString(dir))
+		encode(findInString(dir, false, nil))
+	case "strings_test":
+		dir := os.Args[2]
+		encode(findInString(dir, false, filterTestOnly))
+	case "strings_code":
+		dir := os.Args[2]
+		encode(findInString(dir, false, filterCodeOnly))
+	case "strings_test_single":
+		dir := os.Args[2]
+		encode(findInString(dir, true, filterTestOnly))
+	case "strings_code_single":
+		dir := os.Args[2]
+		encode(findInString(dir, true, filterCodeOnly))
 	case "constructors":
 		dir := os.Args[2]
 		targetTypeName := os.Args[3]
