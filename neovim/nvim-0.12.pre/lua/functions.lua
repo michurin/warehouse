@@ -479,7 +479,7 @@ M.file_search_command = {
 -- -------------------------------
 
 M.smart_open = {
-  opts = { nargs = '+' },
+  opts = { nargs = '+', complete = 'file' },
   act = function(cmd)
     return function(opts)
       -- :lua x('edit', 'a.go')
@@ -501,6 +501,7 @@ M.smart_open = {
       local stat = vim.loop.fs_stat(file)
       if stat ~= nil then
         vim.api.nvim_cmd({ cmd = cmd, args = { file } }, {})
+        vim.api.nvim_win_set_cursor(0, { line, 0 })
         return
       end
       local files = vim.fn.systemlist('find . -type f -print0 | grep -z --color=never ' ..
@@ -511,6 +512,7 @@ M.smart_open = {
       end
       if #files == 1 then
         vim.api.nvim_cmd({ cmd = cmd, args = { files[1] } }, {})
+        vim.api.nvim_win_set_cursor(0, { line, 0 })
         return
       end
       table.sort(files)
