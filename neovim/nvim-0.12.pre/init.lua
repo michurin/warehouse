@@ -2,6 +2,7 @@ require('configs')
 local F = require('functions')
 local S = require('sync_imports')
 local RG = require('rg')
+local GG = require('gogrep')
 local CustomSelect = require('select')
 local CustomSpelling = require('spell')
 
@@ -129,6 +130,9 @@ end, { nargs = '+' })
 -- go: TODO move to ft-file?
 vim.api.nvim_create_user_command('GA', F.go_alt.act('vsplit'), F.go_alt.opts)
 vim.api.nvim_create_user_command('GAA', F.go_alt.act('tabnew'), F.go_alt.opts)
+
+vim.api.nvim_create_user_command('GGS', GG.gogrep_strings.act, GG.gogrep_strings.opts)
+vim.api.nvim_create_user_command('GGM', GG.gogrep_methods.act, GG.gogrep_methods.opts)
 
 -- misc
 vim.api.nvim_create_user_command('U', function()
