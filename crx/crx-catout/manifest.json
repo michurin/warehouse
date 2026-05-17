@@ -23,8 +23,10 @@
     {"matches": ["https://mail.avito.ru/*"], "js": ["avex.js"]},
     {"matches": ["https://people.avito.ru/users/*"], "js": ["ppl.js"]},
 
-    {"matches": ["https://github.com/inDriver/*/pulls"], "js": ["idprs.js"]},
-    {"matches": ["https://github.com/inDriver/*/actions"], "js": ["idacts.js"]},
+    {"matches": ["https://github.com/inDriver/*"], "js": [
+      "idprs.js",
+      "idacts.js"
+    ]},
     {"matches": ["https://boundary.indrive.tech/*"], "js": ["bo.js"]},
     {"matches": ["https://indrivezerotrust.cloudflareaccess.com/*"], "js": ["warp.js"]},
     {"matches": ["https://platform.claude.com/oauth/code/success"], "js": ["cl.js"]}
