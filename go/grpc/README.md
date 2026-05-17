@@ -1,5 +1,5 @@
 ```
-protoc --go_out=kit --go-grpc_out=kit api/api.proto
+protoc -I ./api --go_out=kit --go-grpc_out=kit api/api.proto
 
 # +grpc-gateway
 protoc -I ./api --go_out=kit --go-grpc_out=kit --grpc-gateway_out=kit api.proto
