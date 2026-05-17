@@ -1,6 +1,6 @@
 # Generate keys
 
-```
+```sh
 ssh-keygen -t ed25519 -a 100 -C "$(whoami)@$(hostname)"
 ssh-keygen -t rsa -b 4096 -a 100 -C "$(whoami)@$(hostname)"
 ```
@@ -18,7 +18,7 @@ Host your-old-host.com
 
 Change password:
 
-```
+```sh
 ssh-keygen -p -f ~/.ssh/id_rsa
 ```
 
@@ -28,6 +28,26 @@ ssh-keygen -p -f ~/.ssh/id_rsa
 
 ```
 restrict,port-forwarding,command="/usr/bin/echo BYE" ssh-ed25519 AA...yx x@xxx
+```
+
+# Examples
+
+Old style
+
+```sh
+ssh-keygen -P "" -t rsa -b 4096 -f open_rsa_for_tunneling
+```
+
+Modern
+
+```
+ssh-keygen -P "" -t ed25519 -a 100 -f open_ed25519_for_tunneling -C "$(whoami)@$(hostname)-open-for-app-tun"
+```
+
+An acceptable compromise for old and new servers
+
+```
+ssh-keygen -P "" -t ecdsa-sha2-nistp256 -a 100 -f open_ecdsa_for_tunneling -C "$(whoami)@$(hostname)-open-for-app-tun"
 ```
 
 <!-- vi: set ft=markdown: -->
