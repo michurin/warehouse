@@ -1,0 +1,3 @@
+#!/bin/sh
+
+lsof -nP -iTCP -sTCP:LISTEN || sudo lsof -nP -iTCP -sTCP:LISTEN
