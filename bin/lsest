@@ -1,0 +1,3 @@
+#!/bin/sh
+
+ss -nHo state established 'sport = :ssh || sport = :https'
