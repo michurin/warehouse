@@ -2,32 +2,33 @@
 
 all='n'
 for pq in \
+  'n github.com/bufbuild/buf/...' \
   'n github.com/charmbracelet/freeze' \
   'n github.com/fatih/gomodifytags' \
   'n github.com/fogleman/primitive' \
+  'n github.com/fullstorydev/grpcurl/cmd/grpcurl' \
   'n github.com/go-delve/delve/cmd/dlv' \
   'n github.com/gojuno/minimock/v3/cmd/minimock' \
   'n github.com/golangci/golangci-lint/v2/cmd/golangci-lint' \
-  'n go.uber.org/mock/mockgen' `# n github.com/golang/mock/mockgen` \
+  'n github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-grpc-gateway' \
+  'n github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-openapiv2' \
   'n github.com/itskoko/prometheus-renderer/cmd/...' `# render -s 12h 'rate(app_cpu{cpu="cpu",mx!="idle"}[1m])/100/16'` \
-  'n github.com/michurin/jray' \
+  'n github.com/lasorda/protobuf-language-server' \
   'n github.com/michurin/human-readable-json-logging/cmd/...' \
+  'n github.com/michurin/jray' \
   'n github.com/michurin/systemd-env-file/cmd/xenv' \
+  'n github.com/ofabry/go-callvis' \
   'n github.com/poloxue/modv' `# go mod graph | modv | dot -T png >dps.png` \
+  'n github.com/segmentio/golines' \
   'n github.com/vektra/mockery/v2' \
   'n golang.org/x/tools/cmd/...' \
   'n golang.org/x/tools/cmd/godoc' `# godoc -http :8888` \
   'n golang.org/x/tools/cmd/present' \
   'n golang.org/x/tools/gopls' \
-  'n mvdan.cc/gofumpt' \
-  'n github.com/ofabry/go-callvis' \
-  'n github.com/bufbuild/buf/...' \
-  'n google.golang.org/protobuf/cmd/protoc-gen-go' \
   'n google.golang.org/grpc/cmd/protoc-gen-go-grpc' \
-  'n github.com/fullstorydev/grpcurl/cmd/grpcurl' \
-  'n github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-grpc-gateway' \
-  'n github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-openapiv2' \
-  'n github.com/lasorda/protobuf-language-server'
+  'n google.golang.org/protobuf/cmd/protoc-gen-go' \
+  'n go.uber.org/mock/mockgen' `# n github.com/golang/mock/mockgen` \
+  'n mvdan.cc/gofumpt'
 do
     p="${pq% *}"
     q="${pq#* }"
