@@ -135,6 +135,8 @@ vim.api.nvim_create_user_command('GGS', GG.gogrep_strings.act, GG.gogrep_strings
 vim.api.nvim_create_user_command('GGM', GG.gogrep_methods.act, GG.gogrep_methods.opts)
 
 -- misc
+vim.api.nvim_create_user_command('DT', function() vim.diagnostic.enable(not vim.diagnostic.is_enabled()) end, {})
+
 vim.api.nvim_create_user_command('U', function()
   vim.cmd.edit(vim.fn.fnamemodify(vim.api.nvim_buf_get_name(0), ':h'))
 end, {})
