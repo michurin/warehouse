@@ -1,0 +1,17 @@
+# Include it to .bashrc
+# Beware ROW will be slightly ugly. Clean it up if you want to use it.
+
+if test -z "$MC_SID" # also INSIDE_EMACS can be useful here
+then
+    __smart_newline() {
+        IFS=';' read -sdR -p $'\E[6n' ROW COL
+        if test "${COL}" -ne 1
+        then
+            printf '\e[1;96m↵␍\e[0m\n'
+        fi
+    }
+
+    PROMPT_COMMAND='__smart_newline'
+fi
+
+# vi:ft=bash
