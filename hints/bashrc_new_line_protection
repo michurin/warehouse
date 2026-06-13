@@ -7,7 +7,8 @@ then
         IFS=';' read -sdR -p $'\E[6n' ROW COL
         if test "${COL}" -ne 1
         then
-            printf '\e[1;96m↵␍\e[0m\n'
+            # printf '\e[1;96m↵␍\e[0m\n'
+            printf '\e[92m▐\e[102;30m␍\e[0m\e[92m▌\e[0m\n'
         fi
     }
 
