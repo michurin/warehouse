@@ -157,6 +157,8 @@ vim.diagnostic.config({
 })
 ]] --
 
+-- USEFUL: echo synIDattr(synID(line("."), col("."), 1), "name")
+
 -- vim.api.nvim_set_hl(0, 'TelescopeNormal', { fg = '#c0c0c0' })
 -- vim.api.nvim_set_hl(0, 'TelescopeMatching', { bg = '#005f5f', fg = 'none' })
 vim.api.nvim_set_hl(0, 'Pmenu', { bg = '#1c1c1c', fg = '#afd7ff' })
@@ -208,10 +210,11 @@ vim.api.nvim_set_hl(0, 'markdownH5Delimiter', { bg = '#303030', fg = '#ff87ff' }
 vim.api.nvim_set_hl(0, 'htmlH6', { bg = '#303030', fg = '#ffffff' })
 vim.api.nvim_set_hl(0, 'markdownH6Delimiter', { bg = '#303030', fg = '#ffffff' })
 vim.api.nvim_set_hl(0, 'htmlLink', { fg = '#5fd7ff' })
-vim.api.nvim_set_hl(0, 'markdownCodeBlock', { fg = '#5fafaf' })
 vim.api.nvim_set_hl(0, 'markdownCode', { fg = '#5fafaf' })
 vim.api.nvim_set_hl(0, 'markdownStrike', { fg = '#5f8787' })
 vim.api.nvim_set_hl(0, 'markdownItalic', { fg = '#ffffff' })
+vim.api.nvim_set_hl(0, 'markdownCodeDelimiter', { fg = '#00ff00', bg = '#004400' })
+vim.api.nvim_set_hl(0, 'markdownCodeBlock', { fg = '#999999' })
 vim.api.nvim_set_hl(0, 'diffRemoved', { fg = '#ee7777' })
 vim.api.nvim_set_hl(0, 'diffAdded', { fg = '#55cc55' })
 vim.api.nvim_set_hl(0, 'diffLine', { fg = '#ffff55' })
