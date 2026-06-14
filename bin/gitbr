@@ -1,0 +1,13 @@
+#!/bin/bash
+
+export LC_ALL=C
+export LANG=C
+
+for i in $(find ~/id -name .git -maxdepth 2 | sort)
+do
+    j="${i%/.git}"
+    cd "$j"
+    # `git diff --cached` can be useful
+    printf "%60s %4s %-60s\n" "$(git branch --show-current)" "$(git diff --quiet && echo '' || echo '[CH]')" "$j"
+    cd ..
+done
