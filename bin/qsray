@@ -1,0 +1,9 @@
+#!/usr/bin/python3
+
+from urllib.parse import parse_qsl
+import sys
+
+query = sys.stdin.read().strip()
+
+for key, value in parse_qsl(query, keep_blank_values=True):
+    print(f"{key}={value}")
