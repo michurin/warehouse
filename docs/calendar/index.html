@@ -1,0 +1,81 @@
+<html>
+  <head>
+    <title>Calendar</title>
+    <style>
+body {
+  size: A4;
+  margin: 0;
+}
+
+table {
+  width: 100%;
+  height: 277mm; /* a4 */
+  table-layout: fixed;
+  border-collapse: collapse;
+}
+
+table tr {
+  height: 2.85%;
+}
+
+table td {
+  border-width: 0.2mm 0;
+  border-color: black;
+  border-style: solid;
+  padding: 0 0 0 2mm;
+  font-size: 4mm;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+  font-variant-numeric: tabular-nums;
+  vertical-align: top;
+}
+
+td.we {
+  border-width: 0.5mm 1mm;
+  padding: 0 0 0 1mm;
+}
+    </style>
+  </head>
+  <body>
+    <table></table>
+    <script>
+// <!--
+
+bt = new Date(location.hash.slice(1)).getTime()
+if (isNaN(bt)) {
+  now = new Date()
+  bt = now.getTime()
+  location.hash = '#'+now.toISOString().split('T')[0]
+  console.log('from now:', now.toISOString())
+} else {
+  console.log('from hash: ' + location.hash)
+}
+
+bt += 12*60*60*1000 // silly hack
+
+tbl = document.getElementsByTagName('table')[0]
+for (i = 0; i < 35; i++) {
+  tr = document.createElement('tr')
+  td = document.createElement('td')
+  d = new Date(bt)
+  wd = d.getDay()
+  td.innerText = d.toISOString().split('T')[0].slice(5).replace('-', '/') + ' ' + [
+    'Κυριακή',
+    'Δευτέρα',
+    'Τρίτη',
+    'Τετάρτη',
+    'Πέμπτη',
+    'Παρασκευή',
+    'Σάββατο',
+  ][wd]
+  if ((wd + 1)%7 <= 1) {
+    td.className = 'we'
+  }
+  tr.append(td)
+  tbl.append(tr)
+  bt += 24*60*60*1000
+}
+
+// -->
+    </script>
+  </body>
+</html>
