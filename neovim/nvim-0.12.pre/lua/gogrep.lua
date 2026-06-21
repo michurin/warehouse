@@ -27,7 +27,7 @@ M.gogrep_methods = {
 }
 
 M.gogrep_strings = {
-  opts = { nargs = '*' },
+  opts = { nargs = 1 }, -- all args as one including spaces
   act = function(opts)
     local directory, pattern
     if #opts.fargs == 0 then
