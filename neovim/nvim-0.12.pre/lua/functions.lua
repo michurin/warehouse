@@ -153,7 +153,8 @@ local function show_viewing_buffer(content, line)
   vim.api.nvim_set_option_value('modifiable', true, { buf = viewing_buffer })
   vim.api.nvim_buf_set_lines(viewing_buffer, 0, -1, false, content)
   vim.api.nvim_set_option_value('modifiable', false, { buf = viewing_buffer })
-  vim.api.nvim_win_set_buf(0, viewing_buffer) -- TODO in other window?
+  vim.api.nvim_win_set_buf(0, viewing_buffer)           -- TODO in other window?
+  vim.api.nvim_set_option_value('cursorline', true, {}) -- window level option, not buffer
 
   vim.api.nvim_win_set_cursor(0, { line, 0 })
   vim.fn.setpos("'<", { 0, line, 0, 0 })
