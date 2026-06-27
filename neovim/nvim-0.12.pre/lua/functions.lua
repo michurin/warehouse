@@ -510,7 +510,7 @@ M.file_search_command = {
 -- -------------------------------
 
 M.smart_open = {
-  opts = { nargs = '+', complete = 'file' },
+  opts = { nargs = 1, complete = 'file' },
   act = function(cmd)
     return function(opts)
       -- :lua x('edit', 'a.go')
