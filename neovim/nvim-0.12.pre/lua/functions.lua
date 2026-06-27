@@ -280,7 +280,24 @@ M.exec_git_diff_all = {
     end
   },
   act = function(opts)
-    local result = vim.fn.systemlist({ 'git', 'diff', '--no-prefix', '--no-color', unpack(opts.fargs) })
+    local diff = vim.fn.systemlist({ 'git', 'diff', '--no-color', '--unified=0', unpack(opts.fargs) })
+    local result = {}
+    local file
+
+    for _, line in ipairs(diff) do
+      local newfile = line:match("^%+%+%+ b/(.+)$")
+      if newfile then
+        file = newfile
+      end
+
+      table.insert(result, line)
+
+      local start = line:match("^@@ .+ %+([0-9]+)")
+      if start and file then
+        line = string.format("@@ 💾 @@ %s:%s", file, start) -- extra line with file:line
+        table.insert(result, line)
+      end
+    end
     show_viewing_buffer(result, 1)
     vim.opt_local.filetype = 'diff'
   end
