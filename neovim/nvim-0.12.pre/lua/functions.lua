@@ -137,6 +137,19 @@ M.qf_buffers = {
 
 -- -------------------------------
 
+-- TODO: do like this?
+--[[
+local name = "[OUTPUT]"
+
+local bufnr = vim.fn.bufnr(name)
+
+if bufnr == -1 then
+  bufnr = vim.api.nvim_create_buf(false, true)
+  vim.api.nvim_buf_set_name(bufnr, name)
+end
+
+vim.api.nvim_set_current_buf(bufnr)
+]] --
 local viewing_buffer = -1
 
 local function show_viewing_buffer(content, line)
