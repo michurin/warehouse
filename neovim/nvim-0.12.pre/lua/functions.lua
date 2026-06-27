@@ -513,11 +513,11 @@ M.smart_open = {
   opts = { nargs = 1, complete = 'file' },
   act = function(cmd)
     return function(opts)
-      -- :lua x('edit', 'a.go')
-      -- :lua x('edit', 'a.go:22')
-      -- :lua x('edit', 'a.go#L22')
-      -- :lua x('newtab', 'a.go#L22')
-      -- :lua x('vsplit', 'a.go#L22')
+      -- :lua require('functions').smart_open.act('edit')({args = 'a.go'})
+      -- :lua require('functions').smart_open.act('edit')({args = 'a.go:22'})
+      -- :lua require('functions').smart_open.act('edit')({args = 'a.go#L22'})
+      -- :lua require('functions').smart_open.act('newtab')({args = 'a.go#L22'})
+      -- :lua require('functions').smart_open.act('vsplit')({args = 'a.go#L22'})
       local pat = opts.args
       local file = pat
       local line = 1
