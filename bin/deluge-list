@@ -30,16 +30,16 @@ def on_connect(result):
     #print("Connected")
 
     def got_torrents(torrents):
-        for tid, t in torrents.items():
-            base = t["download_location"]
-            name = t["name"]
-            files = t.get("files", [])
-            for f in files:
-                print(f"{base}/{name}/{f['path']}") # f["path"] — related
+        for tid, t in sorted(torrents.items(), key=lambda x: x[1]["time_added"]):
+            base = t["download_location"] # absolute
+            name = t["name"] # name
+            files = t.get("files", ())
+            for f in sorted(files, key=lambda x: x["path"]):
+                print(f["path"]) # related
         client.disconnect()
         reactor.stop()
 
-    client.core.get_torrents_status({}, ["name", "download_location", "files"]).addCallback(got_torrents)
+    client.core.get_torrents_status({}, ["name", "download_location", "files", "time_added"]).addCallback(got_torrents)
 
 def on_connect_fail(failure):
     print("Connection failed:", failure)
