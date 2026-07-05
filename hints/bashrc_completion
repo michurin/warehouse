@@ -1,0 +1,18 @@
+__go_completion() {
+    if [[ $COMP_CWORD -eq 1 ]]
+    then
+        COMPREPLY=($(compgen -W "run version test mod get generate env doc build" -- "${COMP_WORDS[COMP_CWORD]}"))
+        return
+    fi
+    COMPREPLY=($(compgen -f -- "${COMP_WORDS[COMP_CWORD]}"))
+}
+
+complete -W "\`grep --color=never -oE '^[a-zA-Z0-9_.-]+:([^=]|$)' ?akefile | sed 's/[^a-zA-Z0-9_.-]*$//'\`" make
+complete -W "$(perl -ne 'print if (s/^Host\s+//)' ~/.ssh/config)" ssh
+complete -F __go_completion go
+complete -W "run version" golangci-lint
+complete -W "devices shell forward\\ tcp:8022\\ tcp:8022" adb
+complete -W "update upgrade outdated" brew
+complete -cf sudo
+
+# vi:ft=bash:
