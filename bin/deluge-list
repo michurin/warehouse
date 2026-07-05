@@ -1,0 +1,50 @@
+#!/usr/bin/env python3
+
+from deluge.ui.client import client
+from twisted.internet import reactor
+from pathlib import Path
+
+HOST = "127.0.0.1"
+PORT = 58846
+
+AUTH_FILE = Path.home() / ".config/deluge/auth"
+
+def read_auth():
+    if not AUTH_FILE.exists():
+        raise RuntimeError(f"Auth file not found: {AUTH_FILE}")
+
+    for line in AUTH_FILE.read_text().splitlines():
+        if not line.strip() or line.startswith("#"):
+            continue
+
+        user, password, level = line.split(":") # TODO consider level >= 10
+        if user == "localclient":
+            return user, password
+
+    user, password, _ = AUTH_FILE.read_text().splitlines()[0].split(":")
+    return user, password
+
+USERNAME, PASSWORD = read_auth()
+
+def on_connect(result):
+    #print("Connected")
+
+    def got_torrents(torrents):
+        for tid, t in torrents.items():
+            base = t["download_location"]
+            name = t["name"]
+            files = t.get("files", [])
+            for f in files:
+                print(f"{base}/{name}/{f['path']}") # f["path"] — related
+        client.disconnect()
+        reactor.stop()
+
+    client.core.get_torrents_status({}, ["name", "download_location", "files"]).addCallback(got_torrents)
+
+def on_connect_fail(failure):
+    print("Connection failed:", failure)
+    reactor.stop()
+
+client.connect(HOST, PORT, USERNAME, PASSWORD).addCallback(on_connect).addErrback(on_connect_fail)
+
+reactor.run()
