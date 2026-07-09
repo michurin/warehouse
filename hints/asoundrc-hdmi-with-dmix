@@ -1,0 +1,33 @@
+# mixed PCM setup: sound output can be shared by software mixing
+
+pcm.!default {
+    type plug
+    slave.pcm "dmixed"
+}
+
+pcm.dmixed {
+    type dmix
+    ipc_key 1024
+
+    slave {
+        pcm "hw:0,3"
+        channels 2
+    }
+}
+
+# direct PCM setup: only one program can use sound
+
+# pcm.!default {
+#     type hw
+#     card 0
+#     device 3
+# }
+
+# control
+
+ctl.!default {
+    type hw
+    card 0
+}
+
+# vi:ft=alsaconf:
