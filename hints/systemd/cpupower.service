@@ -1,3 +1,16 @@
+##########################################
+##                                      ##
+##  CAUTION                             ##
+##                                      ##
+##  Since perf-tools 7.x it provides    ##
+##  systemd service cpupower.service    ##
+##  Look at                             ##
+##                                      ##
+##  systemctl status cpupower           ##
+##  /etc/default/cpupower-service.conf  ##
+##                                      ##
+##########################################
+
 [Unit]
 # https://sleeplessbeastie.eu/2015/11/09/how-to-set-cpu-governor-at-boot/
 # /etc/systemd/system/michurin-cpupower.service
