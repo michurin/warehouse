@@ -1,4 +1,10 @@
-Building:
+# install
+
+```
+go install github.com/ollama/ollama@latest
+```
+
+# or build
 
 ```
 git clone https://github.com/ollama/ollama.git
@@ -7,20 +13,48 @@ go generate ./...
 go build .
 ```
 
-Running server:
+It seems master is little bit broken. Do not follow instructions
+in logs. Do something like this:
+
+```
+cmake -S llama/server --preset cpu
+cmake --build build/llama-server-cpu
+```
+
+```
+sudo pacman -S vulkan-headers
+sudo pacman -S spirv-headers
+cmake -S llama/server --preset vulkan
+cmake --build build/llama-server-vulkan
+```
+
+You may need to add swap:
+
+```
+free -h
+sudo fallocate -l 8G /swapfile
+sudo chmod 600 /swapfile
+sudo mkswap /swapfile
+sudo swapon /swapfile
+free -h
+```
+
+To avoid OOM, you may want to use `-j1`
+
+# run server
 
 ```
 ./ollama serve
 ```
 
-Command line interface:
+# command line interface
 
 ```
 ./ollama run gemma3:1b
 ./ollama run gemma3:270m
 ```
 
-OpenAI API calls:
+# OpenAI API calls
 
 ```
 curl localhost:11434/api/generate -d '{"model": "gemma3:1b", "prompt":"Why is the sky blue?"}'
@@ -29,14 +63,14 @@ curl -qs localhost:11434/v1/models | jq -r .data[].id
 curl -qs localhost:11434/api/ps | jq
 ```
 
-Where is models:
+# where is models
 
 ```
 du -h ~/.ollama
 ```
 
-References:
+# references
 
+- <https://ollama.com/search> (<https://ollama.com/library/gemma3>)
 - <https://platform.openai.com/docs/api-reference/introduction>
-- <https://ollama.com/library/gemma3>
 - <https://github.com/ollama/ollama/blob/main/docs/api.md>
