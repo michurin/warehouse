@@ -4,6 +4,7 @@
     'sektor-miras': { color: '#0f0' },
     'dauletsailauov': { color: '#f00' },
     'alexeymichurin': { color: '#fff' },
+    'thesunwave': { color: '#f0f' },
   }
   Object.values(users).forEach((u) => {
     /*
