@@ -1,9 +1,11 @@
 #!/bin/bash
 
 for i in $(
-cat <<'LIST' | fzf -m --bind ctrl-a:select-all,ctrl-d:deselect-all,ctrl-t:toggle-all
+cat <<'LIST' | grep -v '^#' | fzf -m --bind ctrl-a:select-all,ctrl-d:deselect-all,ctrl-t:toggle-all
 github.com/bufbuild/buf/...
 github.com/charmbracelet/freeze
+# otpauth -link $(cat AuthQR)
+github.com/dim13/otpauth
 github.com/fatih/gomodifytags
 github.com/fogleman/primitive
 github.com/fullstorydev/grpcurl/cmd/grpcurl
