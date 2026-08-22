@@ -35,7 +35,7 @@ M.gogrep_strings = {
       return
     end
     if #opts.fargs == 1 then
-      directory = '.'
+      directory = vim.fs.root(0, { '.git', 'go.mod', 'go.sum' }) or vim.fn.getcwd()
       pattern = opts.fargs[1]
     else
       directory, pattern = unpack(opts.fargs)
