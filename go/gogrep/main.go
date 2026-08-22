@@ -11,6 +11,7 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+	"unicode/utf8"
 
 	"golang.org/x/tools/go/packages"
 )
@@ -226,7 +227,19 @@ func findInString(root string, singleOnly bool, filter func(string) bool) []outp
 	return result
 }
 
+func fixutf(a string) string {
+	return strings.Map(func(r rune) rune {
+		if r >= ' ' && utf8.ValidRune(r) {
+			return r
+		}
+		return '-'
+	}, a)
+}
+
 func encode(r []outputDto) {
+	for i := range r {
+		r[i].Message = fixutf(r[i].Message)
+	}
 	err := json.NewEncoder(os.Stdout).Encode(r)
 	if err != nil {
 		panic(err)
