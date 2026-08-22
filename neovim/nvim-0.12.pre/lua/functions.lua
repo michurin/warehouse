@@ -293,7 +293,12 @@ M.exec_git_diff_all = {
     end
   },
   act = function(opts)
-    local diff = vim.fn.systemlist({ 'git', 'diff', '--no-color', '--unified=0', unpack(opts.fargs) })
+    local diff = vim.fn.systemlist({ 'git', 'diff', '--no-color', '--unified=0', unpack(
+      vim.tbl_map(
+        function(arg)
+          if arg == "%" then return vim.fn.expand("%:p") end
+          return arg
+        end, opts.fargs)) })
     local result = {}
     local file
 
