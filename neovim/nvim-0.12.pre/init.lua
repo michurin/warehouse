@@ -287,6 +287,11 @@ vim.keymap.set('n', '<C-]>', function()
   end)
 end)
 
+-- autoread
+
+vim.opt.autoread = true
+vim.api.nvim_create_autocmd({ 'FocusGained', 'BufEnter', 'CursorHold' }, { command = 'checktime' })
+
 -- idea
 -- do something like that
 -- nvim -o $(git diff --name-only --diff-filter=U --relative)
