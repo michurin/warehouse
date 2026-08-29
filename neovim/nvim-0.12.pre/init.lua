@@ -292,6 +292,13 @@ end)
 vim.opt.autoread = true
 vim.api.nvim_create_autocmd({ 'FocusGained', 'BufEnter', 'CursorHold' }, { command = 'checktime' })
 
+-- load QuickFix list from clipboard
+
+vim.api.nvim_create_user_command("QQ", function()
+  vim.cmd("cexpr getreg('+')")
+  vim.cmd("copen")
+end, {})
+
 -- idea
 -- do something like that
 -- nvim -o $(git diff --name-only --diff-filter=U --relative)
