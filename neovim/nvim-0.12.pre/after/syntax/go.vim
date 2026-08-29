@@ -197,6 +197,10 @@ syntax region  goComment start=+//+  end=+$+   contains=@goCommentSpell,goCommen
 syntax region  goComment start=+/\*+ end=+\*/+ contains=@goCommentSpell,goCommentTodo keepend
 
 syntax keyword goCommentTodo      contained TODO FIXME XXX TBD NOTE
+" MICHURIN
+syntax keyword goCommentTodo      contained todo fixme xxx tbd note
+syntax region  goCommentTodo start=+\*\*+ end=+\*\*+
+" /MICHURIN
 syntax region  goDirectiveComment start=+//\(line \|extern \| export\|[a-z0-9]\+:[a-z0-9]\+\)+ end=+$+ contained
 
 hi link goComment          Comment
