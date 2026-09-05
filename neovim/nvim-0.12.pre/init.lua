@@ -40,8 +40,86 @@ vim.api.nvim_create_autocmd('BufWritePre', { -- TODO move to ft
   end
 })
 
+-- smart gri
+
+local function implementation_with_smart_sort()
+  local clients = vim.lsp.get_clients({ bufnr = 0 })
+
+  if #clients == 0 then
+    vim.notify("No LSP client attached", vim.log.levels.WARN)
+    return
+  end
+
+  local params = vim.lsp.util.make_position_params(
+    0,
+    clients[1].offset_encoding
+  )
+
+  vim.lsp.buf_request_all(
+    0,
+    "textDocument/implementation",
+    params,
+    function(results)
+      local items = {}
+
+      for client_id, response in pairs(results) do
+        if response.result then
+          local client = vim.lsp.get_client_by_id(client_id)
+
+          local locations = vim.islist(response.result)
+              and response.result
+              or { response.result }
+
+          local converted = vim.lsp.util.locations_to_items(
+            locations,
+            client.offset_encoding -- TODO check nil? And what to do?
+          )
+
+          vim.list_extend(items, converted)
+        end
+      end
+
+      local function is_mock(item)
+        local path = (item.filename or ""):lower()
+
+        return path:match("/mocks?/")
+            or path:match("/tests?/")
+            or path:match("/integration/")
+            or path:match("/mock_")
+            or path:match("_mock%.go$")
+            or path:match("_test%.go$")
+      end
+
+      table.sort(items, function(a, b)
+        local am = is_mock(a)
+        local bm = is_mock(b)
+
+        if am ~= bm then
+          return not am
+        end
+
+        return a.filename < b.filename -- TODO filename or ""?
+      end)
+
+      vim.fn.setqflist({}, " ", {
+        title = "LSP implementations",
+        items = items,
+      })
+
+      vim.cmd("copen")
+    end
+  )
+end
+
+vim.keymap.set("n", "gri", implementation_with_smart_sort, {
+  desc = "LSP implementations (mocks last)",
+})
+
 --
 
+--
+
+-- Legacy. Better solution in after/ftplugin/qf.lua. But it works everywhere
 vim.keymap.set('n', ']j', F.qf_do('cnewer'), { noremap = true })
 vim.keymap.set('n', '[j', F.qf_do('colder'), { noremap = true })
 
