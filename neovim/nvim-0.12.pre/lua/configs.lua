@@ -111,19 +111,33 @@ opt.wildmenu = true -- <Tab>
 opt.wildmode = 'full,longest,noselect'
 opt.wildoptions = 'pum,tagfile,fuzzy'
 
-vim.opt.whichwrap = 'b,s,<,>,[,],h,l' -- Cursor left/right to move to the previous/next line
+opt.whichwrap = 'b,s,<,>,[,],h,l' -- Cursor left/right to move to the previous/next line
 
 opt.modeline = true
 
 vim.cmd.filetype('plugin indent on') -- Enable filetype detection, plugins, and indentation
 
-opt.langmap =
-    'ФИСВУАПРШОЛДЬТЩЗЙКЫЕГМЦЧНЯ;' ..
-    'ABCDEFGHIJKLMNOPQRSTUVWXYZ,' ..
-    'фисвуапршолдьтщзйкыегмцчня;' ..
-    'abcdefghijklmnopqrstuvwxyz,' ..
-    'ΑA,ΒB,ΨC,ΔD,ΕE,ΦF,ΓG,ΗH,ΙI,ΞJ,ΚK,ΛL,ΜM,ΝN,ΟO,ΠP,QQ,ΡR,ΣS,ΤT,ΘU,ΩV,WW,ΧX,ΥY,ΖZ,' ..
-    'αa,βb,ψc,δd,εe,φf,γg,ηh,ιi,ξj,κk,λl,μm,νn,οo,πp,qq,ρr,σs,τt,θu,ωv,ςw,χx,υy,ζz'
+opt.langmap = {
+  -- Russian lowercase
+  'йq', 'цw', 'уe', 'кr', 'еt', 'нy', 'гu', 'шi', 'щo', 'зp',
+  'фa', 'ыs', 'вd', 'аf', 'пg', 'рh', 'оj', 'лk', 'дl',
+  'яz', 'чx', 'сc', 'мv', 'иb', 'тn', 'ьm',
+
+  -- Russian uppercase
+  'ЙQ', 'ЦW', 'УE', 'КR', 'ЕT', 'НY', 'ГU', 'ШI', 'ЩO', 'ЗP',
+  'ФA', 'ЫS', 'ВD', 'АF', 'ПG', 'РH', 'ОJ', 'ЛK', 'ДL',
+  'ЯZ', 'ЧX', 'СC', 'МV', 'ИB', 'ТN', 'ЬM',
+
+  -- Greek lowercase
+  'ςw', 'εe', 'ρr', 'τt', 'υy', 'θu', 'ιi', 'οo', 'πp',
+  'αa', 'σs', 'δd', 'φf', 'γg', 'ηh', 'ξj', 'κk', 'λl',
+  'ζz', 'χx', 'ψc', 'ωv', 'βb', 'νn', 'μm',
+
+  -- Greek uppercase
+  'ΣS', 'ΕE', 'ΡR', 'ΤT', 'ΥY', 'ΘU', 'ΙI', 'ΟO', 'ΠP',
+  'ΑA', 'ΣS', 'ΔD', 'ΦF', 'ΓG', 'ΗH', 'ΞJ', 'ΚK', 'ΛL',
+  'ΖZ', 'ΧX', 'ΨC', 'ΩV', 'ΒB', 'ΝN', 'ΜM',
+}
 -- TODO not for all ft: vim.opt.iskeyword = '@,48-57,_,192-255,.,-' -- extra `.` and `-`
 
 -- COLORS
