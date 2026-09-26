@@ -4,6 +4,7 @@ opt.guicursor = 'n-c-sm:block,i-ci-ve:ver25,r-cr-o-v:hor20'
 opt.signcolumn = 'number' -- Always show sign column
 opt.termguicolors = true -- Enable true colors
 opt.ignorecase = true -- Ignore case in search
+opt.smartcase = true -- Smart case works only with ignorecase
 opt.swapfile = false -- Disable swap files
 opt.autoindent = true -- Enable auto indentation
 opt.expandtab = false
