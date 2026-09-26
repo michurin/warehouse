@@ -57,6 +57,7 @@ vim.opt_local.tabstop = 1 -- just to save space
 vim.opt_local.listchars = 'tab:  '
 vim.opt_local.number = false
 vim.opt_local.cursorline = true
+vim.opt_local.statusline = "%{get(w:, 'quickfix_title', expand('%t'))} %=%-15(%l,%c%V%) %P"
 
 vim.keymap.set('n', '<C-i>', F.qf_do('cnewer'), { noremap = true, buffer = 0 })
 vim.keymap.set('n', '<C-o>', F.qf_do('colder'), { noremap = true, buffer = 0 })
