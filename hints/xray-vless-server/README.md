@@ -41,3 +41,27 @@ https://github.com/wi1dcard/v2ray-exporter
 systemctl daemon-reload
 systemctl list-units
 ```
+
+# Read metrics
+
+```
+git clone https://github.com/fullstorydev/grpcurl.git
+cd grpcurl/
+go build ./cmd/...
+
+GOOS=linux GOARCH=386 go build -o grpcurl.i386 ./cmd/...
+```
+
+Just idea:
+
+```
+for t in uplink downlink
+do
+  m="inbound>>>vpn>>>traffic>>>$t"
+  o='xray.app.stats.command.StatsService/GetStats'
+  addr='127.0.0.1:442'
+  data='{"name":"'"$m"'","reset":false}'
+  echo "$t $(./grpcurl.i386 -plaintext -d "$data" "$addr" "$o" | jq -r .stat.value)" |
+  perl -pe 's/(\d)(\d{9}[^\d])/\1_\2/;s/(\d)(\d{6}[^\d])/\1_\2/;s/link//;s/down/dn/;s{ }{"."x(21-length($_))}e;s/ /./g'
+done
+```
