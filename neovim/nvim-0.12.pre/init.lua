@@ -40,79 +40,116 @@ vim.api.nvim_create_autocmd('BufWritePre', { -- TODO move to ft
   end
 })
 
--- smart gri
+-- smart gri/grr
 
-local function implementation_with_smart_sort()
-  local clients = vim.lsp.get_clients({ bufnr = 0 })
+local function is_mock(item)
+  local path = (item.filename or ""):lower()
 
-  if #clients == 0 then
-    vim.notify("No LSP client attached", vim.log.levels.WARN)
-    return
-  end
-
-  local params = vim.lsp.util.make_position_params(
-    0,
-    clients[1].offset_encoding
-  )
-
-  vim.lsp.buf_request_all(
-    0,
-    "textDocument/implementation",
-    params,
-    function(results)
-      local items = {}
-
-      for client_id, response in pairs(results) do
-        if response.result then
-          local client = vim.lsp.get_client_by_id(client_id)
-
-          local locations = vim.islist(response.result)
-              and response.result
-              or { response.result }
-
-          local converted = vim.lsp.util.locations_to_items(
-            locations,
-            client.offset_encoding -- TODO check nil? And what to do?
-          )
-
-          vim.list_extend(items, converted)
-        end
-      end
-
-      local function is_mock(item)
-        local path = (item.filename or ""):lower()
-
-        return path:match("/mocks?/")
-            or path:match("/tests?/")
-            or path:match("/integration/")
-            or path:match("/mock_")
-            or path:match("_mock%.go$")
-            or path:match("_test%.go$")
-      end
-
-      table.sort(items, function(a, b)
-        local am = is_mock(a)
-        local bm = is_mock(b)
-
-        if am ~= bm then
-          return not am
-        end
-
-        return a.filename < b.filename -- TODO filename or ""?
-      end)
-
-      vim.fn.setqflist({}, " ", {
-        title = "LSP implementations",
-        items = items,
-      })
-
-      vim.cmd("copen")
-    end
-  )
+  return path:match("/mocks?/")
+      or path:match("/tests?/")
+      or path:match("/integration/")
+      or path:match("/mock_")
+      or path:match("_mock%.go$")
+      or path:match("_test%.go$")
 end
 
-vim.keymap.set("n", "gri", implementation_with_smart_sort, {
+local function is_func(item)
+  return (item.text or ""):match("^func") ~= nil
+end
+
+-- Requests `method` from every attached client, merges the locations into one
+-- quickfix list and pushes mocks/tests to the bottom.
+local function locations_with_smart_sort(method, title, extra_params)
+  return function()
+    local clients = vim.lsp.get_clients({ bufnr = 0, method = method })
+
+    if #clients == 0 then
+      vim.notify("No LSP client supporting " .. method, vim.log.levels.WARN)
+      return
+    end
+
+    local pattern = vim.fn.expand("<cword>")
+
+    vim.lsp.buf_request_all(
+      0,
+      method,
+      function(client) -- per client: its own offset_encoding
+        local params = vim.lsp.util.make_position_params(0, client.offset_encoding)
+
+        return vim.tbl_extend("force", params, extra_params or {})
+      end,
+      function(results)
+        local items = {}
+
+        for client_id, response in pairs(results) do
+          local client = vim.lsp.get_client_by_id(client_id)
+
+          if response.result and client then
+            local locations = vim.islist(response.result)
+                and response.result
+                or { response.result }
+
+            local converted = vim.lsp.util.locations_to_items(
+              locations,
+              client.offset_encoding
+            )
+
+            vim.list_extend(items, converted)
+          end
+        end
+
+        if #items == 0 then
+          vim.notify("No results for " .. method, vim.log.levels.WARN)
+          return
+        end
+
+        table.sort(items, function(a, b)
+          local am = is_mock(a)
+          local bm = is_mock(b)
+
+          if am ~= bm then
+            return not am
+          end
+
+          local af = is_func(a)
+          local bf = is_func(b)
+
+          if af ~= bf then
+            return af
+          end
+
+          if a.filename ~= b.filename then
+            return (a.filename or "") < (b.filename or "")
+          end
+
+          return (a.lnum or 0) < (b.lnum or 0)
+        end)
+
+        vim.fn.setqflist({}, " ", {
+          title = title,
+          items = items,
+        })
+
+        vim.cmd("copen")
+        vim.fn.matchadd("Title", vim.fn.escape(pattern, [[\.^$*~[]]))
+      end
+    )
+  end
+end
+
+vim.keymap.set("n", "gri", locations_with_smart_sort(
+  "textDocument/implementation",
+  "LSP implementations"
+), {
   desc = "LSP implementations (mocks last)",
+})
+
+vim.keymap.set("n", "grr", locations_with_smart_sort(
+  "textDocument/references",
+  "LSP references",
+  { context = { includeDeclaration = true } }
+), {
+  desc = "LSP references (mocks last)",
 })
 
 --
