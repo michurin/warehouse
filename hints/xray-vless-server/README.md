@@ -18,6 +18,12 @@ Android cross compilation example:
 GOARCH='arm64' GOARM64='v8.0' GOOS='android' go build -o v2ray.arm ./main
 ```
 
+For lowend i386 linux box:
+
+```
+GOOS=linux GOARCH=386 go build -o v2ray.i386 ./main
+```
+
 # Commands to configure
 
 ```
