@@ -1,8 +1,8 @@
 module x
 
-go 1.25.0
+go 1.27.1
 
-require modernc.org/tk9.0 v1.75.4
+require modernc.org/tk9.0 v1.80.0
 
 require (
 	github.com/adrg/xdg v0.5.3 // indirect
@@ -16,33 +16,33 @@ require (
 	github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec // indirect
 	golang.org/x/image v0.36.0 // indirect
 	golang.org/x/net v0.50.0 // indirect
-	golang.org/x/sys v0.44.0 // indirect
+	golang.org/x/sys v0.47.0 // indirect
 	modernc.org/fileutil v1.4.0 // indirect
 	modernc.org/fsm v1.3.2 // indirect
-	modernc.org/gc/v3 v3.1.4 // indirect
-	modernc.org/knuth v0.5.5 // indirect
-	modernc.org/libX11 v0.11.31 // indirect
-	modernc.org/libXau v0.9.20 // indirect
+	modernc.org/gc/v3 v3.1.5 // indirect
+	modernc.org/knuth v0.6.0 // indirect
+	modernc.org/libX11 v0.11.32 // indirect
+	modernc.org/libXau v0.9.21 // indirect
 	modernc.org/libXdmcp v0.12.24 // indirect
-	modernc.org/libXft v0.10.55 // indirect
+	modernc.org/libXft v0.10.61 // indirect
 	modernc.org/libXrender v0.9.26 // indirect
 	modernc.org/libbsd v0.11.17 // indirect
-	modernc.org/libc v1.73.4 // indirect
-	modernc.org/libexpat v0.10.26 // indirect
-	modernc.org/libfontconfig v0.8.16 // indirect
-	modernc.org/libfreetype v0.9.29 // indirect
+	modernc.org/libc v1.75.6 // indirect
+	modernc.org/libexpat v0.10.27 // indirect
+	modernc.org/libfontconfig v0.8.17 // indirect
+	modernc.org/libfreetype v0.9.30 // indirect
 	modernc.org/libmd v0.12.29 // indirect
-	modernc.org/libtcl9.0 v0.17.9 // indirect
-	modernc.org/libtk9.0 v0.17.9 // indirect
-	modernc.org/libxcb v0.12.12 // indirect
-	modernc.org/libz v0.17.4 // indirect
+	modernc.org/libtcl9.0 v0.18.0 // indirect
+	modernc.org/libtk9.0 v0.19.0 // indirect
+	modernc.org/libxcb v0.12.13 // indirect
+	modernc.org/libz v0.18.0 // indirect
 	modernc.org/mathutil v1.7.1 // indirect
-	modernc.org/memory v1.11.0 // indirect
+	modernc.org/memory v1.12.1 // indirect
 	modernc.org/ngrab v0.1.0 // indirect
-	modernc.org/rec v0.3.9 // indirect
+	modernc.org/rec v0.3.10 // indirect
 	modernc.org/regexp v1.7.10 // indirect
 	modernc.org/sortutil v1.2.1 // indirect
 	modernc.org/strutil v1.2.1 // indirect
-	modernc.org/tcl9.0 v0.17.11 // indirect
+	modernc.org/tcl9.0 v0.18.0 // indirect
 	modernc.org/token v1.1.0 // indirect
 )
