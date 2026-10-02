@@ -1,7 +1,16 @@
 #!/bin/sh
 
-jq -s -r '
+jq -s -r --arg home "$HOME" '
   ["PID", "CWD", "NAME"],
-  (.[] | [.pid, .cwd, .name])
+  (.[] |
+    [
+      .pid,
+      (if .cwd | startswith($home)
+       then "~" + .cwd[$home|length:]
+       else .cwd
+       end),
+      .name
+    ]
+  )
   | @tsv
 ' ~/.claude/sessions/*.json
