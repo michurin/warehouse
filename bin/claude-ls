@@ -1,0 +1,7 @@
+#!/bin/sh
+
+jq -s -r '
+  ["PID", "CWD", "NAME"],
+  (.[] | [.pid, .cwd, .name])
+  | @tsv
+' ~/.claude/sessions/*.json
