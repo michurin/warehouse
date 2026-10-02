@@ -19,8 +19,9 @@ floating_modifier $mod
 # start applications
 mode "start" {
     bindsym Return mode "default"; exec --no-startup-id xterm -fa 'JetBrains Mono' -fs 14 -fg '#777777' -bg '#000000'
-    bindsym b mode "default"; exec --no-startup-id google-chrome-stable
-    bindsym i mode "default"; exec --no-startup-id google-chrome-stable --proxy-server='socks://127.0.0.1:1080' --user-data-dir=$HOME/.config/chrome-id
+    bindsym b mode "default"; exec --no-startup-id systemd-run --user --scope -p MemoryMax=3G -p MemorySwapMax=3G google-chrome-stable
+    bindsym i mode "default"; exec --no-startup-id systemd-run --user --scope -p MemoryMax=3G -p MemorySwapMax=3G google-chrome-stable --user-data-dir=$HOME/.config/chrome-id --proxy-server='socks://127.0.0.1:1080'
+    bindsym c mode "default"; exec --no-startup-id systemd-run --user --scope -p MemoryMax=3G -p MemorySwapMax=3G google-chrome-stable --user-data-dir=$HOME/.config/chrome-cy
     bindsym g mode "default"; exec --no-startup-id gimp
     bindsym d mode "default"; exec --no-startup-id gzdoom
     bindsym t mode "default"; exec --no-startup-id Telegram
