@@ -1,0 +1,187 @@
+#!/usr/bin/env python3
+
+import sys
+import json
+from pathlib import Path
+
+
+CLAUDE_DIR = Path.home() / ".claude" / "projects"
+
+
+def usage():
+    print("""
+Claude session exporter
+
+Usage:
+
+  clex "session name"
+  clex "session name" output.md
+
+Examples:
+
+  clex "payment-api"
+  clex "payment-api" payment-api.md
+
+Hint: say and random session name to see a list of all available sessions.
+""")
+
+
+def find_sessions():
+    sessions = []
+
+    if not CLAUDE_DIR.exists():
+        return sessions
+
+    for path in CLAUDE_DIR.rglob("*.jsonl"):
+        try:
+            # Read enough of the file to find metadata.
+            with path.open("r", encoding="utf-8") as f:
+                for line in f:
+                    try:
+                        obj = json.loads(line)
+                    except Exception:
+                        continue
+
+                    for k in ("customTitle", "sessionTitle", "name", "cwd"): # TODO That seems pretty inefficient
+                        name = obj.get(k)
+                        if name:
+                            sessions.append((name, path))
+                            sessions.append((f'{name}:{k}', path))
+
+        except (OSError, UnicodeDecodeError):
+            continue
+
+    return sessions
+
+
+def text_from_content(content):
+    """Extract human-readable text from Claude message content."""
+
+    if isinstance(content, str):
+        return content
+
+    if not isinstance(content, list):
+        return ""
+
+    result = []
+
+    for item in content:
+        if not isinstance(item, dict):
+            continue
+
+        # Normal text block
+        if item.get("type") == "text":
+            text = item.get("text")
+            if text:
+                result.append(text)
+
+        # Some versions/records may store text differently
+        elif "text" in item and isinstance(item["text"], str):
+            result.append(item["text"])
+
+    return "\n".join(result)
+
+
+def extract_messages(path):
+    messages = []
+
+    with path.open("r", encoding="utf-8") as f:
+        for line in f:
+            try:
+                obj = json.loads(line)
+            except Exception:
+                continue
+
+            msg = obj.get("message")
+
+            if not isinstance(msg, dict):
+                continue
+
+            role = msg.get("role")
+
+            if role not in ("user", "assistant"):
+                continue
+
+            content = text_from_content(msg.get("content"))
+
+            if not content.strip():
+                continue
+
+            # Skip obvious tool-only assistant messages
+            messages.append((role, content))
+
+    return messages
+
+
+def main():
+    if len(sys.argv) < 2:
+        usage()
+        sys.exit(1)
+
+    wanted = sys.argv[1]
+    output = Path(sys.argv[2]) if len(sys.argv) >= 3 else Path(
+        wanted.replace("/", "_").replace(" ", "_") + ".md"
+    )
+
+    sessions = find_sessions()
+
+    matches = [
+        (name, path)
+        for name, path in sessions
+        if name.lower() == wanted.lower()
+    ]
+
+    if not matches:
+        print(f'No session found with name: "{wanted}"', file=sys.stderr)
+        print("\nAvailable named sessions:", file=sys.stderr)
+
+        names = sorted(set(name for name, _ in sessions))
+
+        for name in names:
+            print(f"  {name}", file=sys.stderr)
+
+        sys.exit(1)
+
+    if len(matches) > 1:
+        print(f'Multiple sessions found with name "{wanted}":', file=sys.stderr)
+
+        for i, (_, path) in enumerate(matches, 1):
+            print(f"  {i}. {path}", file=sys.stderr)
+
+        print(
+            "\nRename the sessions so their names are unique.",
+            file=sys.stderr
+        )
+        sys.exit(1)
+
+    name, path = matches[0]
+
+    messages = extract_messages(path)
+
+    if not messages:
+        print("Session found, but no user/assistant messages were extracted.",
+              file=sys.stderr)
+        sys.exit(1)
+
+    with output.open("w", encoding="utf-8") as f:
+        f.write(f"# Claude Code session: {name}\n\n")
+        f.write(f"Source: `{path}`\n\n")
+        f.write("---\n\n")
+
+        for role, content in messages:
+            if role == "user":
+                f.write("## User\n\n")
+            else:
+                f.write("## Claude\n\n")
+
+            f.write(content.rstrip())
+            f.write("\n\n---\n\n")
+
+    print(f"Exported {len(messages)} messages")
+    print(f"Session: {name}")
+    print(f"Source:  {path}")
+    print(f"Output:  {output}")
+
+
+if __name__ == "__main__":
+    main()
