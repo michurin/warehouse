@@ -1,5 +1,10 @@
 # https://i3wm.org/docs/userguide.html
 
+# -xrm can help with focus loosing bug
+set $exec_xterm exec --no-startup-id xterm -xrm 'xterm*allowXIM: false' -fa 'JetBrains Mono' -fs 24 -fg '#777777' -bg '#000000'
+set $exec_limit exec --no-startup-id systemd-run --user --scope -p MemoryMax=3G -p MemorySwapMax=3G
+set $cmd_chrome google-chrome-stable --force-device-scale-factor=0.8
+
 font pango:DejaVu Sans Mono 8
 
 for_window [all] title_format "[%class] <b>%title</b>"
@@ -18,10 +23,10 @@ floating_modifier $mod
 
 # start applications
 mode "start" {
-    bindsym Return mode "default"; exec --no-startup-id xterm -fa 'JetBrains Mono' -fs 14 -fg '#777777' -bg '#000000'
-    bindsym b mode "default"; exec --no-startup-id systemd-run --user --scope -p MemoryMax=3G -p MemorySwapMax=3G google-chrome-stable
-    bindsym i mode "default"; exec --no-startup-id systemd-run --user --scope -p MemoryMax=3G -p MemorySwapMax=3G google-chrome-stable --user-data-dir=$HOME/.config/chrome-id --proxy-server='socks://127.0.0.1:1080'
-    bindsym c mode "default"; exec --no-startup-id systemd-run --user --scope -p MemoryMax=3G -p MemorySwapMax=3G google-chrome-stable --user-data-dir=$HOME/.config/chrome-cy
+    bindsym Return mode "default"; $exec_xterm
+    bindsym b mode "default"; $exec_limit $cmd_chrome
+    bindsym i mode "default"; $exec_limit $cmd_chrome --user-data-dir=$HOME/.config/chrome-id --proxy-server='socks://127.0.0.1:1080'
+    bindsym c mode "default"; $exec_limit $cmd_chrome --user-data-dir=$HOME/.config/chrome-cy
     bindsym g mode "default"; exec --no-startup-id gimp
     bindsym d mode "default"; exec --no-startup-id gzdoom
     bindsym t mode "default"; exec --no-startup-id Telegram
@@ -34,7 +39,10 @@ mode "start" {
 bindsym $mod+Return mode "start"
 bindsym $mod+BackSpace mode "start"
 
-bindsym $mod+F1 exec --no-startup-id xterm -fa 'JetBrains Mono' -fs 14 -fg '#777777' -bg '#000000'
+bindsym $mod+F1 $exec_xterm
+
+# Hmm... Force i3 to give focus to input window
+focus_on_window_activation focus
 
 # kill focused window
 bindsym $mod+Escape kill
