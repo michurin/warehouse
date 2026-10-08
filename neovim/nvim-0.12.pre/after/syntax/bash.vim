@@ -9,10 +9,10 @@ syntax region xBashJsonRegin
 syntax match xBashJsonKey /"\%([^"\\]\|\\.\)*"\ze:/ contained
 syntax match xBashJsonPunctuation /[{},:\[\]]/ contained
 
-syntax match xBashSqlComment /--.*/ containedin=shSingleQuote
-syntax region xBashSqlCommentBlock start=/\/\*/ end=/\*\// containedin=shSingleQuote
-syntax match xBashCppComment /\/\/.*/ containedin=shSingleQuote
-syntax match xBashBashComment /#.*/ containedin=shSingleQuote
+syntax match xBashSqlComment /--.*/ contained containedin=shSingleQuote
+syntax region xBashSqlCommentBlock start=/\/\*/ end=/\*\// contained containedin=shSingleQuote
+syntax match xBashCppComment /\/\/.*/ contained containedin=shSingleQuote
+syntax match xBashBashComment /#.*/ contained containedin=shSingleQuote
 
 highlight xBashJsonKey ctermfg=green guifg=green
 highlight xBashJsonPunctuation ctermfg=lightgreen guifg=lightgreen
