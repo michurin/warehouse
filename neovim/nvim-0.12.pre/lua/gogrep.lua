@@ -1,5 +1,8 @@
 -- go install github.com/michurin/warehouse/go/gogrep@latest
 
+local QS = require('qfsort')
+local QH = require('qfhl')
+
 local M = {}
 
 M.gogrep_methods = {
@@ -19,7 +22,7 @@ M.gogrep_methods = {
       end
 
       vim.schedule(function()
-        vim.fn.setqflist(items, 'r')
+        vim.fn.setqflist({}, ' ', { title = 'gogrep methods (' .. type_name .. ')', items = items })
         vim.cmd('copen')
       end)
     end)
@@ -55,8 +58,12 @@ M.gogrep_strings = {
           return
         end
 
-        vim.fn.setqflist(items, 'r')
+        QS.sort(items) -- mocks/tests last, keeping matchfuzzy order
+
+        vim.fn.setqflist({}, ' ', { title = 'gogrep strings (' .. pattern .. ')', items = items })
         vim.cmd('copen')
+
+        QH.set(QH.words(pattern))
       end)
     end)
   end

@@ -3,6 +3,8 @@ local F = require('functions')
 local S = require('sync_imports')
 local RG = require('rg')
 local GG = require('gogrep')
+local QS = require('qfsort')
+local QH = require('qfhl')
 local CustomSelect = require('select')
 local CustomSpelling = require('spell')
 
@@ -41,21 +43,6 @@ vim.api.nvim_create_autocmd('BufWritePre', { -- TODO move to ft
 })
 
 -- smart gri/grr
-
-local function is_mock(item)
-  local path = (item.filename or ""):lower()
-
-  return path:match("/mocks?/")
-      or path:match("/tests?/")
-      or path:match("/integration/")
-      or path:match("/mock_")
-      or path:match("_mock%.go$")
-      or path:match("_test%.go$")
-end
-
-local function is_func(item)
-  return (item.text or ""):match("^func") ~= nil
-end
 
 -- Requests `method` from every attached client, merges the locations into one
 -- quickfix list and pushes mocks/tests to the bottom.
@@ -103,27 +90,7 @@ local function locations_with_smart_sort(method, title, extra_params)
           return
         end
 
-        table.sort(items, function(a, b)
-          local am = is_mock(a)
-          local bm = is_mock(b)
-
-          if am ~= bm then
-            return not am
-          end
-
-          local af = is_func(a)
-          local bf = is_func(b)
-
-          if af ~= bf then
-            return af
-          end
-
-          if a.filename ~= b.filename then
-            return (a.filename or "") < (b.filename or "")
-          end
-
-          return (a.lnum or 0) < (b.lnum or 0)
-        end)
+        QS.sort(items, { by_func = true, by_location = true })
 
         vim.fn.setqflist({}, " ", {
           title = title,
@@ -131,7 +98,7 @@ local function locations_with_smart_sort(method, title, extra_params)
         })
 
         vim.cmd("copen")
-        vim.fn.matchadd("Title", vim.fn.escape(pattern, [[\.^$*~[]]))
+        QH.set(QH.literal(pattern))
       end
     )
   end
@@ -219,9 +186,9 @@ vim.api.nvim_create_user_command('FG', F.gitls_search_command.act, F.gitls_searc
 vim.api.nvim_create_user_command('FB', function() print("TODO FIND BUFFER") end, {})
 
 -- grep: find by content
-vim.api.nvim_create_user_command('G', RG.search(), RG.opts)
-vim.api.nvim_create_user_command('GL', RG.search('--glob', '*.go', '--glob', '!*_test.go'), RG.opts) -- TODO dedup
-vim.api.nvim_create_user_command('GT', RG.search('--glob', '*_test.go'), RG.opts)
+vim.api.nvim_create_user_command('G', RG.search({}), RG.opts)
+vim.api.nvim_create_user_command('GL', RG.search({ by_func = true }, '--glob', '*.go', '--glob', '!*_test.go'), RG.opts) -- TODO dedup
+vim.api.nvim_create_user_command('GT', RG.search({}, '--glob', '*_test.go'), RG.opts)
 vim.api.nvim_create_user_command('GB', function(opts)
   local pattern = opts.args
   local bufs = vim.api.nvim_list_bufs()
