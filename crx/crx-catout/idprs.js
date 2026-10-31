@@ -28,6 +28,14 @@
       console.log('skip page')
       return
     }
+    document.querySelectorAll('a').forEach((sec) => { // oh. Supernaive approach
+      const u = users[sec.innerText]
+      if (u) {
+        sec.style = u.style
+      }
+    })
+    /*
+    // --- changed at Oct 2026 ---
     document.querySelectorAll('.js-issue-row').forEach((sec) => {
       var type = 'none'
       var user = ''
@@ -69,6 +77,7 @@
         }
       }
     })
+    */
   }
   hl()
   setTimeout(hl, 200)
