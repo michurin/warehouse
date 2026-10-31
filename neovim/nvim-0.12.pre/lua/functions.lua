@@ -275,7 +275,7 @@ function M.exec(cmd_fetcherer)
       exec_bash(cmd_fetcherer)
       return
     end
-    show_viewing_buffer({ 'Unknown type: ' .. ft }, 1)
+    show_viewing_buffer({ 'Unknown type: ' .. ft .. ' (valid types: sh, bash, sql)' }, 1)
   end
 end
 
